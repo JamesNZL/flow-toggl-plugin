@@ -1,0 +1,32 @@
+{
+	"name": "flow-toggl-plugin",
+	"type": "module",
+	"version": "0.0.0",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/JamesNZL/flow-toggl-plugin.git"
+	},
+	"scripts": {
+		"release": "standard-version --sign --commit-all",
+		"publish": "git push --follow-tags origin main"
+	},
+	"standard-version": {
+		"scripts": {
+			"prerelease": "pnpm update -D"
+		},
+		"bumpFiles": [
+			{
+				"filename": "package.json",
+				"type": "json"
+			},
+			{
+				"filename": "package-lock.json",
+				"type": "json"
+			},
+			{
+				"filename": "plugin.json",
+				"type": "json"
+			}
+		]
+	}
+}

@@ -7,6 +7,8 @@
 		"url": "https://github.com/JamesNZL/flow-toggl-plugin.git"
 	},
 	"scripts": {
+		"dev": "tsc --watch -p ./src/tsconfig.json",
+		"build": "tsc -p ./src/tsconfig.json",
 		"release": "standard-version --sign --commit-all",
 		"publish": "git push --follow-tags origin main"
 	},

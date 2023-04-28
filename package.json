@@ -1,6 +1,5 @@
 {
 	"name": "flow-toggl-plugin",
-	"type": "module",
 	"version": "0.0.0",
 	"repository": {
 		"type": "git",

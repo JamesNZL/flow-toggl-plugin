@@ -15,7 +15,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 	/// </summary>
 	public class TogglTrack : IPlugin, ISettingProvider
 	{
-		private PluginInitContext _contex;
+		private PluginInitContext _context;
 		private Settings _settings;
 		private static SettingsViewModel _viewModel;
 
@@ -26,7 +26,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		/// <param name="context"></param>
 		public void Init(PluginInitContext context)
 		{
-			this._contex = context;
+			this._context = context;
 			this._settings = context.API.LoadSettingJsonStorage<Settings>();
 			TogglTrack._viewModel = new SettingsViewModel(this._settings);
 		}
@@ -47,10 +47,10 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					Title = "ERROR: Missing API token",
 					SubTitle = "Configure Toggl Track API token in Flow Launcher settings",
-					IcoPath = this._contex.CurrentPluginMetadata.IcoPath,
+					IcoPath = this._context.CurrentPluginMetadata.IcoPath,
 					Action = c =>
 					{
-						this._contex.API.OpenSettingDialog();
+						this._context.API.OpenSettingDialog();
 						return true;
 					},
 				});
@@ -63,13 +63,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			{
 				Title = "Start a new time entry",
 				SubTitle = query.Search,
-				IcoPath = this._contex.CurrentPluginMetadata.IcoPath,
+				IcoPath = this._context.CurrentPluginMetadata.IcoPath,
 			});
 			results.Add(new Result
 			{
 				Title = "Stop current time entry",
 				SubTitle = "0:52:43 Flow Launcher Toggl plugin",
-				IcoPath = this._contex.CurrentPluginMetadata.IcoPath,
+				IcoPath = this._context.CurrentPluginMetadata.IcoPath,
 			});
 
 			return results;

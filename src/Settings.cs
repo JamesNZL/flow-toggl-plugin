@@ -5,6 +5,10 @@ namespace Flow.Launcher.Plugin.TogglTrack
 	/// </Summary>
 	public class Settings
 	{
+		internal const string StartCommand = "start";
+		internal const string StopCommand = "stop";
+		internal const string ContinueCommand = "continue";
+
 		/// <Summary>
 		/// Toggl Track API Token.
 		/// </Summary>

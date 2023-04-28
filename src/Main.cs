@@ -1,10 +1,7 @@
 
-using System.Runtime.InteropServices;
-using System.Diagnostics;
-using System.Windows;
 using System.Windows.Controls;
-using System.Text;
 using System.Collections.Generic;
+using System.Linq;
 using Flow.Launcher.Plugin.TogglTrack.ViewModels;
 using Flow.Launcher.Plugin.TogglTrack.Views;
 
@@ -13,11 +10,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 	/// <summary>
 	/// Flow Launcher Toggl Track plugin logic.
 	/// </summary>
-	public class TogglTrack : IPlugin, ISettingProvider
+	public class Main : IPlugin, ISettingProvider
 	{
+		private static SettingsViewModel _viewModel;
 		private PluginInitContext _context;
 		private Settings _settings;
-		private static SettingsViewModel _viewModel;
+
+		internal TogglTrack togglTrack;
 
 		/// <summary>
 		/// Runs on plugin initialisation.
@@ -28,7 +27,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		{
 			this._context = context;
 			this._settings = context.API.LoadSettingJsonStorage<Settings>();
-			TogglTrack._viewModel = new SettingsViewModel(this._settings);
+			Main._viewModel = new SettingsViewModel(this._settings);
+
+			this.togglTrack = new TogglTrack(this._context, this._settings);
+
+			// TODO: inspect API key?
 		}
 
 		/// <summary>
@@ -38,41 +41,26 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		/// <returns></returns>
 		public List<Result> Query(Query query)
 		{
-			var results = new List<Result>();
-
 			// TODO: properly check valid API key
 			if (string.IsNullOrWhiteSpace(this._settings.ApiToken))
 			{
-				results.Add(new Result
-				{
-					Title = "ERROR: Missing API token",
-					SubTitle = "Configure Toggl Track API token in Flow Launcher settings",
-					IcoPath = this._context.CurrentPluginMetadata.IcoPath,
-					Action = c =>
-					{
-						this._context.API.OpenSettingDialog();
-						return true;
-					},
-				});
-
-				return results;
+				return togglTrack.NotifyMissingToken();
 			}
 
-			// TODO: switch selected result on 'start' and 'stop'
-			results.Add(new Result
+			if (string.IsNullOrWhiteSpace(query.Search))
 			{
-				Title = "Start a new time entry",
-				SubTitle = query.Search,
-				IcoPath = this._context.CurrentPluginMetadata.IcoPath,
-			});
-			results.Add(new Result
-			{
-				Title = "Stop current time entry",
-				SubTitle = "0:52:43 Flow Launcher Toggl plugin",
-				IcoPath = this._context.CurrentPluginMetadata.IcoPath,
-			});
+				return togglTrack.GetDefaultHotKeys();
+			}
 
-			return results;
+			return query.FirstSearch.ToLower() switch
+			{
+				_ => togglTrack.GetDefaultHotKeys()
+					.Where(hotkey =>
+					{
+						return this._context.API.FuzzySearch(query.Search, hotkey.Title).Score > 0;
+					}
+					).ToList()
+			};
 		}
 
 		/// <summary>
@@ -81,7 +69,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		/// <returns></returns>
 		public Control CreateSettingPanel()
 		{
-			return new TogglTrackSettings(TogglTrack._viewModel);
+			return new TogglTrackSettings(Main._viewModel);
 		}
 	}
 }

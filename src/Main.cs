@@ -2,6 +2,8 @@
 using System.Windows.Controls;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Flow.Launcher.Plugin.TogglTrack.ViewModels;
 using Flow.Launcher.Plugin.TogglTrack.Views;
 
@@ -10,7 +12,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 	/// <summary>
 	/// Flow Launcher Toggl Track plugin logic.
 	/// </summary>
-	public class Main : IPlugin, ISettingProvider
+	public class Main : IAsyncPlugin, ISettingProvider
 	{
 		private static SettingsViewModel _viewModel;
 		private PluginInitContext _context;
@@ -23,7 +25,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		/// Expensive operations should be performed here.
 		/// </summary>
 		/// <param name="context"></param>
-		public void Init(PluginInitContext context)
+		public async Task InitAsync(PluginInitContext context)
 		{
 			this._context = context;
 			this._settings = context.API.LoadSettingJsonStorage<Settings>();
@@ -31,7 +33,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			this.togglTrack = new TogglTrack(this._context, this._settings);
 
-			// TODO: inspect API key?
+			await Task.CompletedTask;
 		}
 
 		/// <summary>
@@ -39,7 +41,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		/// </summary>
 		/// <param name="query"></param>
 		/// <returns></returns>
-		public List<Result> Query(Query query)
+		public async Task<List<Result>> QueryAsync(Query query, CancellationToken token)
 		{
 			// TODO: properly check valid API key
 			if (string.IsNullOrWhiteSpace(this._settings.ApiToken))
@@ -54,6 +56,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			return query.FirstSearch.ToLower() switch
 			{
+				Settings.StopCommand => await togglTrack.RequestStopEntry(token),
 				_ => togglTrack.GetDefaultHotKeys()
 					.Where(hotkey =>
 					{

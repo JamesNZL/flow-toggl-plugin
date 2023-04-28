@@ -1,12 +1,12 @@
 {
-	"ID": "01b8703d13e2483dbbf9603425628151",
+	"ID": "01b8703d-13e2-483d-bbf9-603425628151",
 	"ActionKeyword": "tgl",
 	"Name": "Toggl Track",
 	"Description": "A time tracking plugin for Flow Launcher using Toggl Track",
 	"Author": "JamesNZL",
 	"Version": "0.0.0",
-	"Language": "typescript",
+	"Language": "TypeScript",
 	"Website": "https://github.com/JamesNZL/flow-toggl-plugin",
-	"ExecuteFileName": "src\\main.ts",
-	"IcoPath": "assets\\app.png"
+	"ExecuteFileName": "./dist/main.js",
+	"IcoPath": "./assets/app.png"
 }

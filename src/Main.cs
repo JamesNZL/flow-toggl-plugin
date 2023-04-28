@@ -40,6 +40,25 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		{
 			var results = new List<Result>();
 
+			// TODO: properly check valid API key
+			if (string.IsNullOrWhiteSpace(_settings.ApiToken))
+			{
+				results.Add(new Result
+				{
+					Title = "ERROR: Missing API token",
+					SubTitle = "Configure Toggl Track API token in Flow Launcher settings",
+					IcoPath = _context.CurrentPluginMetadata.IcoPath,
+					Action = c =>
+					{
+						_context.API.OpenSettingDialog();
+						return true;
+					}
+				});
+
+				return results;
+			}
+
+			// TODO: switch selected result on 'start' and 'stop'
 			results.Add(new Result
 			{
 				Title = "Start a new time entry",

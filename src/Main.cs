@@ -32,8 +32,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			Main._viewModel = new SettingsViewModel(this._settings);
 
 			this.togglTrack = new TogglTrack(this._context, this._settings);
-
-			await Task.CompletedTask;
+			await this.togglTrack.VerifyApiToken();
 		}
 
 		/// <summary>
@@ -43,10 +42,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		/// <returns></returns>
 		public async Task<List<Result>> QueryAsync(Query query, CancellationToken token)
 		{
-			// TODO: properly check valid API key
 			if (string.IsNullOrWhiteSpace(this._settings.ApiToken))
 			{
 				return togglTrack.NotifyMissingToken();
+			}
+			else if (!await this.togglTrack.VerifyApiToken())
+			{
+				return togglTrack.NotifyInvalidToken();
 			}
 
 			if (string.IsNullOrWhiteSpace(query.Search))

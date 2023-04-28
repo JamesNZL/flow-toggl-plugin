@@ -11,6 +11,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		private PluginInitContext _context { get; set; }
 		private Settings _settings { get; set; }
 
+		private (bool IsValid, string Token) _lastToken = (false, "");
 		private TogglClient _togglClient;
 
 		internal TogglTrack(PluginInitContext context, Settings settings)
@@ -21,14 +22,50 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			this._togglClient = new TogglClient(this._settings.ApiToken);
 		}
 
+		internal async ValueTask<bool> VerifyApiToken()
+		{
+			if (this._settings.ApiToken.Equals(this._lastToken.Token))
+			{
+				return this._lastToken.IsValid;
+			}
+
+			this._lastToken.Token = this._settings.ApiToken;
+
+			if (string.IsNullOrWhiteSpace(this._settings.ApiToken))
+			{
+				return this._lastToken.IsValid = false;
+			}
+
+			this._togglClient.UpdateToken(this._settings.ApiToken);
+			return this._lastToken.IsValid = (await this._togglClient.GetMe())?.api_token?.Equals(this._settings.ApiToken) ?? false;
+		}
+
 		internal List<Result> NotifyMissingToken()
 		{
 			return new List<Result>
 			{
 				new Result
 				{
-					Title = "ERROR: Missing API token",
+					Title = "ERROR: Missing API Token",
 					SubTitle = "Configure Toggl Track API token in Flow Launcher settings.",
+					IcoPath = this._context.CurrentPluginMetadata.IcoPath,
+					Action = c =>
+					{
+						this._context.API.OpenSettingDialog();
+						return true;
+					},
+				}
+			};
+		}
+
+		internal List<Result> NotifyInvalidToken()
+		{
+			return new List<Result>
+			{
+				new Result
+				{
+					Title = "ERROR: Invalid API Token",
+					SubTitle = $"{this._settings.ApiToken} is not a valid API token.",
 					IcoPath = this._context.CurrentPluginMetadata.IcoPath,
 					Action = c =>
 					{

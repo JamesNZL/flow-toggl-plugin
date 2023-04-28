@@ -13,7 +13,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 			DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
 		};
 
-		private readonly string _token;
+		private string _token;
 		private readonly string _baseUrl;
 
 		private static string Base64Encode(string str)
@@ -25,6 +25,11 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 		{
 			this._token = token;
 			this._baseUrl = baseUrl;
+		}
+
+		public void UpdateToken(string token)
+		{
+			this._token = token;
 		}
 
 		private HttpClient GetHttpClient()
@@ -46,8 +51,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 
 			if (!response.IsSuccessStatusCode)
 			{
-				// TODO: handle errors
-				throw new Exception($"{response.StatusCode} {response.ReasonPhrase}");
+				return default(T);
 			}
 
 			return JsonSerializer.Deserialize<T>(await response.Content.ReadAsStringAsync());
@@ -62,8 +66,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 
 			if (!response.IsSuccessStatusCode)
 			{
-				// TODO: handle errors
-				throw new Exception($"{response.StatusCode} {response.ReasonPhrase}, {await response.Content.ReadAsStringAsync()}");
+				return default(T);
 			}
 
 			return JsonSerializer.Deserialize<T>(await response.Content.ReadAsStringAsync());
@@ -78,8 +81,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 
 			if (!response.IsSuccessStatusCode)
 			{
-				// TODO: handle errors
-				throw new Exception($"{response.StatusCode} {response.ReasonPhrase}, {await response.Content.ReadAsStringAsync()}");
+				return default(T);
 			}
 
 			return JsonSerializer.Deserialize<T>(await response.Content.ReadAsStringAsync());

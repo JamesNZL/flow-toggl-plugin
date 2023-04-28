@@ -14,6 +14,11 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 			this._api = new AuthenticatedFetch(token, TogglClient._baseUrl);
 		}
 
+		public void UpdateToken(string token)
+		{
+			this._api.UpdateToken(token);
+		}
+
 		public async Task<Me> GetMe()
 		{
 			return await this._api.Get<Me>("me");

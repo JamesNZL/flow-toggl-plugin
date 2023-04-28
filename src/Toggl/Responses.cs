@@ -2,50 +2,50 @@ using System.Collections.Generic;
 
 namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 {
-	public interface IMe
+	public class Me
 	{
-		public int default_workspace_id { get; set; }
+		public long default_workspace_id { get; set; }
 	}
 
-	public interface IWorkspace
+	public class Workspace
 	{
-		public int id { get; set; }
+		public long id { get; set; }
 		public string name { get; set; }
 	}
 
-	public interface IProject
+	public class Project
 	{
 		public bool billable { get; set; }
-		public int client_id { get; set; }
+		public long client_id { get; set; }
 		public string color { get; set; }
-		public int id { get; set; }
+		public long id { get; set; }
 		public string name { get; set; }
-		public int workspace_id { get; set; }
+		public long workspace_id { get; set; }
 	}
 
-	public interface ITimeEntry
+	public class TimeEntry
 	{
 		public string at { get; set; }
 		public bool billable { get; set; }
 		public string description { get; set; }
-		public int id { get; set; }
-		public int project_id { get; set; }
+		public long id { get; set; }
+		public long project_id { get; set; }
 		public string start { get; set; }
-		public int duration { get; set; }
+		public long duration { get; set; }
 		public List<string> tags { get; set; }
-		public int workspace_id { get; set; }
+		public long workspace_id { get; set; }
 	}
 
-	public interface IClient
+	public class Client
 	{
-		public int id { get; set; }
+		public long id { get; set; }
 		public string name { get; set; }
 	}
 
-	public interface ITag
+	public class Tag
 	{
-		public int id { get; set; }
+		public long id { get; set; }
 		public string name { get; set; }
-		public int workspace_id { get; set; }
+		public long workspace_id { get; set; }
 	}
 }

@@ -14,26 +14,26 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 			this._api = new AuthenticatedFetch(token, TogglClient._baseUrl);
 		}
 
-		public async Task<IMe> GetMe()
+		public async Task<Me> GetMe()
 		{
-			return await this._api.Get<IMe>("me");
+			return await this._api.Get<Me>("me");
 		}
 
-		public async Task<List<IWorkspace>> GetWorkspaces()
+		public async Task<List<Workspace>> GetWorkspaces()
 		{
-			return await this._api.Get<List<IWorkspace>>("workspaces");
+			return await this._api.Get<List<Workspace>>("workspaces");
 		}
 
-		public async Task<List<IProject>> GetWorkspaceProjects(int workspaceId)
+		public async Task<List<Project>> GetWorkspaceProjects(int workspaceId)
 		{
-			return await this._api.Get<List<IProject>>($"workspaces/{workspaceId}/projects?per_page=500") ?? new List<IProject>();
+			return await this._api.Get<List<Project>>($"workspaces/{workspaceId}/projects?per_page=500") ?? new List<Project>();
 		}
 
-		public async Task<ITimeEntry> CreateTimeEntry(int? projectId, int workspaceId, string description, List<string> tags, bool billable)
+		public async Task<TimeEntry> CreateTimeEntry(int? projectId, int workspaceId, string description, List<string> tags, bool billable)
 		{
 			var now = DateTime.Now;
 
-			return await this._api.Post<ITimeEntry>($"workspaces/{workspaceId}/time_entries", new
+			return await this._api.Post<TimeEntry>($"workspaces/{workspaceId}/time_entries", new
 			{
 				billable,
 				created_with = "flow-toggl-plugin",
@@ -46,29 +46,29 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 			});
 		}
 
-		public async Task<ITimeEntry> GetRunningTimeEntry()
+		public async Task<TimeEntry> GetRunningTimeEntry()
 		{
-			return await this._api.Get<ITimeEntry>("me/time_entries/current");
+			return await this._api.Get<TimeEntry>("me/time_entries/current");
 		}
 
-		public async Task<List<IClient>> GetWorkspaceClients(int workspaceId)
+		public async Task<List<Client>> GetWorkspaceClients(int workspaceId)
 		{
-			return await this._api.Get<List<IClient>>($"workspaces/{workspaceId}/clients");
+			return await this._api.Get<List<Client>>($"workspaces/{workspaceId}/clients");
 		}
 
-		public async Task<List<ITag>> GetWorkspaceTags(int workspaceId)
+		public async Task<List<Tag>> GetWorkspaceTags(int workspaceId)
 		{
-			return await this._api.Get<List<ITag>>($"workspaces/{workspaceId}/tags");
+			return await this._api.Get<List<Tag>>($"workspaces/{workspaceId}/tags");
 		}
 
-		public async Task<ITimeEntry> StopTimeEntry(int id, int workspaceId)
+		public async Task<TimeEntry> StopTimeEntry(int id, int workspaceId)
 		{
-			return await this._api.Patch<ITimeEntry>($"workspaces/{workspaceId}/time_entries/{id}/stop", new { });
+			return await this._api.Patch<TimeEntry>($"workspaces/{workspaceId}/time_entries/{id}/stop", new { });
 		}
 
-		public async Task<List<ITimeEntry>> GetTimeEntries(DateTime startDate, DateTime endDate)
+		public async Task<List<TimeEntry>> GetTimeEntries(DateTime startDate, DateTime endDate)
 		{
-			return await this._api.Get<List<ITimeEntry>>($"me/time_entries?start_date={startDate:yyyy-MM-ddTHH:mm:ss.fffZ}&end_date={endDate:yyyy-MM-ddTHH:mm:ss.fffZ}");
+			return await this._api.Get<List<TimeEntry>>($"me/time_entries?start_date={startDate:yyyy-MM-ddTHH:mm:ss.fffZ}&end_date={endDate:yyyy-MM-ddTHH:mm:ss.fffZ}");
 		}
 	}
 }

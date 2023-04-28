@@ -38,7 +38,22 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		/// <returns></returns>
 		public List<Result> Query(Query query)
 		{
-			return new List<Result>();
+			var results = new List<Result>();
+
+			results.Add(new Result
+			{
+				Title = "Start a new time entry",
+				SubTitle = query.Search,
+				IcoPath = _context.CurrentPluginMetadata.IcoPath,
+			});
+			results.Add(new Result
+			{
+				Title = "Stop current time entry",
+				SubTitle = "0:52:43 Flow Launcher Toggl plugin",
+				IcoPath = _context.CurrentPluginMetadata.IcoPath,
+			});
+
+			return results;
 		}
 
 		/// <summary>

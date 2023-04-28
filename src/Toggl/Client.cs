@@ -29,12 +29,12 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 			return await this._api.Get<List<Workspace>>("workspaces");
 		}
 
-		public async Task<List<Project>> GetWorkspaceProjects(int workspaceId)
+		public async Task<List<Project>> GetWorkspaceProjects(long workspaceId)
 		{
 			return await this._api.Get<List<Project>>($"workspaces/{workspaceId}/projects?per_page=500") ?? new List<Project>();
 		}
 
-		public async Task<TimeEntry> CreateTimeEntry(int? projectId, int workspaceId, string description, List<string> tags, bool billable)
+		public async Task<TimeEntry> CreateTimeEntry(long? projectId, long workspaceId, string description, List<string> tags, bool billable)
 		{
 			var now = DateTime.Now;
 
@@ -43,8 +43,8 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 				billable,
 				created_with = "flow-toggl-plugin",
 				description,
-				duration = (int)Math.Floor((-1 * now.Subtract(new DateTime(1970, 1, 1))).TotalSeconds),
-				project_id = projectId ?? default(int?),
+				duration = (long)Math.Floor((-1 * now.Subtract(new DateTime(1970, 1, 1))).TotalSeconds),
+				project_id = projectId ?? default(long?),
 				start = now.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
 				tags,
 				workspace_id = workspaceId,
@@ -56,17 +56,17 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 			return await this._api.Get<TimeEntry>("me/time_entries/current");
 		}
 
-		public async Task<List<Client>> GetWorkspaceClients(int workspaceId)
+		public async Task<List<Client>> GetWorkspaceClients(long workspaceId)
 		{
 			return await this._api.Get<List<Client>>($"workspaces/{workspaceId}/clients");
 		}
 
-		public async Task<List<Tag>> GetWorkspaceTags(int workspaceId)
+		public async Task<List<Tag>> GetWorkspaceTags(long workspaceId)
 		{
 			return await this._api.Get<List<Tag>>($"workspaces/{workspaceId}/tags");
 		}
 
-		public async Task<TimeEntry> StopTimeEntry(int id, int workspaceId)
+		public async Task<TimeEntry> StopTimeEntry(long id, long workspaceId)
 		{
 			return await this._api.Patch<TimeEntry>($"workspaces/{workspaceId}/time_entries/{id}/stop", new { });
 		}

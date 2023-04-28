@@ -158,7 +158,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StopCommand} {runningTimeEntry.description}",
 					Action = c =>
 					{
-						this._context.API.ShowMsg($"Stopped {runningTimeEntry.description}", $"{elapsed} elapsed", this._context.CurrentPluginMetadata.IcoPath);
+						Task.Run(async delegate
+						{
+							await this._togglClient.StopTimeEntry(runningTimeEntry.id, runningTimeEntry.workspace_id);
+							this._context.API.ShowMsg($"Stopped {runningTimeEntry.description}", $"{elapsed} elapsed", this._context.CurrentPluginMetadata.IcoPath);
+						});
+
 						return true;
 					}
 				},

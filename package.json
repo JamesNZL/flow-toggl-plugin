@@ -37,5 +37,8 @@
 		"eslint": "^8.39.0",
 		"standard-version": "^9.5.0",
 		"typescript": "^5.0.4"
+	},
+	"dependencies": {
+		"winston": "^3.8.2"
 	}
 }

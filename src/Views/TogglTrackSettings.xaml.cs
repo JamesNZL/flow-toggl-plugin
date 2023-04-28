@@ -16,10 +16,10 @@ namespace Flow.Launcher.Plugin.TogglTrack.Views
 		/// </Summary>
 		public TogglTrackSettings(SettingsViewModel viewModel)
 		{
-			_viewModel = viewModel;
-			_settings = viewModel.Settings;
-			DataContext = viewModel;
-			InitializeComponent();
+			this._viewModel = viewModel;
+			this._settings = viewModel.Settings;
+			this.DataContext = viewModel;
+			this.InitializeComponent();
 		}
 	}
 }

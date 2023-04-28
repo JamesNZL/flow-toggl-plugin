@@ -10,7 +10,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.ViewModels
 		/// </Summary>
 		public SettingsViewModel(Settings settings)
 		{
-			Settings = settings;
+			this.Settings = settings;
 		}
 
 		/// <Summary>
@@ -23,11 +23,11 @@ namespace Flow.Launcher.Plugin.TogglTrack.ViewModels
 		/// </Summary>
 		public string ApiToken
 		{
-			get => new string('*', Settings.ApiToken.Length);
+			get => new string('*', this.Settings.ApiToken.Length);
 			set
 			{
-				Settings.ApiToken = value;
-				OnPropertyChanged();
+				this.Settings.ApiToken = value;
+				this.OnPropertyChanged();
 			}
 		}
 	}

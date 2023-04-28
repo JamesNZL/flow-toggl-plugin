@@ -52,7 +52,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					{
 						this._contex.API.OpenSettingDialog();
 						return true;
-					}
+					},
 				});
 
 				return results;

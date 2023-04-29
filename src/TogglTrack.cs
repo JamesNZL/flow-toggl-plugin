@@ -135,6 +135,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					SubTitle = "Start a new time entry",
 					IcoPath = "start.png",
 					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StartCommand} ",
+					Score = 50,
 					Action = c =>
 					{
 						this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StartCommand} ");
@@ -147,6 +148,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					SubTitle = "Continue previous time entry",
 					IcoPath = "continue.png",
 					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.ContinueCommand} ",
+					Score = 10,
 					Action = c =>
 					{
 						this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.ContinueCommand} ");
@@ -159,7 +161,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					SubTitle = "Refresh plugin cache",
 					IcoPath = this._context.CurrentPluginMetadata.IcoPath,
 					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.RefreshCommand} ",
-					Score = -1,
+					Score = -100,
 					Action = c =>
 					{
 						this._GetMe(true);
@@ -182,6 +184,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				SubTitle = "Stop current time entry",
 				IcoPath = "stop.png",
 				AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StopCommand} ",
+				Score = 100,
 				Action = c =>
 				{
 					this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StopCommand} ");
@@ -224,6 +227,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 				if (me?.projects is not null)
 				{
+					// TODO: filter active, sort time
 					projects.AddRange(
 						me.projects.ConvertAll(project => new Result
 						{
@@ -233,6 +237,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								? new ColourIcon(this._context, project.color).GetColourIcon()
 								: "start.png",
 							AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StartCommand} ",
+							Score = me.projects.Count - me.projects.IndexOf(project),
 							Action = c =>
 							{
 								this._selectedProjectId = project.id;
@@ -419,6 +424,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							? new ColourIcon(this._context, project.color).GetColourIcon()
 							: "continue.png",
 					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.ContinueCommand} {((string.IsNullOrEmpty(timeEntry?.description)) ? "(no description)" : timeEntry.description)}",
+					Score = timeEntries.Count - timeEntries.IndexOf(timeEntry),
 					Action = c =>
 					{
 						Task.Run(async delegate

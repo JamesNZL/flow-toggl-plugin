@@ -53,17 +53,15 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			if (string.IsNullOrWhiteSpace(query.Search))
 			{
-				return togglTrack.GetDefaultHotKeys();
+				return await togglTrack.GetDefaultHotKeys();
 			}
-
-			// TODO: only show stop if running timer
 
 			return query.FirstSearch.ToLower() switch
 			{
 				Settings.StartCommand => togglTrack.RequestStartEntry(token, query),
 				Settings.StopCommand => await togglTrack.RequestStopEntry(token),
 				Settings.ContinueCommand => await togglTrack.RequestContinueEntry(token, query),
-				_ => togglTrack.GetDefaultHotKeys()
+				_ => (await togglTrack.GetDefaultHotKeys())
 					.Where(hotkey =>
 					{
 						return this._context.API.FuzzySearch(query.Search, hotkey.Title).Score > 0;

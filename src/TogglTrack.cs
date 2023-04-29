@@ -83,11 +83,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			};
 		}
 
-		internal List<Result> GetDefaultHotKeys()
+		internal async ValueTask<List<Result>> GetDefaultHotKeys()
 		{
 			this._selectedProjectId = -1;
 
-			return new List<Result>
+			var runningTimeEntry = await this._togglClient.GetRunningTimeEntry();
+
+			var results = new List<Result>
 			{
 				new Result
 				{
@@ -98,18 +100,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					Action = c =>
 					{
 						this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StartCommand} ");
-						return false;
-					}
-				},
-				new Result
-				{
-					Title = Settings.StopCommand,
-					SubTitle = "Stop current time entry",
-					IcoPath = "stop.png",
-					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StopCommand} ",
-					Action = c =>
-					{
-						this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StopCommand} ");
 						return false;
 					}
 				},
@@ -126,6 +116,26 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					}
 				},
 			};
+
+			if (runningTimeEntry is null)
+			{
+				return results;
+			}
+
+			results.Add(new Result
+			{
+				Title = Settings.StopCommand,
+				SubTitle = "Stop current time entry",
+				IcoPath = "stop.png",
+				AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StopCommand} ",
+				Action = c =>
+				{
+					this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StopCommand} ");
+					return false;
+				}
+			});
+
+			return results;
 		}
 
 		internal List<Result> RequestStartEntry(CancellationToken token, Query query)

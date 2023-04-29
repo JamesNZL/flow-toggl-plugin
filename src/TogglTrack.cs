@@ -254,9 +254,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 				return (string.IsNullOrWhiteSpace(query.SecondToEndSearch))
 					? projects
-					: projects.FindAll(hotkey =>
+					: projects.FindAll(result =>
 					{
-						return this._context.API.FuzzySearch(query.SecondToEndSearch, hotkey.Title).Score > 0;
+						return this._context.API.FuzzySearch(query.SecondToEndSearch, result.Title).Score > 0;
 					});
 			}
 
@@ -450,9 +450,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			return (string.IsNullOrWhiteSpace(query.SecondToEndSearch))
 				? entries
-				: entries.FindAll(hotkey =>
+				: entries.FindAll(result =>
 				{
-					return this._context.API.FuzzySearch(query.SecondToEndSearch, hotkey.Title).Score > 0;
+					return this._context.API.FuzzySearch(query.SecondToEndSearch, result.Title).Score > 0;
 				});
 		}
 	}

@@ -61,9 +61,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				Settings.StopCommand => await togglTrack.RequestStopEntry(token),
 				Settings.ContinueCommand => await togglTrack.RequestContinueEntry(token, query),
 				_ => (await togglTrack.GetDefaultHotKeys())
-					.FindAll(hotkey =>
+					.FindAll(result =>
 					{
-						return this._context.API.FuzzySearch(query.Search, hotkey.Title).Score > 0;
+						return this._context.API.FuzzySearch(query.Search, result.Title).Score > 0;
 					}),
 			};
 		}

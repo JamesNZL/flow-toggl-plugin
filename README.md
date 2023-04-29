@@ -1,8 +1,64 @@
-Flow.Launcher.Plugin.TogglTrack
-==================
+<div align="center">
+   <img src="assets/app.png" width="7.5%">
+   <img src="assets/start.png" width="7.5%">
+   <img src="assets/stop.png" width="7.5%">
+   <img src="assets/continue.png" width="7.5%">
+   <br>
+   <br>
+   <div>
+      <a href="https://github.com/JamesNZL/flow-toggl-plugin/issues">
+         <img src="https://img.shields.io/github/issues/jamesnzl/flow-toggl-plugin" alt="GitHub issues">
+      </a>
+      <a href="https://github.com/JamesNZL/flow-toggl-plugin/pulls">
+         <img src="https://img.shields.io/github/issues-pr/jamesnzl/flow-toggl-plugin" alt="GitHub pull requests">
+      </a>
+      <a href="https://github.com/JamesNZL/flow-toggl-plugin/actions/workflows/npm-gulp.yml">
+         <img src="https://img.shields.io/github/workflow/status/jamesnzl/flow-toggl-plugin/Publish%20Release" alt="GitHub Workflow Status">
+      </a>
+      <a href="https://github.com/JamesNZL/flow-toggl-plugin/commits">
+         <img src="https://img.shields.io/github/last-commit/jamesnzl/flow-toggl-plugin" alt="GitHub last commit">
+      </a>
+   </div>
+</div>
 
-A plugin for the [Flow launcher](https://github.com/Flow-Launcher/Flow.Launcher).
+# Flow Toggl Plugin
 
-### Usage
+A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launcher](https://flowlauncher.com/) to bring time tracking right to your fingertips.
 
-    tgl <arguments>
+- [Features](#features)
+- [Screenshots](#screenshots)
+- [Setup Instructions](#setup-instructions)
+
+# Features
+
+- Simple, user-friendly interface
+- Start new time entries
+- Stop currently running time entries
+- Continue a previously tracked time entry
+- Support for projects, clients, and workspaces
+- Coloured icons for projects
+- Human-friendly date and time display
+- Open source
+- Private and secure—all data is stored locally!
+
+# Screenshots
+
+![Default hotkeys](./assets/screenshots/default.jpg)
+
+![Project selection](./assets/screenshots/start.jpg)
+
+![Stopping running time entry](./assets/screenshots/stop.jpg)
+
+![Continue previous time entry](./assets/screenshots/continue.jpg)
+
+# Setup Instructions
+
+1. Install the plugin.
+    ```
+    pm install Toggl Track
+    ```
+
+2. Paste your Toggl Track API key into the plugin settings.
+    > This can be found at the bottom of your Toggl Track [profile settings](https://track.toggl.com/profile) page.
+
+3. Trigger the plugin with the (configurable) action keyword `tgl`.

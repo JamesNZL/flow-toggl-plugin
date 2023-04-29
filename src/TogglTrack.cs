@@ -250,11 +250,10 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 				return (string.IsNullOrWhiteSpace(query.SecondToEndSearch))
 					? projects
-					: projects.Where(hotkey =>
+					: projects.FindAll(hotkey =>
 					{
 						return this._context.API.FuzzySearch(query.SecondToEndSearch, hotkey.Title).Score > 0;
-					}
-					).ToList();
+					});
 			}
 
 			Project? project = me?.projects?.Find(project => project.id == this._selectedProjectId);
@@ -447,11 +446,10 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			return (string.IsNullOrWhiteSpace(query.SecondToEndSearch))
 				? entries
-				: entries.Where(hotkey =>
+				: entries.FindAll(hotkey =>
 				{
 					return this._context.API.FuzzySearch(query.SecondToEndSearch, hotkey.Title).Score > 0;
-				}
-				).ToList();
+				});
 		}
 	}
 }

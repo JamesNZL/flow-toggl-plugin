@@ -1,7 +1,6 @@
 
 using System.Windows.Controls;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Flow.Launcher.Plugin.TogglTrack.ViewModels;
@@ -62,11 +61,10 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				Settings.StopCommand => await togglTrack.RequestStopEntry(token),
 				Settings.ContinueCommand => await togglTrack.RequestContinueEntry(token, query),
 				_ => (await togglTrack.GetDefaultHotKeys())
-					.Where(hotkey =>
+					.FindAll(hotkey =>
 					{
 						return this._context.API.FuzzySearch(query.Search, hotkey.Title).Score > 0;
-					}
-					).ToList()
+					}),
 			};
 		}
 

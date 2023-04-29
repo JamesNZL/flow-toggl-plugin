@@ -34,7 +34,7 @@
             Margin="0,6,6,6"
             Orientation="Horizontal">
             <TextBox
-                Width="250"
+                Width="480"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Center"
                 Text="{Binding ApiToken}"

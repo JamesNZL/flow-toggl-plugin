@@ -184,7 +184,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 
 			Project? project = this._me?.projects?.Find(project => project.id == this._selectedProjectId);
-			Client? client = this._me?.clients?.Find(client => client.id == project.client_id);
+			Client? client = this._me?.clients?.Find(client => client.id == project?.client_id);
 			long workspaceId = project?.workspace_id ?? this._me.default_workspace_id;
 
 			string clientName = (client is not null)

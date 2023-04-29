@@ -15,6 +15,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 
 		private string _token;
 		private readonly string _baseUrl;
+		private HttpClient _httpClient = null;
 
 		private static string Base64Encode(string str)
 		{
@@ -25,16 +26,25 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 		{
 			this._token = token;
 			this._baseUrl = baseUrl;
+
+			this.CreateHttpClient();
 		}
 
 		public void UpdateToken(string token)
 		{
 			this._token = token;
+
+			this.CreateHttpClient();
 		}
 
-		private HttpClient GetHttpClient()
+		private void CreateHttpClient()
 		{
-			return new HttpClient
+			if (this._httpClient is not null)
+			{
+				this._httpClient.Dispose();
+			}
+
+			this._httpClient = new HttpClient
 			{
 				BaseAddress = new Uri(this._baseUrl),
 				DefaultRequestHeaders =
@@ -46,8 +56,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 
 		public async Task<T> Get<T>(string endpoint)
 		{
-			using var httpClient = this.GetHttpClient();
-			var response = await httpClient.GetAsync(endpoint);
+			var response = await this._httpClient.GetAsync(endpoint);
 
 			if (!response.IsSuccessStatusCode)
 			{
@@ -59,10 +68,9 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 
 		public async Task<T> Post<T>(string endpoint, object body)
 		{
-			using var httpClient = this.GetHttpClient();
 			var json = JsonSerializer.Serialize(body, AuthenticatedFetch._serializerOptions);
 			var content = new StringContent(json, Encoding.UTF8, "application/json");
-			var response = await httpClient.PostAsync(endpoint, content);
+			var response = await this._httpClient.PostAsync(endpoint, content);
 
 			if (!response.IsSuccessStatusCode)
 			{
@@ -74,10 +82,9 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 
 		public async Task<T> Patch<T>(string endpoint, object body)
 		{
-			using var httpClient = this.GetHttpClient();
 			var json = JsonSerializer.Serialize(body, AuthenticatedFetch._serializerOptions);
 			var content = new StringContent(json, Encoding.UTF8, "application/json");
-			var response = await httpClient.PatchAsync(endpoint, content);
+			var response = await this._httpClient.PatchAsync(endpoint, content);
 
 			if (!response.IsSuccessStatusCode)
 			{

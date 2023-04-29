@@ -1,8 +1,8 @@
 <div align="center">
-   <img src="assets/app.png" width="7.5%">
-   <img src="assets/start.png" width="7.5%">
-   <img src="assets/stop.png" width="7.5%">
-   <img src="assets/continue.png" width="7.5%">
+   <img src="assets/app.png" width="15%">
+   <img src="assets/start.png" width="15%">
+   <img src="assets/stop.png" width="15%">
+   <img src="assets/continue.png" width="15%">
    <br>
    <br>
    <div>

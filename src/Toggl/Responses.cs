@@ -36,7 +36,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 		public string at { get; set; }
 		public bool business_ws { get; set; }
 		public string default_currency { get; set; }
-		public long? default_hourly_rate { get; set; }
+		public float? default_hourly_rate { get; set; }
 		public bool ical_enabled { get; set; }
 		public string ical_url { get; set; }
 		public long id { get; set; }
@@ -83,11 +83,11 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 		public string end_date { get; set; }
 		public long? estimated_hours { get; set; }
 		public string? first_time_entry { get; set; }
-		public long? fixed_fee { get; set; }
+		public float? fixed_fee { get; set; }
 		public long id { get; set; }
 		public bool is_private { get; set; }
 		public string name { get; set; }
-		public long? rate { get; set; }
+		public float? rate { get; set; }
 		public string? rate_last_updated { get; set; }
 		public bool? recurring { get; set; }
 		public string? server_deleted_at { get; set; }

@@ -256,7 +256,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					? projects
 					: projects.FindAll(result =>
 					{
-						return this._context.API.FuzzySearch(query.SecondToEndSearch, result.Title).Score > 0;
+						return this._context.API.FuzzySearch(query.SecondToEndSearch, $"{result.Title} {result.SubTitle}").Score > 0;
 					});
 			}
 

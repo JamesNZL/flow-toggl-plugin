@@ -62,6 +62,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			{
 				Settings.StartCommand => togglTrack.RequestStartEntry(token, query),
 				Settings.StopCommand => await togglTrack.RequestStopEntry(token),
+				Settings.ContinueCommand => await togglTrack.RequestContinueEntry(token, query),
 				_ => togglTrack.GetDefaultHotKeys()
 					.Where(hotkey =>
 					{

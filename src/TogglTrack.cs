@@ -291,5 +291,79 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				},
 			};
 		}
+
+		internal async ValueTask<List<Result>> RequestContinueEntry(CancellationToken token, Query query)
+		{
+			if (token.IsCancellationRequested)
+			{
+				return new List<Result>();
+			}
+
+			var timeEntries = await this._togglClient.GetTimeEntries();
+
+			if (timeEntries is null)
+			{
+				return new List<Result>
+				{
+					new Result
+					{
+						Title = $"No previous time entries",
+						SubTitle = "There are no previous time entries to continue.",
+						IcoPath = this._context.CurrentPluginMetadata.IcoPath,
+						Action = c =>
+						{
+							return true;
+						},
+					},
+				};
+			}
+
+			var entries = timeEntries.ConvertAll(timeEntry => 
+			{
+				string elapsed = TimeSpan.FromSeconds(timeEntry.duration).ToString(@"h\:mm\:ss");
+
+				Project? project = this._me?.projects?.Find(project => project.id == timeEntry?.project_id);
+				Client? client = this._me?.clients?.Find(client => client.id == project?.client_id);
+				long workspaceId = project?.workspace_id ?? this._me.default_workspace_id;
+
+				string clientName = (client is not null)
+					? $" • {client.name}"
+					: string.Empty;
+				string projectName = (project is not null)
+					? $"{project.name}{clientName}"
+					: "No project";
+
+				return new Result
+				{
+					Title = timeEntry?.description ?? "No description",
+					SubTitle = $"{elapsed} | {projectName}",
+					IcoPath = (project?.color is not null)
+							? new ColourIcon(this._context, project.color).GetColourIcon()
+							: this._context.CurrentPluginMetadata.IcoPath,
+					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.ContinueCommand} {timeEntry?.description ?? "No description"}",
+					Action = c =>
+					{
+						Task.Run(async delegate
+						{
+							this._context.API.LogInfo("TogglTrack", $"{project?.id}, {workspaceId}, {timeEntry?.description}", "RequestContinueEntry");
+
+							// TODO: billable
+							await this._togglClient.CreateTimeEntry(project?.id, workspaceId, timeEntry?.description, null, null);
+							this._context.API.ShowMsg($"Continued {timeEntry?.description}", projectName, this._context.CurrentPluginMetadata.IcoPath);
+						});
+
+						return true;
+					},
+				};
+			});
+
+			return (string.IsNullOrWhiteSpace(query.SecondToEndSearch))
+				? entries
+				: entries.Where(hotkey =>
+				{
+					return this._context.API.FuzzySearch(query.SecondToEndSearch, hotkey.Title).Score > 0;
+				}
+				).ToList();
+		}
 	}
 }

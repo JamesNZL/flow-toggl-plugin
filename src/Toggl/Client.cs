@@ -69,9 +69,9 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 			return await this._api.Patch<TimeEntry>($"workspaces/{workspaceId}/time_entries/{id}/stop", new { });
 		}
 
-		public async Task<List<TimeEntry>> GetTimeEntries(DateTime startDate, DateTime endDate)
+		public async Task<List<TimeEntry>> GetTimeEntries()
 		{
-			return await this._api.Get<List<TimeEntry>>($"me/time_entries?start_date={startDate:yyyy-MM-ddTHH:mm:ss.fffZ}&end_date={endDate:yyyy-MM-ddTHH:mm:ss.fffZ}");
+			return await this._api.Get<List<TimeEntry>>($"me/time_entries");
 		}
 	}
 }

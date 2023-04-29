@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Humanizer;
 using Flow.Launcher.Plugin.TogglTrack.TogglApi;
 
 namespace Flow.Launcher.Plugin.TogglTrack
@@ -324,7 +325,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 
 			DateTimeOffset startDate = DateTimeOffset.Parse(runningTimeEntry.start);
-			string elapsed = DateTimeOffset.UtcNow.Subtract(startDate).ToString(@"h\:mm\:ss");
+			TimeSpan elapsed = DateTimeOffset.UtcNow.Subtract(startDate);
 
 			Project? project = me?.projects?.Find(project => project.id == runningTimeEntry.project_id);
 			Client? client = me?.clients?.Find(client => client.id == project?.client_id);
@@ -341,7 +342,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				new Result
 				{
 					Title = $"Stop {((string.IsNullOrEmpty(runningTimeEntry?.description)) ? "(no description)" : runningTimeEntry.description)}",
-					SubTitle = $"{elapsed} | {projectName}",
+					SubTitle = $"{projectName} | {elapsed.Humanize()} ({elapsed.ToString(@"h\:mm\:ss")})",
 					IcoPath = (project?.color is not null)
 						? new ColourIcon(this._context, project.color).GetColourIcon()
 						: "stop.png",
@@ -350,10 +351,10 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					{
 						Task.Run(async delegate
 						{
-							this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.id}, {runningTimeEntry.workspace_id}, {startDate}, {elapsed}", "RequestStopEntry");
+							this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.id}, {runningTimeEntry.workspace_id}, {startDate}, {elapsed.ToString(@"h\:mm\:ss")}", "RequestStopEntry");
 
 							await this._togglClient.StopTimeEntry(runningTimeEntry.id, runningTimeEntry.workspace_id);
-							this._context.API.ShowMsg($"Stopped {runningTimeEntry.description}", $"{elapsed} elapsed", "stop.png");
+							this._context.API.ShowMsg($"Stopped {runningTimeEntry.description}", $"{elapsed.ToString(@"h\:mm\:ss")} elapsed", "stop.png");
 
 							// Update cached running time entry state
 							this._GetRunningTimeEntry(true);
@@ -393,19 +394,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				};
 			}
 
-			// TODO: sort by date?
 			var entries = timeEntries.ConvertAll(timeEntry => 
 			{
-				string elapsed = string.Empty;
-				if (timeEntry.duration < 0)
-				{
-					DateTimeOffset startDate = DateTimeOffset.Parse(timeEntry.start);
-					elapsed = DateTimeOffset.UtcNow.Subtract(startDate).ToString(@"h\:mm\:ss");
-				}
-				else
-				{
-					elapsed = TimeSpan.FromSeconds(timeEntry.duration).ToString(@"h\:mm\:ss");
-				}
+				var elapsed = (timeEntry.duration < 0)
+					? DateTimeOffset.UtcNow.Subtract(DateTimeOffset.Parse(timeEntry.start))
+					: TimeSpan.FromSeconds(timeEntry.duration);
 
 				Project? project = me?.projects?.Find(project => project.id == timeEntry?.project_id);
 				Client? client = me?.clients?.Find(client => client.id == project?.client_id);
@@ -415,13 +408,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					? $" • {client.name}"
 					: string.Empty;
 				string projectName = (project is not null)
-					? $"{project.name}{clientName}"
-					: "No project";
+					? $"{project.name}{clientName} | "
+					: string.Empty;
 
 				return new Result
 				{
 					Title = (string.IsNullOrEmpty(timeEntry?.description)) ? "(no description)" : timeEntry.description,
-					SubTitle = $"{elapsed} | {projectName}",
+					SubTitle = $"{projectName}{elapsed.Humanize()} ({DateTime.Parse(timeEntry.start).Humanize(false)})",
 					IcoPath = (project?.color is not null)
 							? new ColourIcon(this._context, project.color).GetColourIcon()
 							: "continue.png",

@@ -396,8 +396,16 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			// TODO: sort by date?
 			var entries = timeEntries.ConvertAll(timeEntry => 
 			{
-				// TODO: currently running duration
-				string elapsed = TimeSpan.FromSeconds(timeEntry.duration).ToString(@"h\:mm\:ss");
+				string elapsed = string.Empty;
+				if (timeEntry.duration < 0)
+				{
+					DateTimeOffset startDate = DateTimeOffset.Parse(timeEntry.start);
+					elapsed = DateTimeOffset.UtcNow.Subtract(startDate).ToString(@"h\:mm\:ss");
+				}
+				else
+				{
+					elapsed = TimeSpan.FromSeconds(timeEntry.duration).ToString(@"h\:mm\:ss");
+				}
 
 				Project? project = me?.projects?.Find(project => project.id == timeEntry?.project_id);
 				Client? client = me?.clients?.Find(client => client.id == project?.client_id);

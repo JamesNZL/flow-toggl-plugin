@@ -253,20 +253,30 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			DateTimeOffset startDate = DateTimeOffset.Parse(runningTimeEntry.start);
 			string elapsed = DateTimeOffset.UtcNow.Subtract(startDate).ToString(@"h\:mm\:ss");
 
-			this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.id}, {runningTimeEntry.workspace_id}, {startDate}, {elapsed}", "RequestStopEntry");
+			Project? project = this._me?.projects?.Find(project => project.id == runningTimeEntry.project_id);
+			Client? client = this._me?.clients?.Find(client => client.id == project?.client_id);
+
+			string clientName = (client is not null)
+				? $" • {client.name}"
+				: "";
+			string projectName = (project is not null)
+				? $"{project.name}{clientName}"
+				: "No project";
 
 			return new List<Result>
 			{
 				new Result
 				{
 					Title = $"Stop {runningTimeEntry.description}",
-					SubTitle = elapsed,
+					SubTitle = $"{elapsed} | {projectName}",
 					IcoPath = this._context.CurrentPluginMetadata.IcoPath,
 					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StopCommand} {runningTimeEntry.description}",
 					Action = c =>
 					{
 						Task.Run(async delegate
 						{
+							this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.id}, {runningTimeEntry.workspace_id}, {startDate}, {elapsed}", "RequestStopEntry");
+
 							await this._togglClient.StopTimeEntry(runningTimeEntry.id, runningTimeEntry.workspace_id);
 							this._context.API.ShowMsg($"Stopped {runningTimeEntry.description}", $"{elapsed} elapsed", this._context.CurrentPluginMetadata.IcoPath);
 						});

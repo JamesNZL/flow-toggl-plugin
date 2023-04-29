@@ -163,8 +163,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						{
 							Title = project.name,
 							SubTitle = (project?.client_id is not null) ? this._me?.clients?.Find(client => client.id == project.client_id)?.name : null,
-							// TODO: Icon.Dot with tintColour?
-							IcoPath = this._context.CurrentPluginMetadata.IcoPath,
+							IcoPath = (project?.color is not null)
+								? new ColourIcon(this._context, project.color).GetColourIcon()
+								: this._context.CurrentPluginMetadata.IcoPath,
 							Action = c =>
 							{
 								this._selectedProjectId = project.id;
@@ -203,8 +204,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					Title = $"Start {description}",
 					SubTitle = projectName,
-					// TODO: Icon.Dot with tintColour?
-					IcoPath = this._context.CurrentPluginMetadata.IcoPath,
+					IcoPath = (project?.color is not null)
+						? new ColourIcon(this._context, project.color).GetColourIcon()
+						: this._context.CurrentPluginMetadata.IcoPath,
 					AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
 					Action = c =>
 					{
@@ -270,7 +272,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					Title = $"Stop {runningTimeEntry.description}",
 					SubTitle = $"{elapsed} | {projectName}",
-					IcoPath = this._context.CurrentPluginMetadata.IcoPath,
+					IcoPath = (project?.color is not null)
+						? new ColourIcon(this._context, project.color).GetColourIcon()
+						: this._context.CurrentPluginMetadata.IcoPath,
 					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StopCommand} {runningTimeEntry.description}",
 					Action = c =>
 					{

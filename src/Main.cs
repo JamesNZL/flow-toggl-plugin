@@ -58,7 +58,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			return query.FirstSearch.ToLower() switch
 			{
-				Settings.StartCommand => togglTrack.RequestStartEntry(token, query),
+				Settings.StartCommand => await togglTrack.RequestStartEntry(token, query),
 				Settings.StopCommand => await togglTrack.RequestStopEntry(token),
 				Settings.ContinueCommand => await togglTrack.RequestContinueEntry(token, query),
 				_ => (await togglTrack.GetDefaultHotKeys())

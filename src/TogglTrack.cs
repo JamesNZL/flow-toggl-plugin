@@ -13,9 +13,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		private Settings _settings { get; set; }
 
 		private TogglClient _togglClient;
-		private (bool IsValid, string Token) _lastToken = (false, string.Empty);
-		private Me _me;
 
+		private (bool IsValid, string Token) _lastToken = (false, string.Empty);
+		private (Me? me, DateTime LastFetched) _lastMe = (null, DateTime.MinValue);
+		private (TimeEntry? timeEntry, DateTime LastFetched) _lastCurrentlyRunning = (null, DateTime.MinValue);
+		private (List<TimeEntry>? timeEntries, DateTime LastFetched) _lastTimeEntries = (null, DateTime.MinValue);
 		private long? _selectedProjectId = -1;
 
 		internal TogglTrack(PluginInitContext context, Settings settings)
@@ -24,6 +26,45 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			this._settings = settings;
 
 			this._togglClient = new TogglClient(this._settings.ApiToken);
+		}
+
+		private async ValueTask<Me?> _GetMe(bool force = false)
+		{
+			if (!force && ((DateTime.Now - this._lastMe.LastFetched).TotalDays < 3))
+			{
+				return this._lastMe.me;
+			}
+
+			this._context.API.LogInfo("TogglTrack", "Fetching me", "_GetMe");
+
+			this._lastMe.LastFetched = DateTime.Now;
+			return this._lastMe.me = await this._togglClient.GetMe();
+		}
+
+		private async ValueTask<TimeEntry?> _GetRunningTimeEntry(bool force = false)
+		{
+			if (!force && ((DateTime.Now - this._lastCurrentlyRunning.LastFetched).TotalSeconds < 30))
+			{
+				return this._lastCurrentlyRunning.timeEntry;
+			}
+
+			this._context.API.LogInfo("TogglTrack", "Fetching running time entry", "_GetRunningTimeEntry");
+
+			this._lastCurrentlyRunning.LastFetched = DateTime.Now;
+			return this._lastCurrentlyRunning.timeEntry = await this._togglClient.GetRunningTimeEntry();
+		}
+
+		private async ValueTask<List<TimeEntry>?> _GetTimeEntries(bool force = false)
+		{
+			if (!force && ((DateTime.Now - this._lastTimeEntries.LastFetched).TotalSeconds < 30))
+			{
+				return this._lastTimeEntries.timeEntries;
+			}
+
+			this._context.API.LogInfo("TogglTrack", "Fetching time entries", "_GetTimeEntries");
+
+			this._lastTimeEntries.LastFetched = DateTime.Now;
+			return this._lastTimeEntries.timeEntries = await this._togglClient.GetTimeEntries();
 		}
 
 		internal async ValueTask<bool> VerifyApiToken()
@@ -41,10 +82,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 
 			this._togglClient.UpdateToken(this._settings.ApiToken);
-			// TODO: add refresh functionality
-			this._me = await this._togglClient.GetMe();
 
-			return this._lastToken.IsValid = this._me?.api_token?.Equals(this._settings.ApiToken) ?? false;
+			return this._lastToken.IsValid = (await this._GetMe(true))?.api_token?.Equals(this._settings.ApiToken) ?? false;
 		}
 
 		internal List<Result> NotifyMissingToken()
@@ -87,8 +126,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		{
 			this._selectedProjectId = -1;
 
-			var runningTimeEntry = await this._togglClient.GetRunningTimeEntry();
-
 			var results = new List<Result>
 			{
 				new Result
@@ -117,7 +154,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				},
 			};
 
-			if (runningTimeEntry is null)
+			if (await this._GetRunningTimeEntry() is null)
 			{
 				return results;
 			}
@@ -138,13 +175,15 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return results;
 		}
 
-		internal List<Result> RequestStartEntry(CancellationToken token, Query query)
+		internal async ValueTask<List<Result>> RequestStartEntry(CancellationToken token, Query query)
 		{
 			if (token.IsCancellationRequested)
 			{
 				this._selectedProjectId = -1;
 				return new List<Result>();
 			}
+
+			var me = await this._GetMe();
 
 			if (this._selectedProjectId == -1 || query.SearchTerms.Length == 1)
 			{
@@ -166,13 +205,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					},
 				};
 
-				if (this._me?.projects is not null)
+				if (me?.projects is not null)
 				{
 					projects.AddRange(
-						this._me.projects.ConvertAll(project => new Result
+						me.projects.ConvertAll(project => new Result
 						{
 							Title = project.name,
-							SubTitle = (project?.client_id is not null) ? this._me?.clients?.Find(client => client.id == project.client_id)?.name : null,
+							SubTitle = (project?.client_id is not null) ? me?.clients?.Find(client => client.id == project.client_id)?.name : null,
 							IcoPath = (project?.color is not null)
 								? new ColourIcon(this._context, project.color).GetColourIcon()
 								: "start.png",
@@ -196,9 +235,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					).ToList();
 			}
 
-			Project? project = this._me?.projects?.Find(project => project.id == this._selectedProjectId);
-			Client? client = this._me?.clients?.Find(client => client.id == project?.client_id);
-			long workspaceId = project?.workspace_id ?? this._me.default_workspace_id;
+			Project? project = me?.projects?.Find(project => project.id == this._selectedProjectId);
+			Client? client = me?.clients?.Find(client => client.id == project?.client_id);
+			long workspaceId = project?.workspace_id ?? me.default_workspace_id;
 
 			string clientName = (client is not null)
 				? $" • {client.name}"
@@ -230,6 +269,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							this._context.API.ShowMsg($"Started {description}", projectName, "start.png");
 							
 							this._selectedProjectId = -1;
+							// Update cached running time entry state
+							this._GetRunningTimeEntry(true);
+							this._GetTimeEntries(true);
 						});
 
 						return true;
@@ -245,7 +287,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				return new List<Result>();
 			}
 
-			var runningTimeEntry = await this._togglClient.GetRunningTimeEntry();
+			var me = await this._GetMe();
+			var runningTimeEntry = await this._GetRunningTimeEntry();
 
 			if (runningTimeEntry is null)
 			{
@@ -267,8 +310,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			DateTimeOffset startDate = DateTimeOffset.Parse(runningTimeEntry.start);
 			string elapsed = DateTimeOffset.UtcNow.Subtract(startDate).ToString(@"h\:mm\:ss");
 
-			Project? project = this._me?.projects?.Find(project => project.id == runningTimeEntry.project_id);
-			Client? client = this._me?.clients?.Find(client => client.id == project?.client_id);
+			Project? project = me?.projects?.Find(project => project.id == runningTimeEntry.project_id);
+			Client? client = me?.clients?.Find(client => client.id == project?.client_id);
 
 			string clientName = (client is not null)
 				? $" • {client.name}"
@@ -281,12 +324,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			{
 				new Result
 				{
-					Title = $"Stop {runningTimeEntry.description}",
+					Title = $"Stop {((string.IsNullOrEmpty(runningTimeEntry?.description)) ? "(no description)" : runningTimeEntry.description)}",
 					SubTitle = $"{elapsed} | {projectName}",
 					IcoPath = (project?.color is not null)
 						? new ColourIcon(this._context, project.color).GetColourIcon()
 						: "stop.png",
-					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StopCommand} {runningTimeEntry.description}",
+					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StopCommand} {((string.IsNullOrEmpty(runningTimeEntry?.description)) ? "(no description)" : runningTimeEntry.description)}",
 					Action = c =>
 					{
 						Task.Run(async delegate
@@ -295,6 +338,10 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 							await this._togglClient.StopTimeEntry(runningTimeEntry.id, runningTimeEntry.workspace_id);
 							this._context.API.ShowMsg($"Stopped {runningTimeEntry.description}", $"{elapsed} elapsed", "stop.png");
+
+							// Update cached running time entry state
+							this._GetRunningTimeEntry(true);
+							this._GetTimeEntries(true);
 						});
 
 						return true;
@@ -310,7 +357,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				return new List<Result>();
 			}
 
-			var timeEntries = await this._togglClient.GetTimeEntries();
+			var me = await this._GetMe();
+			var timeEntries = await this._GetTimeEntries();
 
 			if (timeEntries is null)
 			{
@@ -329,13 +377,15 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				};
 			}
 
+			// TODO: sort by date?
 			var entries = timeEntries.ConvertAll(timeEntry => 
 			{
+				// TODO: currently running duration
 				string elapsed = TimeSpan.FromSeconds(timeEntry.duration).ToString(@"h\:mm\:ss");
 
-				Project? project = this._me?.projects?.Find(project => project.id == timeEntry?.project_id);
-				Client? client = this._me?.clients?.Find(client => client.id == project?.client_id);
-				long workspaceId = project?.workspace_id ?? this._me.default_workspace_id;
+				Project? project = me?.projects?.Find(project => project.id == timeEntry?.project_id);
+				Client? client = me?.clients?.Find(client => client.id == project?.client_id);
+				long workspaceId = project?.workspace_id ?? me.default_workspace_id;
 
 				string clientName = (client is not null)
 					? $" • {client.name}"
@@ -346,12 +396,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 				return new Result
 				{
-					Title = (string.IsNullOrEmpty(timeEntry?.description)) ? "No description" : timeEntry.description,
+					Title = (string.IsNullOrEmpty(timeEntry?.description)) ? "(no description)" : timeEntry.description,
 					SubTitle = $"{elapsed} | {projectName}",
 					IcoPath = (project?.color is not null)
 							? new ColourIcon(this._context, project.color).GetColourIcon()
 							: "continue.png",
-					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.ContinueCommand} {((string.IsNullOrEmpty(timeEntry?.description)) ? "No description" : timeEntry.description)}",
+					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.ContinueCommand} {((string.IsNullOrEmpty(timeEntry?.description)) ? "(no description)" : timeEntry.description)}",
 					Action = c =>
 					{
 						Task.Run(async delegate
@@ -361,6 +411,10 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							// TODO: billable
 							await this._togglClient.CreateTimeEntry(project?.id, workspaceId, timeEntry?.description, null, null);
 							this._context.API.ShowMsg($"Continued {timeEntry?.description}", projectName, "continue.png");
+
+							// Update cached running time entry state
+							this._GetRunningTimeEntry(true);
+							this._GetTimeEntries(true);
 						});
 
 						return true;

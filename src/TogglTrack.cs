@@ -146,6 +146,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					{
 						Title = "No project",
 						IcoPath = "start.png",
+						AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StartCommand} ",
 						Action = c =>
 						{
 							this._selectedProjectId = null;
@@ -165,6 +166,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							IcoPath = (project?.color is not null)
 								? new ColourIcon(this._context, project.color).GetColourIcon()
 								: "start.png",
+							AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StartCommand} ",
 							Action = c =>
 							{
 								this._selectedProjectId = project.id;

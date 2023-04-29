@@ -93,7 +93,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					Title = Settings.StartCommand,
 					SubTitle = "Start a new time entry",
-					IcoPath = this._context.CurrentPluginMetadata.IcoPath,
+					IcoPath = "start.png",
 					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StartCommand} ",
 					Action = c =>
 					{
@@ -105,7 +105,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					Title = Settings.StopCommand,
 					SubTitle = "Stop current time entry",
-					IcoPath = this._context.CurrentPluginMetadata.IcoPath,
+					IcoPath = "stop.png",
 					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StopCommand} ",
 					Action = c =>
 					{
@@ -117,7 +117,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					Title = Settings.ContinueCommand,
 					SubTitle = "Continue previous time entry",
-					IcoPath = this._context.CurrentPluginMetadata.IcoPath,
+					IcoPath = "continue.png",
 					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.ContinueCommand} ",
 					Action = c =>
 					{
@@ -145,8 +145,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					new Result
 					{
 						Title = "No project",
-						// TODO: (x) icon
-						IcoPath = this._context.CurrentPluginMetadata.IcoPath,
+						IcoPath = "start.png",
 						Action = c =>
 						{
 							this._selectedProjectId = null;
@@ -165,7 +164,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							SubTitle = (project?.client_id is not null) ? this._me?.clients?.Find(client => client.id == project.client_id)?.name : null,
 							IcoPath = (project?.color is not null)
 								? new ColourIcon(this._context, project.color).GetColourIcon()
-								: this._context.CurrentPluginMetadata.IcoPath,
+								: "start.png",
 							Action = c =>
 							{
 								this._selectedProjectId = project.id;
@@ -206,7 +205,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					SubTitle = projectName,
 					IcoPath = (project?.color is not null)
 						? new ColourIcon(this._context, project.color).GetColourIcon()
-						: this._context.CurrentPluginMetadata.IcoPath,
+						: "start.png",
 					AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
 					Action = c =>
 					{
@@ -216,7 +215,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 							// TODO: billable
 							await this._togglClient.CreateTimeEntry(this._selectedProjectId, workspaceId, description, null, null);
-							this._context.API.ShowMsg($"Started {description}", projectName, this._context.CurrentPluginMetadata.IcoPath);
+							this._context.API.ShowMsg($"Started {description}", projectName, "start.png");
 							
 							this._selectedProjectId = -1;
 						});
@@ -274,7 +273,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					SubTitle = $"{elapsed} | {projectName}",
 					IcoPath = (project?.color is not null)
 						? new ColourIcon(this._context, project.color).GetColourIcon()
-						: this._context.CurrentPluginMetadata.IcoPath,
+						: "stop.png",
 					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StopCommand} {runningTimeEntry.description}",
 					Action = c =>
 					{
@@ -283,7 +282,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.id}, {runningTimeEntry.workspace_id}, {startDate}, {elapsed}", "RequestStopEntry");
 
 							await this._togglClient.StopTimeEntry(runningTimeEntry.id, runningTimeEntry.workspace_id);
-							this._context.API.ShowMsg($"Stopped {runningTimeEntry.description}", $"{elapsed} elapsed", this._context.CurrentPluginMetadata.IcoPath);
+							this._context.API.ShowMsg($"Stopped {runningTimeEntry.description}", $"{elapsed} elapsed", "stop.png");
 						});
 
 						return true;
@@ -335,12 +334,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 				return new Result
 				{
-					Title = timeEntry?.description ?? "No description",
+					Title = (string.IsNullOrEmpty(timeEntry?.description)) ? "No description" : timeEntry.description,
 					SubTitle = $"{elapsed} | {projectName}",
 					IcoPath = (project?.color is not null)
 							? new ColourIcon(this._context, project.color).GetColourIcon()
-							: this._context.CurrentPluginMetadata.IcoPath,
-					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.ContinueCommand} {timeEntry?.description ?? "No description"}",
+							: "continue.png",
+					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.ContinueCommand} {((string.IsNullOrEmpty(timeEntry?.description)) ? "No description" : timeEntry.description)}",
 					Action = c =>
 					{
 						Task.Run(async delegate
@@ -349,7 +348,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 							// TODO: billable
 							await this._togglClient.CreateTimeEntry(project?.id, workspaceId, timeEntry?.description, null, null);
-							this._context.API.ShowMsg($"Continued {timeEntry?.description}", projectName, this._context.CurrentPluginMetadata.IcoPath);
+							this._context.API.ShowMsg($"Continued {timeEntry?.description}", projectName, "continue.png");
 						});
 
 						return true;

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Flow.Launcher.Plugin.TogglTrack.TogglApi;
@@ -11,8 +12,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		private PluginInitContext _context { get; set; }
 		private Settings _settings { get; set; }
 
-		private (bool IsValid, string Token) _lastToken = (false, "");
 		private TogglClient _togglClient;
+		private (bool IsValid, string Token) _lastToken = (false, "");
+		private Me _me;
+
+		private long? _selectedProjectId = -1;
 
 		internal TogglTrack(PluginInitContext context, Settings settings)
 		{
@@ -37,7 +41,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 
 			this._togglClient.UpdateToken(this._settings.ApiToken);
-			return this._lastToken.IsValid = (await this._togglClient.GetMe())?.api_token?.Equals(this._settings.ApiToken) ?? false;
+			this._me = await this._togglClient.GetMe();
+
+			return this._lastToken.IsValid = this._me?.api_token?.Equals(this._settings.ApiToken) ?? false;
 		}
 
 		internal List<Result> NotifyMissingToken()
@@ -78,6 +84,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 		internal List<Result> GetDefaultHotKeys()
 		{
+			this._selectedProjectId = -1;
+
 			return new List<Result>
 			{
 				new Result
@@ -119,6 +127,103 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			};
 		}
 
+		internal List<Result> RequestStartEntry(CancellationToken token, Query query)
+		{
+			if (token.IsCancellationRequested)
+			{
+				this._selectedProjectId = -1;
+				return new List<Result>();
+			}
+
+			if (this._selectedProjectId == -1 || query.SearchTerms.Length == 1)
+			{
+				this._selectedProjectId = -1;
+
+				var projects = new List<Result>
+				{
+					new Result
+					{
+						Title = "No project",
+						// TODO: (x) icon
+						IcoPath = this._context.CurrentPluginMetadata.IcoPath,
+						Action = c =>
+						{
+							this._selectedProjectId = null;
+							this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StartCommand} no-project ", true);
+							return false;
+						},
+					},
+				};
+
+				if (this._me?.projects is not null)
+				{
+					projects.AddRange(
+						this._me.projects.ConvertAll(project => new Result
+						{
+							Title = project.name,
+							SubTitle = (project?.client_id is not null) ? this._me?.clients?.Find(client => client.id == project.client_id)?.name : null,
+							// TODO: Icon.Dot with tintColour?
+							IcoPath = this._context.CurrentPluginMetadata.IcoPath,
+							Action = c =>
+							{
+								this._selectedProjectId = project.id;
+								this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StartCommand} {project.name.ToLower().Replace(" ", "-")} ", true);
+								return false;
+							},
+						})
+					);
+				}
+
+				return (string.IsNullOrWhiteSpace(query.SecondToEndSearch))
+					? projects
+					: projects.Where(hotkey =>
+					{
+						return this._context.API.FuzzySearch(query.SecondToEndSearch, hotkey.Title).Score > 0;
+					}
+					).ToList();
+			}
+
+			Project? project = this._me?.projects?.Find(project => project.id == this._selectedProjectId);
+			Client? client = this._me?.clients?.Find(client => client.id == project.client_id);
+			long workspaceId = project?.workspace_id ?? this._me.default_workspace_id;
+
+			string clientName = (client is not null)
+				? $" • {client.name}"
+				: "";
+			string projectName = (project is not null)
+				? $"{project.name}{clientName}"
+				: "No project";
+
+			string description = string.Join(" ", query.SearchTerms.Skip(2));
+
+			return new List<Result>
+			{
+				new Result
+				{
+					Title = $"Start {description}",
+					SubTitle = projectName,
+					// TODO: Icon.Dot with tintColour?
+					IcoPath = this._context.CurrentPluginMetadata.IcoPath,
+					AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
+					Action = c =>
+					{
+						Task.Run(async delegate
+						{
+							this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {workspaceId}, {description}", "RequestStartEntry");
+
+							// TODO: billable
+							await this._togglClient.CreateTimeEntry(this._selectedProjectId, workspaceId, description, null, null);
+							this._context.API.ShowMsg($"Started {description}", projectName, this._context.CurrentPluginMetadata.IcoPath);
+							
+							this._selectedProjectId = -1;
+						});
+
+						return true;
+					},
+				},
+			};
+		}
+
 		internal async ValueTask<List<Result>> RequestStopEntry(CancellationToken token)
 		{
 			if (token.IsCancellationRequested)
@@ -131,22 +236,24 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			if (runningTimeEntry is null)
 			{
 				return new List<Result>
-			{
-				new Result
 				{
-					Title = $"No running time entry",
-					SubTitle = "There is no current time entry to stop.",
-					IcoPath = this._context.CurrentPluginMetadata.IcoPath,
-					Action = c =>
+					new Result
 					{
-						return true;
-					}
-				},
-			};
+						Title = $"No running time entry",
+						SubTitle = "There is no current time entry to stop.",
+						IcoPath = this._context.CurrentPluginMetadata.IcoPath,
+						Action = c =>
+						{
+							return true;
+						},
+					},
+				};
 			}
 
 			DateTimeOffset startDate = DateTimeOffset.Parse(runningTimeEntry.start);
 			string elapsed = DateTimeOffset.UtcNow.Subtract(startDate).ToString(@"h\:mm\:ss");
+
+			this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.id}, {runningTimeEntry.workspace_id}, {startDate}, {elapsed}", "RequestStopEntry");
 
 			return new List<Result>
 			{
@@ -165,7 +272,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						});
 
 						return true;
-					}
+					},
 				},
 			};
 		}

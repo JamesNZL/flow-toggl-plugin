@@ -21,7 +21,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 
 		public async Task<Me> GetMe()
 		{
-			return await this._api.Get<Me>("me");
+			return await this._api.Get<Me>("me?with_related_data=true");
 		}
 
 		public async Task<List<Workspace>> GetWorkspaces()
@@ -34,18 +34,16 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 			return await this._api.Get<List<Project>>($"workspaces/{workspaceId}/projects?per_page=500") ?? new List<Project>();
 		}
 
-		public async Task<TimeEntry> CreateTimeEntry(long? projectId, long workspaceId, string description, List<string> tags, bool billable)
+		public async Task<TimeEntry> CreateTimeEntry(long? projectId, long workspaceId, string description, List<string> tags, bool? billable)
 		{
-			var now = DateTime.Now;
-
 			return await this._api.Post<TimeEntry>($"workspaces/{workspaceId}/time_entries", new
 			{
 				billable,
 				created_with = "flow-toggl-plugin",
 				description,
-				duration = (long)Math.Floor((-1 * now.Subtract(new DateTime(1970, 1, 1))).TotalSeconds),
+				duration = -1 * DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
 				project_id = projectId ?? default(long?),
-				start = now.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
+				start = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
 				tags,
 				workspace_id = workspaceId,
 			});

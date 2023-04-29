@@ -36,7 +36,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 		public string at { get; set; }
 		public bool business_ws { get; set; }
 		public string default_currency { get; set; }
-		public long default_hourly_rate { get; set; }
+		public long? default_hourly_rate { get; set; }
 		public bool ical_enabled { get; set; }
 		public string ical_url { get; set; }
 		public long id { get; set; }
@@ -75,7 +75,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 		public string at { get; set; }
 		public bool? auto_estimates { get; set; }
 		public bool? billable { get; set; }
-		public long cid { get; set; }
+		public long? cid { get; set; }
 		public long? client_id { get; set; }
 		public string color { get; set; }
 		public string created_at { get; set; }
@@ -83,13 +83,13 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 		public string end_date { get; set; }
 		public long? estimated_hours { get; set; }
 		public string? first_time_entry { get; set; }
-		public long fixed_fee { get; set; }
+		public long? fixed_fee { get; set; }
 		public long id { get; set; }
 		public bool is_private { get; set; }
 		public string name { get; set; }
-		public long rate { get; set; }
+		public long? rate { get; set; }
 		public string? rate_last_updated { get; set; }
-		public bool recurring { get; set; }
+		public bool? recurring { get; set; }
 		public string? server_deleted_at { get; set; }
 		public string start_date { get; set; }
 		public bool? template { get; set; }
@@ -130,7 +130,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 		public long duration { get; set; }
 		public bool duronly { get; set; }
 		public long id { get; set; }
-		public long pid { get; set; }
+		public long? pid { get; set; }
 		public long? project_id { get; set; }
 		public string? server_deleted_at { get; set; }
 		public string start { get; set; }
@@ -138,10 +138,10 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 		public List<long>? tag_ids { get; set; }
 		public List<string> tags { get; set; }
 		public long? task_id { get; set; }
-		public long tid { get; set; }
-		public long uid { get; set; }
+		public long? tid { get; set; }
+		public long? uid { get; set; }
 		public long user_id { get; set; }
-		public long wid { get; set; }
+		public long? wid { get; set; }
 		public long workspace_id { get; set; }
 	}
 }

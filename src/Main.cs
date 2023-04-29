@@ -56,8 +56,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				return togglTrack.GetDefaultHotKeys();
 			}
 
+			// TODO: only show stop if running timer
+
 			return query.FirstSearch.ToLower() switch
 			{
+				Settings.StartCommand => togglTrack.RequestStartEntry(token, query),
 				Settings.StopCommand => await togglTrack.RequestStopEntry(token),
 				_ => togglTrack.GetDefaultHotKeys()
 					.Where(hotkey =>

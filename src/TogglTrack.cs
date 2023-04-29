@@ -100,7 +100,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						this._context.API.OpenSettingDialog();
 						return true;
 					},
-				}
+				},
 			};
 		}
 
@@ -138,7 +138,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					{
 						this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StartCommand} ");
 						return false;
-					}
+					},
 				},
 				new Result
 				{
@@ -150,7 +150,23 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					{
 						this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.ContinueCommand} ");
 						return false;
-					}
+					},
+				},
+				new Result
+				{
+					Title = Settings.RefreshCommand,
+					SubTitle = "Refresh plugin cache",
+					IcoPath = this._context.CurrentPluginMetadata.IcoPath,
+					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.RefreshCommand} ",
+					Score = -1,
+					Action = c =>
+					{
+						this._GetMe(true);
+						this._GetRunningTimeEntry(true);
+						this._GetTimeEntries(true);
+
+						return true;
+					},
 				},
 			};
 

@@ -8,6 +8,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		internal const string StartCommand = "start";
 		internal const string StopCommand = "stop";
 		internal const string ContinueCommand = "continue";
+		internal const string RefreshCommand = "refresh";
 
 		/// <Summary>
 		/// Toggl Track API Token.

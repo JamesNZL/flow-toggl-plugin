@@ -71,7 +71,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 	public class Project
 	{
 		public bool active { get; set; }
-		public long? actual_hours { get; set; }
+		public int? actual_hours { get; set; }
 		public string at { get; set; }
 		public bool? auto_estimates { get; set; }
 		public bool? billable { get; set; }

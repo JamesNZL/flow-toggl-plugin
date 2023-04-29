@@ -216,6 +216,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						Title = "No project",
 						IcoPath = "start.png",
 						AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StartCommand} ",
+						// Ensure is 1 greater than the top-priority project
+						Score = (me?.projects?.Count ?? 0) + 1,
 						Action = c =>
 						{
 							this._selectedProjectId = null;
@@ -227,9 +229,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 				if (me?.projects is not null)
 				{
-					// TODO: filter active, sort time
+					var filteredProjects = me.projects.FindAll(project => project.active);
+					filteredProjects.Sort((projectOne, projectTwo) => (projectTwo.actual_hours ?? 0) - (projectOne.actual_hours ?? 0));
+
 					projects.AddRange(
-						me.projects.ConvertAll(project => new Result
+						filteredProjects.ConvertAll(project => new Result
 						{
 							Title = project.name,
 							SubTitle = (project?.client_id is not null) ? me?.clients?.Find(client => client.id == project.client_id)?.name : null,
@@ -237,7 +241,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								? new ColourIcon(this._context, project.color).GetColourIcon()
 								: "start.png",
 							AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StartCommand} ",
-							Score = me.projects.Count - me.projects.IndexOf(project),
+							Score = filteredProjects.Count - filteredProjects.IndexOf(project),
 							Action = c =>
 							{
 								this._selectedProjectId = project.id;

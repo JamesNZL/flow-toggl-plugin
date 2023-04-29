@@ -13,7 +13,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		private Settings _settings { get; set; }
 
 		private TogglClient _togglClient;
-		private (bool IsValid, string Token) _lastToken = (false, "");
+		private (bool IsValid, string Token) _lastToken = (false, string.Empty);
 		private Me _me;
 
 		private long? _selectedProjectId = -1;
@@ -41,6 +41,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 
 			this._togglClient.UpdateToken(this._settings.ApiToken);
+			// TODO: add refresh functionality
 			this._me = await this._togglClient.GetMe();
 
 			return this._lastToken.IsValid = this._me?.api_token?.Equals(this._settings.ApiToken) ?? false;
@@ -189,7 +190,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			string clientName = (client is not null)
 				? $" • {client.name}"
-				: "";
+				: string.Empty;
 			string projectName = (project is not null)
 				? $"{project.name}{clientName}"
 				: "No project";
@@ -258,7 +259,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			string clientName = (client is not null)
 				? $" • {client.name}"
-				: "";
+				: string.Empty;
 			string projectName = (project is not null)
 				? $"{project.name}{clientName}"
 				: "No project";

@@ -12,6 +12,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		/// <Summary>
 		/// Toggl Track API Token.
 		/// </Summary>
-		public string ApiToken { get; set; } = "";
+		public string ApiToken { get; set; } = string.Empty;
 	}
 }

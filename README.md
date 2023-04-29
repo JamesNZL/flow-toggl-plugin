@@ -12,9 +12,6 @@
       <a href="https://github.com/JamesNZL/flow-toggl-plugin/pulls">
          <img src="https://img.shields.io/github/issues-pr/jamesnzl/flow-toggl-plugin" alt="GitHub pull requests">
       </a>
-      <a href="https://github.com/JamesNZL/flow-toggl-plugin/actions/workflows/npm-gulp.yml">
-         <img src="https://img.shields.io/github/workflow/status/jamesnzl/flow-toggl-plugin/Publish%20Release" alt="GitHub Workflow Status">
-      </a>
       <a href="https://github.com/JamesNZL/flow-toggl-plugin/commits">
          <img src="https://img.shields.io/github/last-commit/jamesnzl/flow-toggl-plugin" alt="GitHub last commit">
       </a>

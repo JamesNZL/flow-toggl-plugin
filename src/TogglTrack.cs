@@ -357,8 +357,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								var createdTimeEntry = await this._togglClient.CreateTimeEntry(this._selectedProjectId, workspaceId, description, null, null);
 								if (createdTimeEntry?.id is null)
 								{
-									// TODO: messages
-									throw new Exception();
+									throw new Exception("An API error was encountered.");
 								}
 
 								this._context.API.ShowMsg($"Started {createdTimeEntry?.description}", projectName, "start.png");
@@ -448,7 +447,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								var editedTimeEntry = await this._togglClient.EditTimeEntry(runningTimeEntry, query.SecondToEndSearch);
 								if (editedTimeEntry?.id is null)
 								{
-									throw new Exception();
+									throw new Exception("An API error was encountered.");
 								}
 
 								this._context.API.ShowMsg($"Edited {editedTimeEntry?.description}", $"{projectName} | {elapsed.ToString(@"h\:mm\:ss")}", "edit.png");
@@ -535,7 +534,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								var stoppedTimeEntry = await this._togglClient.StopTimeEntry(runningTimeEntry.id, runningTimeEntry.workspace_id);
 								if (stoppedTimeEntry?.id is null)
 								{
-									throw new Exception();
+									throw new Exception("An API error was encountered.");
 								}
 
 								this._context.API.ShowMsg($"Stopped {stoppedTimeEntry?.description}", $"{elapsed.ToString(@"h\:mm\:ss")} elapsed", "stop.png");
@@ -625,7 +624,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								var createdTimeEntry = await this._togglClient.CreateTimeEntry(project?.id, workspaceId, timeEntry?.description, null, null);
 								if (createdTimeEntry?.id is null)
 								{
-									throw new Exception();
+									throw new Exception("An API error was encountered.");
 								}
 
 								this._context.API.ShowMsg($"Continued {createdTimeEntry?.description}", projectName, "continue.png");

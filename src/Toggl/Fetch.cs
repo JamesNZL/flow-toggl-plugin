@@ -1,4 +1,5 @@
 using System;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -129,6 +130,25 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 				}
 
 				return JsonSerializer.Deserialize<T>(await response.Content.ReadAsStringAsync());
+			}
+			catch (HttpRequestException exception)
+			{
+				throw exception;
+			}
+		}
+
+		public async Task<HttpStatusCode?> Delete<T>(string endpoint)
+		{
+			try
+			{
+				var response = await this._httpClient.DeleteAsync(endpoint);
+
+				if (!response.IsSuccessStatusCode)
+				{
+					return null;
+				}
+
+				return response.StatusCode;
 			}
 			catch (HttpRequestException exception)
 			{

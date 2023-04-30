@@ -271,6 +271,19 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					return false;
 				}
 			});
+			results.Add(new Result
+			{
+				Title = Settings.DeleteCommand,
+				SubTitle = "Delete current time entry",
+				IcoPath = "delete.png",
+				AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.DeleteCommand} ",
+				Score = 60,
+				Action = c =>
+				{
+					this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.DeleteCommand} ");
+					return false;
+				}
+			});
 
 			return results;
 		}
@@ -560,7 +573,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							{
 								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.id}, {runningTimeEntry.workspace_id}, {startDate}, {elapsed.ToString(@"h\:mm\:ss")}", "RequestStopEntry");
 								
-								// TODO: billable
 								var stoppedTimeEntry = await this._togglClient.StopTimeEntry(runningTimeEntry.id, runningTimeEntry.workspace_id);
 								if (stoppedTimeEntry?.id is null)
 								{
@@ -580,6 +592,96 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							{
 								this._context.API.LogException("TogglTrack", "Failed to stop time entry", exception, "RequestStopEntry");
 								this._context.API.ShowMsgError("Failed to stop time entry.", exception.Message);
+							}
+						});
+
+						return true;
+					},
+				},
+			};
+		}
+
+		internal async ValueTask<List<Result>> RequestDeleteEntry(CancellationToken token)
+		{
+			if (token.IsCancellationRequested)
+			{
+				return new List<Result>();
+			}
+
+			var me = await this._GetMe();
+			if (me is null)
+			{
+				return this.NotifyUnknownError();
+			}
+
+			var runningTimeEntry = await this._GetRunningTimeEntry();
+			if (runningTimeEntry is null)
+			{
+				return new List<Result>
+				{
+					new Result
+					{
+						Title = $"No running time entry",
+						SubTitle = "There is no current time entry to delete.",
+						IcoPath = this._context.CurrentPluginMetadata.IcoPath,
+						Action = c =>
+						{
+							return true;
+						},
+					},
+				};
+			}
+
+			var startDate = DateTimeOffset.Parse(runningTimeEntry.start!);
+			var elapsed = DateTimeOffset.UtcNow.Subtract(startDate);
+
+			var project = me.projects?.Find(project => project.id == runningTimeEntry.project_id);
+			var client = me.clients?.Find(client => client.id == project?.client_id);
+
+			string clientName = (client is not null)
+				? $" • {client.name}"
+				: string.Empty;
+			string projectName = (project is not null)
+				? $"{project.name}{clientName}"
+				: "No project";
+
+			return new List<Result>
+			{
+				new Result
+				{
+					Title = $"Delete {((string.IsNullOrEmpty(runningTimeEntry.description)) ? "(no description)" : runningTimeEntry.description)}",
+					SubTitle = $"{projectName} | {elapsed.Humanize()} ({elapsed.ToString(@"h\:mm\:ss")})",
+					IcoPath = (project?.color is not null)
+						? new ColourIcon(this._context, project.color).GetColourIcon()
+						: "delete.png",
+					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.DeleteCommand} {((string.IsNullOrEmpty(runningTimeEntry.description)) ? "(no description)" : runningTimeEntry.description)}",
+					Action = c =>
+					{
+						Task.Run(async delegate
+						{
+							try
+							{
+								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.id}, {runningTimeEntry.workspace_id}, {startDate}, {elapsed.ToString(@"h\:mm\:ss")}", "RequestDeleteEntry");
+								
+								var statusCode = await this._togglClient.DeleteTimeEntry(runningTimeEntry.id, runningTimeEntry.workspace_id);
+								if (statusCode is null)
+								{
+									throw new Exception("An API error was encountered.");
+								}
+
+								this._context.API.ShowMsg($"Deleted {runningTimeEntry.description}", $"{elapsed.ToString(@"h\:mm\:ss")} elapsed", "delete.png");
+
+								// Update cached running time entry state
+								_ = Task.Run(() =>
+								{
+									_ = this._GetRunningTimeEntry(true);
+									_ = this._GetTimeEntries(true);
+								});
+							}
+							catch (Exception exception)
+							{
+								this._context.API.LogException("TogglTrack", "Failed to delete time entry", exception, "RequestDeleteEntry");
+								this._context.API.ShowMsgError("Failed to delete time entry.", exception.Message);
 							}
 						});
 

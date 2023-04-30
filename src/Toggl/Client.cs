@@ -1,4 +1,5 @@
 using System;
+using System.Net;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -81,6 +82,11 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 		public async Task<TimeEntry?> StopTimeEntry(long id, long workspaceId)
 		{
 			return await this._api.Patch<TimeEntry>($"workspaces/{workspaceId}/time_entries/{id}/stop", new { });
+		}
+
+		public async Task<HttpStatusCode?> DeleteTimeEntry(long id, long workspaceId)
+		{
+			return await this._api.Delete<HttpStatusCode>($"workspaces/{workspaceId}/time_entries/{id}");
 		}
 
 		public async Task<List<TimeEntry>?> GetTimeEntries()

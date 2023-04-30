@@ -42,7 +42,6 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 
 # Screenshots
 
-<!-- TODO: update -->
 ![Default hotkeys](./assets/screenshots/default.jpg)
 
 ![Project selection](./assets/screenshots/start.jpg)

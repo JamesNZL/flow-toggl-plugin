@@ -93,5 +93,19 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 
 			return JsonSerializer.Deserialize<T>(await response.Content.ReadAsStringAsync());
 		}
+
+		public async Task<T> Put<T>(string endpoint, object body)
+		{
+			var json = JsonSerializer.Serialize(body, AuthenticatedFetch._serializerOptions);
+			var content = new StringContent(json, Encoding.UTF8, "application/json");
+			var response = await this._httpClient.PutAsync(endpoint, content);
+
+			if (!response.IsSuccessStatusCode)
+			{
+				return default(T);
+			}
+
+			return JsonSerializer.Deserialize<T>(await response.Content.ReadAsStringAsync());
+		}
 	}
 }

@@ -191,6 +191,19 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					return false;
 				}
 			});
+			results.Add(new Result
+			{
+				Title = Settings.EditCommand,
+				SubTitle = "Edit current time entry",
+				IcoPath = "edit.png",
+				AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.EditCommand} ",
+				Score = 80,
+				Action = c =>
+				{
+					this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.EditCommand} ");
+					return false;
+				}
+			});
 
 			return results;
 		}
@@ -294,6 +307,77 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							this._context.API.ShowMsg($"Started {description}", projectName, "start.png");
 							
 							this._selectedProjectId = -1;
+							// Update cached running time entry state
+							this._GetRunningTimeEntry(true);
+							this._GetTimeEntries(true);
+						});
+
+						return true;
+					},
+				},
+			};
+		}
+
+		internal async ValueTask<List<Result>> RequestEditEntry(CancellationToken token, Query query)
+		{
+			if (token.IsCancellationRequested)
+			{
+				return new List<Result>();
+			}
+
+			var me = await this._GetMe();
+			var runningTimeEntry = await this._GetRunningTimeEntry();
+
+			if (runningTimeEntry is null)
+			{
+				return new List<Result>
+				{
+					new Result
+					{
+						Title = $"No running time entry",
+						SubTitle = "There is no current time entry to edit.",
+						IcoPath = this._context.CurrentPluginMetadata.IcoPath,
+						Action = c =>
+						{
+							return true;
+						},
+					},
+				};
+			}
+
+			DateTimeOffset startDate = DateTimeOffset.Parse(runningTimeEntry.start);
+			TimeSpan elapsed = DateTimeOffset.UtcNow.Subtract(startDate);
+
+			Project? project = me?.projects?.Find(project => project.id == runningTimeEntry.project_id);
+			Client? client = me?.clients?.Find(client => client.id == project?.client_id);
+
+			string clientName = (client is not null)
+				? $" • {client.name}"
+				: string.Empty;
+			string projectName = (project is not null)
+				? $"{project.name}{clientName}"
+				: "No project";
+
+			return new List<Result>
+			{
+				new Result
+				{
+					Title = (string.IsNullOrEmpty(query.SecondToEndSearch)) ? ((string.IsNullOrEmpty(runningTimeEntry?.description)) ? "(no description)" : runningTimeEntry.description) : query.SecondToEndSearch,
+					SubTitle = $"{projectName} | {elapsed.Humanize()} ({elapsed.ToString(@"h\:mm\:ss")})",
+					IcoPath = (project?.color is not null)
+						? new ColourIcon(this._context, project.color).GetColourIcon()
+						: "edit.png",
+					AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
+					Action = c =>
+					{
+						Task.Run(async delegate
+						{
+							this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.id}, {runningTimeEntry.duration}, {runningTimeEntry.start}, {runningTimeEntry.project_id}, {runningTimeEntry.workspace_id}, {query.SecondToEndSearch}", "RequestEditEntry");
+
+							// TODO: billable
+							await this._togglClient.EditTimeEntry(runningTimeEntry, query.SecondToEndSearch);
+							this._context.API.ShowMsg($"Edited {query.SecondToEndSearch}", $"{projectName} | {elapsed.ToString(@"h\:mm\:ss")}", "start.png");
+							
 							// Update cached running time entry state
 							this._GetRunningTimeEntry(true);
 							this._GetTimeEntries(true);

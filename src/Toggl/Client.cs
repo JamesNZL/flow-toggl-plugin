@@ -48,6 +48,20 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 				workspace_id = workspaceId,
 			});
 		}
+		
+		public async Task<TimeEntry> EditTimeEntry(TimeEntry timeEntry, string description)
+		{
+			return await this._api.Put<TimeEntry>($"workspaces/{timeEntry.workspace_id}/time_entries/{timeEntry.id}", new
+			{
+				timeEntry.billable,
+				created_with = "flow-toggl-plugin",
+				description,
+				timeEntry.duration,
+				timeEntry?.project_id,
+				timeEntry.tags,
+				timeEntry.workspace_id,
+			});
+		}
 
 		public async Task<TimeEntry> GetRunningTimeEntry()
 		{

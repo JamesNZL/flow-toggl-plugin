@@ -6,6 +6,7 @@
    <img src="assets/delete.png" width="12.5%">
    <img src="assets/continue.png" width="12.5%">
    <br>
+   <br>
    <div>
       <a href="https://github.com/JamesNZL/flow-toggl-plugin/issues">
          <img src="https://img.shields.io/github/issues/jamesnzl/flow-toggl-plugin" alt="GitHub issues">

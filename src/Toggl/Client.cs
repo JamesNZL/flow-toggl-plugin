@@ -19,7 +19,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 			this._api.UpdateToken(token);
 		}
 
-		public async Task<Me> GetMe()
+		public async Task<Me?> GetMe()
 		{
 			try
 			{
@@ -31,7 +31,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 			}
 		}
 
-		public async Task<List<Workspace>> GetWorkspaces()
+		public async Task<List<Workspace>?> GetWorkspaces()
 		{
 			try
 			{
@@ -43,11 +43,11 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 			}
 		}
 
-		public async Task<List<Project>> GetWorkspaceProjects(long workspaceId)
+		public async Task<List<Project>?> GetWorkspaceProjects(long workspaceId)
 		{
 			try
 			{
-				return await this._api.Get<List<Project>>($"workspaces/{workspaceId}/projects?per_page=500") ?? new List<Project>();
+				return await this._api.Get<List<Project>>($"workspaces/{workspaceId}/projects?per_page=500");
 			}
 			catch (Exception exception)
 			{
@@ -55,7 +55,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 			}
 		}
 
-		public async Task<TimeEntry> CreateTimeEntry(long? projectId, long workspaceId, string description, List<string> tags, bool? billable)
+		public async Task<TimeEntry?> CreateTimeEntry(long? projectId, long workspaceId, string? description, List<string>? tags, bool? billable)
 		{
 			try
 			{
@@ -77,7 +77,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 			}
 		}
 		
-		public async Task<TimeEntry> EditTimeEntry(TimeEntry timeEntry, string description)
+		public async Task<TimeEntry?> EditTimeEntry(TimeEntry timeEntry, string? description)
 		{
 			try
 			{
@@ -87,7 +87,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 					created_with = "flow-toggl-plugin",
 					description,
 					timeEntry.duration,
-					timeEntry?.project_id,
+					timeEntry.project_id,
 					timeEntry.tags,
 					timeEntry.workspace_id,
 				});
@@ -98,7 +98,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 			}
 		}
 
-		public async Task<TimeEntry> GetRunningTimeEntry()
+		public async Task<TimeEntry?> GetRunningTimeEntry()
 		{
 			try
 			{
@@ -110,7 +110,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 			}
 		}
 
-		public async Task<List<Client>> GetWorkspaceClients(long workspaceId)
+		public async Task<List<Client>?> GetWorkspaceClients(long workspaceId)
 		{
 			try
 			{
@@ -122,7 +122,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 			}
 		}
 
-		public async Task<List<Tag>> GetWorkspaceTags(long workspaceId)
+		public async Task<List<Tag>?> GetWorkspaceTags(long workspaceId)
 		{
 			try
 			{
@@ -134,7 +134,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 			}
 		}
 
-		public async Task<TimeEntry> StopTimeEntry(long id, long workspaceId)
+		public async Task<TimeEntry?> StopTimeEntry(long id, long workspaceId)
 		{
 			try
 			{
@@ -146,7 +146,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 			}
 		}
 
-		public async Task<List<TimeEntry>> GetTimeEntries()
+		public async Task<List<TimeEntry>?> GetTimeEntries()
 		{
 			try
 			{

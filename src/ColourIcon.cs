@@ -10,7 +10,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
     {
         private static readonly int IMAGE_SIZE = 32;
 		private static readonly int CIRCLE_SIZE = 20;
-		private static DirectoryInfo _coloursDirectory { get; set; }
+		private static DirectoryInfo? _coloursDirectory { get; set; }
 
 		private PluginInitContext _context { get; set; }
 
@@ -33,10 +33,10 @@ namespace Flow.Launcher.Plugin.TogglTrack
             }
 		}
 
-        private static FileInfo FindFileImage(string name)
+        private static FileInfo? FindFileImage(string name)
         {
             var file = $"{name}.png";
-            return ColourIcon._coloursDirectory.GetFiles(file, SearchOption.TopDirectoryOnly).FirstOrDefault();
+            return ColourIcon._coloursDirectory?.GetFiles(file, SearchOption.TopDirectoryOnly).FirstOrDefault();
         }
 
 		private static string CreateCacheImage(string name)
@@ -51,7 +51,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
                 int centre = (ColourIcon.IMAGE_SIZE - ColourIcon.CIRCLE_SIZE) / 2;
                 graphics.FillEllipse(new SolidBrush(colour), centre, centre, ColourIcon.CIRCLE_SIZE, ColourIcon.CIRCLE_SIZE);
 
-                var path = Path.Combine(ColourIcon._coloursDirectory.FullName, $"{name}.png");
+                var path = Path.Combine(ColourIcon._coloursDirectory?.FullName ?? string.Empty, $"{name}.png");
                 bitmap.Save(path, ImageFormat.Png);
                 return path;
             }

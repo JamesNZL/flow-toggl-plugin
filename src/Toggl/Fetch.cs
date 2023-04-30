@@ -15,7 +15,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 
 		private string _token;
 		private readonly string _baseUrl;
-		private HttpClient _httpClient = null;
+		private HttpClient _httpClient;
 
 		private static string Base64Encode(string str)
 		{
@@ -27,24 +27,24 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 			this._token = token;
 			this._baseUrl = baseUrl;
 
-			this.CreateHttpClient();
+			this._httpClient = this.CreateHttpClient();
 		}
 
 		public void UpdateToken(string token)
 		{
 			this._token = token;
 
-			this.CreateHttpClient();
+			this._httpClient = this.CreateHttpClient();
 		}
 
-		private void CreateHttpClient()
+		private HttpClient CreateHttpClient()
 		{
 			if (this._httpClient is not null)
 			{
 				this._httpClient.Dispose();
 			}
 
-			this._httpClient = new HttpClient
+			return new HttpClient
 			{
 				BaseAddress = new Uri(this._baseUrl),
 				DefaultRequestHeaders =
@@ -54,7 +54,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 			};
 		}
 
-		public async Task<T> Get<T>(string endpoint)
+		public async Task<T?> Get<T>(string endpoint)
 		{
 			try
 			{
@@ -73,7 +73,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 			}
 		}
 
-		public async Task<T> Post<T>(string endpoint, object body)
+		public async Task<T?> Post<T>(string endpoint, object body)
 		{
 			try
 			{
@@ -94,7 +94,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 			}
 		}
 
-		public async Task<T> Patch<T>(string endpoint, object body)
+		public async Task<T?> Patch<T>(string endpoint, object body)
 		{
 			try
 			{
@@ -115,7 +115,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 			}
 		}
 
-		public async Task<T> Put<T>(string endpoint, object body)
+		public async Task<T?> Put<T>(string endpoint, object body)
 		{
 			try
 			{

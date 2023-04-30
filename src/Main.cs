@@ -12,11 +12,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 	/// </summary>
 	public class Main : IAsyncPlugin, ISettingProvider
 	{
-		private static SettingsViewModel _viewModel;
-		private PluginInitContext _context;
-		private Settings _settings;
+		private static SettingsViewModel? _viewModel;
+		private PluginInitContext? _context;
+		private Settings? _settings;
 
-		internal TogglTrack _togglTrack;
+		internal TogglTrack? _togglTrack;
 
 		/// <summary>
 		/// Runs on plugin initialisation.
@@ -40,15 +40,15 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		/// <returns></returns>
 		public async Task<List<Result>> QueryAsync(Query query, CancellationToken token)
 		{
-			if (string.IsNullOrWhiteSpace(this._settings.ApiToken))
+			if (string.IsNullOrWhiteSpace(this._settings!.ApiToken))
 			{
-				return this._togglTrack.NotifyMissingToken();
+				return this._togglTrack!.NotifyMissingToken();
 			}
 			else if (!InternetAvailability.IsInternetAvailable())
 			{
-				return this._togglTrack.NotifyNetworkUnavailable();
+				return this._togglTrack!.NotifyNetworkUnavailable();
 			}
-			else if (!await this._togglTrack.VerifyApiToken())
+			else if (!await this._togglTrack!.VerifyApiToken())
 			{
 				return this._togglTrack.NotifyInvalidToken();
 			}
@@ -67,7 +67,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				_ => (await this._togglTrack.GetDefaultHotKeys())
 					.FindAll(result =>
 					{
-						return this._context.API.FuzzySearch(query.Search, result.Title).Score > 0;
+						return this._context!.API.FuzzySearch(query.Search, result.Title).Score > 0;
 					}),
 			};
 		}
@@ -78,7 +78,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		/// <returns></returns>
 		public Control CreateSettingPanel()
 		{
-			return new TogglTrackSettings(Main._viewModel);
+			return new TogglTrackSettings(Main._viewModel!);
 		}
 	}
 }

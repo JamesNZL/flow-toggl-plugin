@@ -122,7 +122,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			{
 				new Result
 				{
-					Title = "ERROR: Missing API Token",
+					Title = "ERROR: Missing API token",
 					SubTitle = "Configure Toggl Track API token in Flow Launcher settings.",
 					IcoPath = this._context.CurrentPluginMetadata.IcoPath,
 					Action = c =>
@@ -157,12 +157,29 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			{
 				new Result
 				{
-					Title = "ERROR: Invalid API Token",
+					Title = "ERROR: Invalid API token",
 					SubTitle = $"{this._settings.ApiToken} is not a valid API token.",
 					IcoPath = this._context.CurrentPluginMetadata.IcoPath,
 					Action = c =>
 					{
 						this._context.API.OpenSettingDialog();
+						return true;
+					},
+				}
+			};
+		}
+
+		internal List<Result> NotifyUnknownError()
+		{
+			return new List<Result>
+			{
+				new Result
+				{
+					Title = "ERROR: Unknown error",
+					SubTitle = "An unexpected error has occurred.",
+					IcoPath = this._context.CurrentPluginMetadata.IcoPath,
+					Action = c =>
+					{
 						return true;
 					},
 				}
@@ -266,6 +283,10 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 
 			var me = await this._GetMe();
+			if (me is null)
+			{
+				return this.NotifyUnknownError();
+			}
 
 			if (this._selectedProjectId == -1 || query.SearchTerms.Length == 1)
 			{
@@ -279,7 +300,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						IcoPath = "start.png",
 						AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StartCommand} ",
 						// Ensure is 1 greater than the top-priority project
-						Score = (me?.projects?.Count ?? 0) + 1,
+						Score = (me.projects?.Count ?? 0) + 1,
 						Action = c =>
 						{
 							this._selectedProjectId = null;
@@ -289,17 +310,17 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					},
 				};
 
-				if (me?.projects is not null)
+				if (me.projects is not null)
 				{
-					var filteredProjects = me.projects.FindAll(project => project.active);
+					var filteredProjects = me.projects.FindAll(project => project.active ?? false);
 					filteredProjects.Sort((projectOne, projectTwo) => (projectTwo.actual_hours ?? 0) - (projectOne.actual_hours ?? 0));
 
 					projects.AddRange(
 						filteredProjects.ConvertAll(project => new Result
 						{
 							Title = project.name,
-							SubTitle = $"{((project?.client_id is not null) ? $"{me?.clients?.Find(client => client.id == project.client_id)?.name} | " : string.Empty)}{project?.actual_hours ?? 0} hours",
-							IcoPath = (project?.color is not null)
+							SubTitle = $"{((project.client_id is not null) ? $"{me.clients?.Find(client => client.id == project.client_id)?.name} | " : string.Empty)}{project.actual_hours ?? 0} hours",
+							IcoPath = (project.color is not null)
 								? new ColourIcon(this._context, project.color).GetColourIcon()
 								: "start.png",
 							AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StartCommand} ",
@@ -307,7 +328,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							Action = c =>
 							{
 								this._selectedProjectId = project.id;
-								this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StartCommand} {project.name.ToLower().Replace(" ", "-")} ", true);
+								this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StartCommand} {project.name?.ToLower().Replace(" ", "-")} ", true);
 								return false;
 							},
 						})
@@ -322,8 +343,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					});
 			}
 
-			Project? project = me?.projects?.Find(project => project.id == this._selectedProjectId);
-			Client? client = me?.clients?.Find(client => client.id == project?.client_id);
+			var project = me.projects?.Find(project => project.id == this._selectedProjectId);
+			var client = me.clients?.Find(client => client.id == project?.client_id);
 			long workspaceId = project?.workspace_id ?? me.default_workspace_id;
 
 			string clientName = (client is not null)
@@ -360,7 +381,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									throw new Exception("An API error was encountered.");
 								}
 
-								this._context.API.ShowMsg($"Started {createdTimeEntry?.description}", projectName, "start.png");
+								this._context.API.ShowMsg($"Started {createdTimeEntry.description}", projectName, "start.png");
 
 								// Update cached running time entry state
 								_ = Task.Run(() =>
@@ -394,8 +415,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 
 			var me = await this._GetMe();
-			var runningTimeEntry = await this._GetRunningTimeEntry();
+			if (me is null)
+			{
+				return this.NotifyUnknownError();
+			}
 
+			var runningTimeEntry = await this._GetRunningTimeEntry();
 			if (runningTimeEntry is null)
 			{
 				return new List<Result>
@@ -413,11 +438,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				};
 			}
 
-			DateTimeOffset startDate = DateTimeOffset.Parse(runningTimeEntry.start);
-			TimeSpan elapsed = DateTimeOffset.UtcNow.Subtract(startDate);
+			var startDate = DateTimeOffset.Parse(runningTimeEntry.start!);
+			var elapsed = DateTimeOffset.UtcNow.Subtract(startDate);
 
-			Project? project = me?.projects?.Find(project => project.id == runningTimeEntry.project_id);
-			Client? client = me?.clients?.Find(client => client.id == project?.client_id);
+			var project = me.projects?.Find(project => project.id == runningTimeEntry.project_id);
+			var client = me.clients?.Find(client => client.id == project?.client_id);
 
 			string clientName = (client is not null)
 				? $" • {client.name}"
@@ -430,7 +455,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			{
 				new Result
 				{
-					Title = (string.IsNullOrEmpty(query.SecondToEndSearch)) ? ((string.IsNullOrEmpty(runningTimeEntry?.description)) ? "(no description)" : runningTimeEntry.description) : query.SecondToEndSearch,
+					Title = (string.IsNullOrEmpty(query.SecondToEndSearch)) ? ((string.IsNullOrEmpty(runningTimeEntry.description)) ? "(no description)" : runningTimeEntry.description) : query.SecondToEndSearch,
 					SubTitle = $"{projectName} | {elapsed.Humanize()} ({elapsed.ToString(@"h\:mm\:ss")})",
 					IcoPath = (project?.color is not null)
 						? new ColourIcon(this._context, project.color).GetColourIcon()
@@ -450,7 +475,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									throw new Exception("An API error was encountered.");
 								}
 
-								this._context.API.ShowMsg($"Edited {editedTimeEntry?.description}", $"{projectName} | {elapsed.ToString(@"h\:mm\:ss")}", "edit.png");
+								this._context.API.ShowMsg($"Edited {editedTimeEntry.description}", $"{projectName} | {elapsed.ToString(@"h\:mm\:ss")}", "edit.png");
 
 								// Update cached running time entry state
 								_ = Task.Run(() =>
@@ -480,8 +505,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 
 			var me = await this._GetMe();
-			var runningTimeEntry = await this._GetRunningTimeEntry();
+			if (me is null)
+			{
+				return this.NotifyUnknownError();
+			}
 
+			var runningTimeEntry = await this._GetRunningTimeEntry();
 			if (runningTimeEntry is null)
 			{
 				return new List<Result>
@@ -499,11 +528,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				};
 			}
 
-			DateTimeOffset startDate = DateTimeOffset.Parse(runningTimeEntry.start);
-			TimeSpan elapsed = DateTimeOffset.UtcNow.Subtract(startDate);
+			var startDate = DateTimeOffset.Parse(runningTimeEntry.start!);
+			var elapsed = DateTimeOffset.UtcNow.Subtract(startDate);
 
-			Project? project = me?.projects?.Find(project => project.id == runningTimeEntry.project_id);
-			Client? client = me?.clients?.Find(client => client.id == project?.client_id);
+			var project = me.projects?.Find(project => project.id == runningTimeEntry.project_id);
+			var client = me.clients?.Find(client => client.id == project?.client_id);
 
 			string clientName = (client is not null)
 				? $" • {client.name}"
@@ -516,12 +545,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			{
 				new Result
 				{
-					Title = $"Stop {((string.IsNullOrEmpty(runningTimeEntry?.description)) ? "(no description)" : runningTimeEntry.description)}",
+					Title = $"Stop {((string.IsNullOrEmpty(runningTimeEntry.description)) ? "(no description)" : runningTimeEntry.description)}",
 					SubTitle = $"{projectName} | {elapsed.Humanize()} ({elapsed.ToString(@"h\:mm\:ss")})",
 					IcoPath = (project?.color is not null)
 						? new ColourIcon(this._context, project.color).GetColourIcon()
 						: "stop.png",
-					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StopCommand} {((string.IsNullOrEmpty(runningTimeEntry?.description)) ? "(no description)" : runningTimeEntry.description)}",
+					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StopCommand} {((string.IsNullOrEmpty(runningTimeEntry.description)) ? "(no description)" : runningTimeEntry.description)}",
 					Action = c =>
 					{
 						Task.Run(async delegate
@@ -537,7 +566,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									throw new Exception("An API error was encountered.");
 								}
 
-								this._context.API.ShowMsg($"Stopped {stoppedTimeEntry?.description}", $"{elapsed.ToString(@"h\:mm\:ss")} elapsed", "stop.png");
+								this._context.API.ShowMsg($"Stopped {stoppedTimeEntry.description}", $"{elapsed.ToString(@"h\:mm\:ss")} elapsed", "stop.png");
 
 								// Update cached running time entry state
 								_ = Task.Run(() =>
@@ -567,8 +596,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 
 			var me = await this._GetMe();
-			var timeEntries = await this._GetTimeEntries();
+			if (me is null)
+			{
+				return this.NotifyUnknownError();
+			}
 
+			var timeEntries = await this._GetTimeEntries();
 			if (timeEntries is null)
 			{
 				return new List<Result>
@@ -589,11 +622,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			var entries = timeEntries.ConvertAll(timeEntry => 
 			{
 				var elapsed = (timeEntry.duration < 0)
-					? DateTimeOffset.UtcNow.Subtract(DateTimeOffset.Parse(timeEntry.start))
+					? DateTimeOffset.UtcNow.Subtract(DateTimeOffset.Parse(timeEntry.start!))
 					: TimeSpan.FromSeconds(timeEntry.duration);
 
-				Project? project = me?.projects?.Find(project => project.id == timeEntry?.project_id);
-				Client? client = me?.clients?.Find(client => client.id == project?.client_id);
+				var project = me.projects?.Find(project => project.id == timeEntry.project_id);
+				var client = me.clients?.Find(client => client.id == project?.client_id);
 				long workspaceId = project?.workspace_id ?? me.default_workspace_id;
 
 				string clientName = (client is not null)
@@ -605,12 +638,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 				return new Result
 				{
-					Title = (string.IsNullOrEmpty(timeEntry?.description)) ? "(no description)" : timeEntry.description,
-					SubTitle = $"{projectName} | {elapsed.Humanize()} ({DateTime.Parse(timeEntry.start).Humanize(false)})",
+					Title = (string.IsNullOrEmpty(timeEntry.description)) ? "(no description)" : timeEntry.description,
+					SubTitle = $"{projectName} | {elapsed.Humanize()} ({DateTime.Parse(timeEntry.start!).Humanize(false)})",
 					IcoPath = (project?.color is not null)
 							? new ColourIcon(this._context, project.color).GetColourIcon()
 							: "continue.png",
-					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.ContinueCommand} {((string.IsNullOrEmpty(timeEntry?.description)) ? "(no description)" : timeEntry.description)}",
+					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.ContinueCommand} {((string.IsNullOrEmpty(timeEntry.description)) ? "(no description)" : timeEntry.description)}",
 					Score = timeEntries.Count - timeEntries.IndexOf(timeEntry),
 					Action = c =>
 					{
@@ -618,16 +651,16 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						{
 							try
 							{
-								this._context.API.LogInfo("TogglTrack", $"{project?.id}, {workspaceId}, {timeEntry?.description}", "RequestContinueEntry");
+								this._context.API.LogInfo("TogglTrack", $"{project?.id}, {workspaceId}, {timeEntry.description}", "RequestContinueEntry");
 								
 								// TODO: billable
-								var createdTimeEntry = await this._togglClient.CreateTimeEntry(project?.id, workspaceId, timeEntry?.description, null, null);
+								var createdTimeEntry = await this._togglClient.CreateTimeEntry(project?.id, workspaceId, timeEntry.description, null, null);
 								if (createdTimeEntry?.id is null)
 								{
 									throw new Exception("An API error was encountered.");
 								}
 
-								this._context.API.ShowMsg($"Continued {createdTimeEntry?.description}", projectName, "continue.png");
+								this._context.API.ShowMsg($"Continued {createdTimeEntry.description}", projectName, "continue.png");
 
 								// Update cached running time entry state
 								_ = Task.Run(() =>

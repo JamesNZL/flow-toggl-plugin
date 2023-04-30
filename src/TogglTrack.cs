@@ -1,4 +1,5 @@
 using System;
+using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -339,7 +340,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					? projects
 					: projects.FindAll(result =>
 					{
-						return this._context.API.FuzzySearch(query.SecondToEndSearch, $"{result.Title} {result.SubTitle}").Score > 0;
+						return this._context.API.FuzzySearch(query.SecondToEndSearch, $"{result.Title} {Regex.Replace(result.SubTitle, @"(?: \| )?\d+ hours?$", string.Empty)}").Score > 0;
 					});
 			}
 

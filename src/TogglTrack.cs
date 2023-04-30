@@ -319,7 +319,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						filteredProjects.ConvertAll(project => new Result
 						{
 							Title = project.name,
-							SubTitle = $"{((project.client_id is not null) ? $"{me.clients?.Find(client => client.id == project.client_id)?.name} | " : string.Empty)}{project.actual_hours ?? 0} hours",
+							SubTitle = $"{((project.client_id is not null) ? $"{me.clients?.Find(client => client.id == project.client_id)?.name} | " : string.Empty)}{project.actual_hours ?? 0} hour{(((project.actual_hours ?? 0) != 1) ? "s" : string.Empty)}",
 							IcoPath = (project.color is not null)
 								? new ColourIcon(this._context, project.color).GetColourIcon()
 								: "start.png",

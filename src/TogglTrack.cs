@@ -357,6 +357,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								var createdTimeEntry = await this._togglClient.CreateTimeEntry(this._selectedProjectId, workspaceId, description, null, null);
 								if (createdTimeEntry?.id is null)
 								{
+									// TODO: messages
 									throw new Exception();
 								}
 
@@ -600,13 +601,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					? $" • {client.name}"
 					: string.Empty;
 				string projectName = (project is not null)
-					? $"{project.name}{clientName} | "
-					: string.Empty;
+					? $"{project.name}{clientName}"
+					: "No project";
 
 				return new Result
 				{
 					Title = (string.IsNullOrEmpty(timeEntry?.description)) ? "(no description)" : timeEntry.description,
-					SubTitle = $"{projectName}{elapsed.Humanize()} ({DateTime.Parse(timeEntry.start).Humanize(false)})",
+					SubTitle = $"{projectName} | {elapsed.Humanize()} ({DateTime.Parse(timeEntry.start).Humanize(false)})",
 					IcoPath = (project?.color is not null)
 							? new ColourIcon(this._context, project.color).GetColourIcon()
 							: "continue.png",

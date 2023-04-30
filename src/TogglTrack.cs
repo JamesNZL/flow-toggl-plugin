@@ -210,9 +210,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					Score = -100,
 					Action = c =>
 					{
-						this._GetMe(true);
-						this._GetRunningTimeEntry(true);
-						this._GetTimeEntries(true);
+						_ = Task.Run(() =>
+						{
+							_ = this._GetMe(true);
+							_ = this._GetRunningTimeEntry(true);
+							_ = this._GetTimeEntries(true);
+						});
 
 						return true;
 					},
@@ -360,8 +363,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								this._context.API.ShowMsg($"Started {createdTimeEntry?.description}", projectName, "start.png");
 
 								// Update cached running time entry state
-								this._GetRunningTimeEntry(true);
-								this._GetTimeEntries(true);
+								_ = Task.Run(() =>
+								{
+									_ = this._GetRunningTimeEntry(true);
+									_ = this._GetTimeEntries(true);
+								});
 							}
 							catch (Exception exception)
 							{
@@ -447,9 +453,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								this._context.API.ShowMsg($"Edited {editedTimeEntry?.description}", $"{projectName} | {elapsed.ToString(@"h\:mm\:ss")}", "edit.png");
 
 								// Update cached running time entry state
-								// TODO: Task.Run()
-								this._GetRunningTimeEntry(true);
-								this._GetTimeEntries(true);
+								_ = Task.Run(() =>
+								{
+									_ = this._GetRunningTimeEntry(true);
+									_ = this._GetTimeEntries(true);
+								});
 							}
 							catch (Exception exception)
 							{
@@ -532,8 +540,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								this._context.API.ShowMsg($"Stopped {stoppedTimeEntry?.description}", $"{elapsed.ToString(@"h\:mm\:ss")} elapsed", "stop.png");
 
 								// Update cached running time entry state
-								this._GetRunningTimeEntry(true);
-								this._GetTimeEntries(true);
+								_ = Task.Run(() =>
+								{
+									_ = this._GetRunningTimeEntry(true);
+									_ = this._GetTimeEntries(true);
+								});
 							}
 							catch (Exception exception)
 							{
@@ -619,8 +630,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								this._context.API.ShowMsg($"Continued {createdTimeEntry?.description}", projectName, "continue.png");
 
 								// Update cached running time entry state
-								this._GetRunningTimeEntry(true);
-								this._GetTimeEntries(true);
+								_ = Task.Run(() =>
+								{
+									_ = this._GetRunningTimeEntry(true);
+									_ = this._GetTimeEntries(true);
+								});
 							}
 							catch (Exception exception)
 							{

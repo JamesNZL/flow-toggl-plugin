@@ -3,6 +3,7 @@
    <img src="assets/start.png" width="15%">
    <img src="assets/edit.png" width="15%">
    <img src="assets/stop.png" width="15%">
+   <img src="assets/delete.png" width="15%">
    <img src="assets/continue.png" width="15%">
    <br>
    <br>
@@ -36,6 +37,7 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 - Start new time entries
 - Edit currently running time entries
 - Stop currently running time entries
+- Delete currently running time entries
 - Continue a previously tracked time entry
 - Support for projects, clients, and workspaces
 - Coloured icons for projects
@@ -52,6 +54,8 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 ![Editing running time entry](./assets/screenshots/edit.jpg)
 
 ![Stopping running time entry](./assets/screenshots/stop.jpg)
+
+![Deleting running time entry](./assets/screenshots/delete.jpg)
 
 ![Continue previous time entry](./assets/screenshots/continue.jpg)
 

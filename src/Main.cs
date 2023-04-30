@@ -17,7 +17,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		private PluginInitContext _context;
 		private Settings _settings;
 
-		internal TogglTrack togglTrack;
+		internal TogglTrack _togglTrack;
 
 		/// <summary>
 		/// Runs on plugin initialisation.
@@ -30,8 +30,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			this._settings = context.API.LoadSettingJsonStorage<Settings>();
 			Main._viewModel = new SettingsViewModel(this._settings);
 
-			this.togglTrack = new TogglTrack(this._context, this._settings);
-			await this.togglTrack.VerifyApiToken();
+			this._togglTrack = new TogglTrack(this._context, this._settings);
+			await this._togglTrack.VerifyApiToken();
 		}
 
 		/// <summary>
@@ -45,30 +45,29 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			if (string.IsNullOrWhiteSpace(this._settings.ApiToken))
 			{
-				return togglTrack.NotifyMissingToken();
+				return this._togglTrack.NotifyMissingToken();
 			}
 			else if (!InternetAvailability.IsInternetAvailable())
 			{
-				// TODO: this._
-				return togglTrack.NotifyNetworkUnavailable();
+				return this._togglTrack.NotifyNetworkUnavailable();
 			}
-			else if (!await this.togglTrack.VerifyApiToken())
+			else if (!await this._togglTrack.VerifyApiToken())
 			{
-				return togglTrack.NotifyInvalidToken();
+				return this._togglTrack.NotifyInvalidToken();
 			}
 
 			if (string.IsNullOrWhiteSpace(query.Search))
 			{
-				return await togglTrack.GetDefaultHotKeys();
+				return await this._togglTrack.GetDefaultHotKeys();
 			}
 
 			return query.FirstSearch.ToLower() switch
 			{
-				Settings.StartCommand => await togglTrack.RequestStartEntry(token, query),
-				Settings.EditCommand => await togglTrack.RequestEditEntry(token, query),
-				Settings.StopCommand => await togglTrack.RequestStopEntry(token),
-				Settings.ContinueCommand => await togglTrack.RequestContinueEntry(token, query),
-				_ => (await togglTrack.GetDefaultHotKeys())
+				Settings.StartCommand => await this._togglTrack.RequestStartEntry(token, query),
+				Settings.EditCommand => await this._togglTrack.RequestEditEntry(token, query),
+				Settings.StopCommand => await this._togglTrack.RequestStopEntry(token),
+				Settings.ContinueCommand => await this._togglTrack.RequestContinueEntry(token, query),
+				_ => (await this._togglTrack.GetDefaultHotKeys())
 					.FindAll(result =>
 					{
 						return this._context.API.FuzzySearch(query.Search, result.Title).Score > 0;

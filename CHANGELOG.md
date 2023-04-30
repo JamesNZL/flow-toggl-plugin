@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.2.0](https://github.com/JamesNZL/flow-toggl-plugin/compare/v1.1.0...v1.2.0) (2023-04-30)
+
+
+### Features
+
+* :goal_net: handle network and response exceptions gracefully ([79e9393](https://github.com/JamesNZL/flow-toggl-plugin/commit/79e939303e43f6cd136d2fd39a21dc07610e6da1))
+* **ux:** :goal_net: improve api error reporting ([e11c57e](https://github.com/JamesNZL/flow-toggl-plugin/commit/e11c57e08bb3111821f9d8ea2720e674d8049ac0))
+* **ux:** :sparkles: implement edit command ([7460adb](https://github.com/JamesNZL/flow-toggl-plugin/commit/7460adbc18108487d6cdf0eb7ff13fc301e783cf))
+* **ux:** :speech_balloon: correctly pluralise project hours ([76107dc](https://github.com/JamesNZL/flow-toggl-plugin/commit/76107dc020c514aa807bec0a066fb8061de985d1))
+
+
+### Bug Fixes
+
+* **ux:** :children_crossing: exclude project hours string from fuzzy search ([702b818](https://github.com/JamesNZL/flow-toggl-plugin/commit/702b81866e02c20db085af23b295060cf2e730f8))
+* **ux:** :speech_balloon: do not display `client | hours` separator if no client ([5f0e61e](https://github.com/JamesNZL/flow-toggl-plugin/commit/5f0e61edd74ebd29c5ad36c48e4e0663a7949d8f))
+* **ux:** :speech_balloon: fix no project display on continue results ([5383f92](https://github.com/JamesNZL/flow-toggl-plugin/commit/5383f923db925315df950827bee93f62ad6cc402))
+
 ## [1.1.0](https://github.com/JamesNZL/flow-toggl-plugin/compare/v1.0.0...v1.1.0) (2023-04-29)
 
 

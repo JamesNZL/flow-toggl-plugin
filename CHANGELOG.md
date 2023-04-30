@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.3.0](https://github.com/JamesNZL/flow-toggl-plugin/compare/v1.2.0...v1.3.0) (2023-04-30)
+
+
+### Features
+
+* **ux:** :sparkles: implement delete command ([02c4205](https://github.com/JamesNZL/flow-toggl-plugin/commit/02c42051cb7f8377199cf6d86e2d564920759644))
+
 ## [1.2.0](https://github.com/JamesNZL/flow-toggl-plugin/compare/v1.1.0...v1.2.0) (2023-04-30)
 
 

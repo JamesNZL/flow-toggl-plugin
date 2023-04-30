@@ -2,7 +2,6 @@ using System.Windows.Controls;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Net.NetworkInformation;
 using Flow.Launcher.Plugin.TogglTrack.ViewModels;
 using Flow.Launcher.Plugin.TogglTrack.Views;
 
@@ -41,8 +40,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		/// <returns></returns>
 		public async Task<List<Result>> QueryAsync(Query query, CancellationToken token)
 		{
-			this._context.API.LogInfo("TT", NetworkInterface.GetIsNetworkAvailable().ToString());
-
 			if (string.IsNullOrWhiteSpace(this._settings.ApiToken))
 			{
 				return this._togglTrack.NotifyMissingToken();

@@ -21,45 +21,22 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 
 		public async Task<Me?> GetMe()
 		{
-			try
-			{
-				return await this._api.Get<Me>("me?with_related_data=true");
-			}
-			catch (Exception exception)
-			{
-				throw exception;
-			}
+			return await this._api.Get<Me>("me?with_related_data=true");
 		}
 
 		public async Task<List<Workspace>?> GetWorkspaces()
 		{
-			try
-			{
-				return await this._api.Get<List<Workspace>>("workspaces");
-			}
-			catch (Exception exception)
-			{
-				throw exception;
-			}
+			return await this._api.Get<List<Workspace>>("workspaces");
 		}
 
 		public async Task<List<Project>?> GetWorkspaceProjects(long workspaceId)
 		{
-			try
-			{
-				return await this._api.Get<List<Project>>($"workspaces/{workspaceId}/projects?per_page=500");
-			}
-			catch (Exception exception)
-			{
-				throw exception;
-			}
+			return await this._api.Get<List<Project>>($"workspaces/{workspaceId}/projects?per_page=500");
 		}
 
 		public async Task<TimeEntry?> CreateTimeEntry(long? projectId, long workspaceId, string? description, List<string>? tags, bool? billable)
 		{
-			try
-			{
-				return await this._api.Post<TimeEntry>($"workspaces/{workspaceId}/time_entries", new
+			return await this._api.Post<TimeEntry>($"workspaces/{workspaceId}/time_entries", new
 				{
 					billable,
 					created_with = "flow-toggl-plugin",
@@ -70,18 +47,11 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 					tags,
 					workspace_id = workspaceId,
 				});
-			}
-			catch (Exception exception)
-			{
-				throw exception;
-			}
 		}
 		
 		public async Task<TimeEntry?> EditTimeEntry(TimeEntry timeEntry, string? description)
 		{
-			try
-			{
-				return await this._api.Put<TimeEntry>($"workspaces/{timeEntry.workspace_id}/time_entries/{timeEntry.id}", new
+			return await this._api.Put<TimeEntry>($"workspaces/{timeEntry.workspace_id}/time_entries/{timeEntry.id}", new
 				{
 					timeEntry.billable,
 					created_with = "flow-toggl-plugin",
@@ -91,71 +61,31 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 					timeEntry.tags,
 					timeEntry.workspace_id,
 				});
-			}
-			catch (Exception exception)
-			{
-				throw exception;
-			}
 		}
 
 		public async Task<TimeEntry?> GetRunningTimeEntry()
 		{
-			try
-			{
-				return await this._api.Get<TimeEntry>("me/time_entries/current");
-			}
-			catch (Exception exception)
-			{
-				throw exception;
-			}
+			return await this._api.Get<TimeEntry>("me/time_entries/current");
 		}
 
 		public async Task<List<Client>?> GetWorkspaceClients(long workspaceId)
 		{
-			try
-			{
-				return await this._api.Get<List<Client>>($"workspaces/{workspaceId}/clients");
-			}
-			catch (Exception exception)
-			{
-				throw exception;
-			}
+			return await this._api.Get<List<Client>>($"workspaces/{workspaceId}/clients");
 		}
 
 		public async Task<List<Tag>?> GetWorkspaceTags(long workspaceId)
 		{
-			try
-			{
-				return await this._api.Get<List<Tag>>($"workspaces/{workspaceId}/tags");
-			}
-			catch (Exception exception)
-			{
-				throw exception;
-			}
+			return await this._api.Get<List<Tag>>($"workspaces/{workspaceId}/tags");
 		}
 
 		public async Task<TimeEntry?> StopTimeEntry(long id, long workspaceId)
 		{
-			try
-			{
-				return await this._api.Patch<TimeEntry>($"workspaces/{workspaceId}/time_entries/{id}/stop", new { });
-			}
-			catch (Exception exception)
-			{
-				throw exception;
-			}
+			return await this._api.Patch<TimeEntry>($"workspaces/{workspaceId}/time_entries/{id}/stop", new { });
 		}
 
 		public async Task<List<TimeEntry>?> GetTimeEntries()
 		{
-			try
-			{
-				return await this._api.Get<List<TimeEntry>>($"me/time_entries");
-			}
-			catch (Exception exception)
-			{
-				throw exception;
-			}
+			return await this._api.Get<List<TimeEntry>>($"me/time_entries");
 		}
 	}
 }

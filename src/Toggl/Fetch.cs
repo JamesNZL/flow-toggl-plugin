@@ -56,56 +56,84 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 
 		public async Task<T> Get<T>(string endpoint)
 		{
-			var response = await this._httpClient.GetAsync(endpoint);
-
-			if (!response.IsSuccessStatusCode)
+			try
 			{
-				return default(T);
-			}
+				var response = await this._httpClient.GetAsync(endpoint);
 
-			return JsonSerializer.Deserialize<T>(await response.Content.ReadAsStringAsync());
+				if (!response.IsSuccessStatusCode)
+				{
+					return default(T);
+				}
+
+				return JsonSerializer.Deserialize<T>(await response.Content.ReadAsStringAsync());
+			}
+			catch (HttpRequestException exception)
+			{
+				throw exception;
+			}
 		}
 
 		public async Task<T> Post<T>(string endpoint, object body)
 		{
-			var json = JsonSerializer.Serialize(body, AuthenticatedFetch._serializerOptions);
-			var content = new StringContent(json, Encoding.UTF8, "application/json");
-			var response = await this._httpClient.PostAsync(endpoint, content);
-
-			if (!response.IsSuccessStatusCode)
+			try
 			{
-				return default(T);
-			}
+				var json = JsonSerializer.Serialize(body, AuthenticatedFetch._serializerOptions);
+				var content = new StringContent(json, Encoding.UTF8, "application/json");
+				var response = await this._httpClient.PostAsync(endpoint, content);
 
-			return JsonSerializer.Deserialize<T>(await response.Content.ReadAsStringAsync());
+				if (!response.IsSuccessStatusCode)
+				{
+					return default(T);
+				}
+
+				return JsonSerializer.Deserialize<T>(await response.Content.ReadAsStringAsync());
+			}
+			catch (HttpRequestException exception)
+			{
+				throw exception;
+			}
 		}
 
 		public async Task<T> Patch<T>(string endpoint, object body)
 		{
-			var json = JsonSerializer.Serialize(body, AuthenticatedFetch._serializerOptions);
-			var content = new StringContent(json, Encoding.UTF8, "application/json");
-			var response = await this._httpClient.PatchAsync(endpoint, content);
-
-			if (!response.IsSuccessStatusCode)
+			try
 			{
-				return default(T);
-			}
+				var json = JsonSerializer.Serialize(body, AuthenticatedFetch._serializerOptions);
+				var content = new StringContent(json, Encoding.UTF8, "application/json");
+				var response = await this._httpClient.PatchAsync(endpoint, content);
 
-			return JsonSerializer.Deserialize<T>(await response.Content.ReadAsStringAsync());
+				if (!response.IsSuccessStatusCode)
+				{
+					return default(T);
+				}
+
+				return JsonSerializer.Deserialize<T>(await response.Content.ReadAsStringAsync());
+			}
+			catch (HttpRequestException exception)
+			{
+				throw exception;
+			}
 		}
 
 		public async Task<T> Put<T>(string endpoint, object body)
 		{
-			var json = JsonSerializer.Serialize(body, AuthenticatedFetch._serializerOptions);
-			var content = new StringContent(json, Encoding.UTF8, "application/json");
-			var response = await this._httpClient.PutAsync(endpoint, content);
-
-			if (!response.IsSuccessStatusCode)
+			try
 			{
-				return default(T);
-			}
+				var json = JsonSerializer.Serialize(body, AuthenticatedFetch._serializerOptions);
+				var content = new StringContent(json, Encoding.UTF8, "application/json");
+				var response = await this._httpClient.PutAsync(endpoint, content);
 
-			return JsonSerializer.Deserialize<T>(await response.Content.ReadAsStringAsync());
+				if (!response.IsSuccessStatusCode)
+				{
+					return default(T);
+				}
+
+				return JsonSerializer.Deserialize<T>(await response.Content.ReadAsStringAsync());
+			}
+			catch (HttpRequestException exception)
+			{
+				throw exception;
+			}
 		}
 	}
 }

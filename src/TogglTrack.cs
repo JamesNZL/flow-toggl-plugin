@@ -36,10 +36,18 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				return this._lastMe.me;
 			}
 
-			this._context.API.LogInfo("TogglTrack", "Fetching me", "_GetMe");
-
-			this._lastMe.LastFetched = DateTime.Now;
-			return this._lastMe.me = await this._togglClient.GetMe();
+			try
+			{
+				this._context.API.LogInfo("TogglTrack", "Fetching me", "_GetMe");
+				
+				this._lastMe.LastFetched = DateTime.Now;
+				return this._lastMe.me = await this._togglClient.GetMe();
+			}
+			catch (Exception exception)
+			{
+				this._context.API.LogException("TogglTrack", "Failed to fetch me", exception, "_GetMe");
+				return null;
+			}
 		}
 
 		private async ValueTask<TimeEntry?> _GetRunningTimeEntry(bool force = false)
@@ -49,10 +57,18 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				return this._lastCurrentlyRunning.timeEntry;
 			}
 
-			this._context.API.LogInfo("TogglTrack", "Fetching running time entry", "_GetRunningTimeEntry");
-
-			this._lastCurrentlyRunning.LastFetched = DateTime.Now;
-			return this._lastCurrentlyRunning.timeEntry = await this._togglClient.GetRunningTimeEntry();
+			try
+			{
+				this._context.API.LogInfo("TogglTrack", "Fetching running time entry", "_GetRunningTimeEntry");
+				
+				this._lastCurrentlyRunning.LastFetched = DateTime.Now;
+				return this._lastCurrentlyRunning.timeEntry = await this._togglClient.GetRunningTimeEntry();
+			}
+			catch (Exception exception)
+			{
+				this._context.API.LogException("TogglTrack", "Failed to fetch running time entry", exception, "_GetRunningTimeEntry");
+				return null;
+			}
 		}
 
 		private async ValueTask<List<TimeEntry>?> _GetTimeEntries(bool force = false)
@@ -62,14 +78,27 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				return this._lastTimeEntries.timeEntries;
 			}
 
-			this._context.API.LogInfo("TogglTrack", "Fetching time entries", "_GetTimeEntries");
-
-			this._lastTimeEntries.LastFetched = DateTime.Now;
-			return this._lastTimeEntries.timeEntries = await this._togglClient.GetTimeEntries();
+			try
+			{
+				this._context.API.LogInfo("TogglTrack", "Fetching time entries", "_GetTimeEntries");
+				
+				this._lastTimeEntries.LastFetched = DateTime.Now;
+				return this._lastTimeEntries.timeEntries = await this._togglClient.GetTimeEntries();
+			}
+			catch (Exception exception)
+			{
+				this._context.API.LogException("TogglTrack", "Failed to fetch time entries", exception, "_GetTimeEntries");
+				return null;
+			}
 		}
 
 		internal async ValueTask<bool> VerifyApiToken()
 		{
+			if (!InternetAvailability.IsInternetAvailable())
+			{
+				return false;
+			}
+
 			if (this._settings.ApiToken.Equals(this._lastToken.Token))
 			{
 				return this._lastToken.IsValid;
@@ -99,6 +128,23 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					Action = c =>
 					{
 						this._context.API.OpenSettingDialog();
+						return true;
+					},
+				},
+			};
+		}
+
+		internal List<Result> NotifyNetworkUnavailable()
+		{
+			return new List<Result>
+			{
+				new Result
+				{
+					Title = "ERROR: No network connection",
+					SubTitle = "Connect to the internet to use Toggl Track.",
+					IcoPath = this._context.CurrentPluginMetadata.IcoPath,
+					Action = c =>
+					{
 						return true;
 					},
 				},
@@ -300,16 +346,32 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					{
 						Task.Run(async delegate
 						{
-							this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {workspaceId}, {description}", "RequestStartEntry");
+							try
+							{
+								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {workspaceId}, {description}", "RequestStartEntry");
+								
+								// TODO: billable
+								var createdTimeEntry = await this._togglClient.CreateTimeEntry(this._selectedProjectId, workspaceId, description, null, null);
+								if (createdTimeEntry?.id is null)
+								{
+									throw new Exception();
+								}
 
-							// TODO: billable
-							await this._togglClient.CreateTimeEntry(this._selectedProjectId, workspaceId, description, null, null);
-							this._context.API.ShowMsg($"Started {description}", projectName, "start.png");
-							
-							this._selectedProjectId = -1;
-							// Update cached running time entry state
-							this._GetRunningTimeEntry(true);
-							this._GetTimeEntries(true);
+								this._context.API.ShowMsg($"Started {createdTimeEntry?.description}", projectName, "start.png");
+
+								// Update cached running time entry state
+								this._GetRunningTimeEntry(true);
+								this._GetTimeEntries(true);
+							}
+							catch (Exception exception)
+							{
+								this._context.API.LogException("TogglTrack", "Failed to continue time entry", exception, "RequestStartEntry");
+								this._context.API.ShowMsgError("Failed to continue time entry.", exception.Message);
+							}
+							finally
+							{
+								this._selectedProjectId = -1;
+							}
 						});
 
 						return true;
@@ -372,15 +434,28 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					{
 						Task.Run(async delegate
 						{
-							this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.id}, {runningTimeEntry.duration}, {runningTimeEntry.start}, {runningTimeEntry.project_id}, {runningTimeEntry.workspace_id}, {query.SecondToEndSearch}", "RequestEditEntry");
+							try
+							{
+								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.id}, {runningTimeEntry.duration}, {runningTimeEntry.start}, {runningTimeEntry.project_id}, {runningTimeEntry.workspace_id}, {query.SecondToEndSearch}", "RequestEditEntry");
+								
+								var editedTimeEntry = await this._togglClient.EditTimeEntry(runningTimeEntry, query.SecondToEndSearch);
+								if (editedTimeEntry?.id is null)
+								{
+									throw new Exception();
+								}
 
-							// TODO: billable
-							await this._togglClient.EditTimeEntry(runningTimeEntry, query.SecondToEndSearch);
-							this._context.API.ShowMsg($"Edited {query.SecondToEndSearch}", $"{projectName} | {elapsed.ToString(@"h\:mm\:ss")}", "start.png");
-							
-							// Update cached running time entry state
-							this._GetRunningTimeEntry(true);
-							this._GetTimeEntries(true);
+								this._context.API.ShowMsg($"Edited {editedTimeEntry?.description}", $"{projectName} | {elapsed.ToString(@"h\:mm\:ss")}", "edit.png");
+
+								// Update cached running time entry state
+								// TODO: Task.Run()
+								this._GetRunningTimeEntry(true);
+								this._GetTimeEntries(true);
+							}
+							catch (Exception exception)
+							{
+								this._context.API.LogException("TogglTrack", "Failed to edit time entry", exception, "RequestEditEntry");
+								this._context.API.ShowMsgError("Failed to edit time entry.", exception.Message);
+							}
 						});
 
 						return true;
@@ -443,14 +518,28 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					{
 						Task.Run(async delegate
 						{
-							this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.id}, {runningTimeEntry.workspace_id}, {startDate}, {elapsed.ToString(@"h\:mm\:ss")}", "RequestStopEntry");
+							try
+							{
+								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.id}, {runningTimeEntry.workspace_id}, {startDate}, {elapsed.ToString(@"h\:mm\:ss")}", "RequestStopEntry");
+								
+								// TODO: billable
+								var stoppedTimeEntry = await this._togglClient.StopTimeEntry(runningTimeEntry.id, runningTimeEntry.workspace_id);
+								if (stoppedTimeEntry?.id is null)
+								{
+									throw new Exception();
+								}
 
-							await this._togglClient.StopTimeEntry(runningTimeEntry.id, runningTimeEntry.workspace_id);
-							this._context.API.ShowMsg($"Stopped {runningTimeEntry.description}", $"{elapsed.ToString(@"h\:mm\:ss")} elapsed", "stop.png");
+								this._context.API.ShowMsg($"Stopped {stoppedTimeEntry?.description}", $"{elapsed.ToString(@"h\:mm\:ss")} elapsed", "stop.png");
 
-							// Update cached running time entry state
-							this._GetRunningTimeEntry(true);
-							this._GetTimeEntries(true);
+								// Update cached running time entry state
+								this._GetRunningTimeEntry(true);
+								this._GetTimeEntries(true);
+							}
+							catch (Exception exception)
+							{
+								this._context.API.LogException("TogglTrack", "Failed to stop time entry", exception, "RequestStopEntry");
+								this._context.API.ShowMsgError("Failed to stop time entry.", exception.Message);
+							}
 						});
 
 						return true;
@@ -516,15 +605,28 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					{
 						Task.Run(async delegate
 						{
-							this._context.API.LogInfo("TogglTrack", $"{project?.id}, {workspaceId}, {timeEntry?.description}", "RequestContinueEntry");
+							try
+							{
+								this._context.API.LogInfo("TogglTrack", $"{project?.id}, {workspaceId}, {timeEntry?.description}", "RequestContinueEntry");
+								
+								// TODO: billable
+								var createdTimeEntry = await this._togglClient.CreateTimeEntry(project?.id, workspaceId, timeEntry?.description, null, null);
+								if (createdTimeEntry?.id is null)
+								{
+									throw new Exception();
+								}
 
-							// TODO: billable
-							await this._togglClient.CreateTimeEntry(project?.id, workspaceId, timeEntry?.description, null, null);
-							this._context.API.ShowMsg($"Continued {timeEntry?.description}", projectName, "continue.png");
+								this._context.API.ShowMsg($"Continued {createdTimeEntry?.description}", projectName, "continue.png");
 
-							// Update cached running time entry state
-							this._GetRunningTimeEntry(true);
-							this._GetTimeEntries(true);
+								// Update cached running time entry state
+								this._GetRunningTimeEntry(true);
+								this._GetTimeEntries(true);
+							}
+							catch (Exception exception)
+							{
+								this._context.API.LogException("TogglTrack", "Failed to continue time entry", exception, "RequestContinueEntry");
+								this._context.API.ShowMsgError("Failed to continue time entry.", exception.Message);
+							}
 						});
 
 						return true;

@@ -13,6 +13,9 @@
       <a href="https://github.com/JamesNZL/flow-toggl-plugin/pulls">
          <img src="https://img.shields.io/github/issues-pr/jamesnzl/flow-toggl-plugin" alt="GitHub pull requests">
       </a>
+      <a href="https://github.com/JamesNZL/flow-toggl-plugin/actions/workflows/release.yml">
+         <img src="https://img.shields.io/github/actions/workflow/status/jamesnzl/flow-toggl-plugin/release.yml?branch=main" alt="GitHub workflow status">
+      </a>
       <a href="https://github.com/JamesNZL/flow-toggl-plugin/commits">
          <img src="https://img.shields.io/github/last-commit/jamesnzl/flow-toggl-plugin" alt="GitHub last commit">
       </a>

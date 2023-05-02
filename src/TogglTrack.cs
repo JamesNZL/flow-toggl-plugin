@@ -301,6 +301,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return results;
 		}
 
+		// TODO: resume from last stop time
 		internal async ValueTask<List<Result>> RequestStartEntry(CancellationToken token, Query query)
 		{
 			if (token.IsCancellationRequested)
@@ -465,10 +466,72 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				};
 			}
 
+			if (this._selectedProjectId == -1 && query.SearchTerms.Contains("-p"))
+			{
+				this._selectedProjectId = -1;
+
+				string searchQuery = string.Join(" ", query.SearchTerms.Skip(Array.IndexOf(query.SearchTerms, "-p") + 1));
+
+				var projects = new List<Result>
+				{
+					new Result
+					{
+						Title = "No project",
+						IcoPath = "edit.png",
+						AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.EditCommand} ",
+						// Ensure is 1 greater than the top-priority project
+						Score = (me.projects?.Count ?? 0) + 1,
+						Action = c =>
+						{
+							this._selectedProjectId = null;
+							// TODO: do I want to show the project-name?
+							this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.EditCommand} ", true);
+							return false;
+						},
+					},
+				};
+
+				if (me.projects is not null)
+				{
+					var filteredProjects = me.projects.FindAll(project => project.active ?? false);
+					filteredProjects.Sort((projectOne, projectTwo) => (projectTwo.actual_hours ?? 0) - (projectOne.actual_hours ?? 0));
+
+					projects.AddRange(
+						filteredProjects.ConvertAll(project => new Result
+						{
+							Title = project.name,
+							SubTitle = $"{((project.client_id is not null) ? $"{me.clients?.Find(client => client.id == project.client_id)?.name} | " : string.Empty)}{project.actual_hours ?? 0} hour{(((project.actual_hours ?? 0) != 1) ? "s" : string.Empty)}",
+							IcoPath = (project.color is not null)
+								? new ColourIcon(this._context, project.color).GetColourIcon()
+								: "edit.png",
+							AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.EditCommand} ",
+							Score = filteredProjects.Count - filteredProjects.IndexOf(project),
+							Action = c =>
+							{
+								this._selectedProjectId = project.id;
+								// TODO: do I want to show the project-name?
+								this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.EditCommand} ", true);
+								return false;
+							},
+						})
+					);
+				}
+
+				return (string.IsNullOrWhiteSpace(searchQuery))
+					? projects
+					: projects.FindAll(result =>
+					{
+						return this._context.API.FuzzySearch(searchQuery, $"{result.Title} {Regex.Replace(result.SubTitle, @"(?: \| )?\d+ hours?$", string.Empty)}").Score > 0;
+					});
+			}
+
 			var startDate = DateTimeOffset.Parse(runningTimeEntry.start!);
 			var elapsed = DateTimeOffset.UtcNow.Subtract(startDate);
 
-			var project = me.projects?.Find(project => project.id == runningTimeEntry.project_id);
+			long? projectId = (this._selectedProjectId != -1)
+				? this._selectedProjectId
+				: runningTimeEntry.project_id;
+			var project = me.projects?.Find(project => project.id == projectId);
 			var client = me.clients?.Find(client => client.id == project?.client_id);
 
 			string clientName = (client is not null)
@@ -478,7 +541,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				? $"{project.name}{clientName}"
 				: "No project";
 
-			return new List<Result>
+			var results = new List<Result>
 			{
 				new Result
 				{
@@ -488,15 +551,16 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						? new ColourIcon(this._context, project.color).GetColourIcon()
 						: "edit.png",
 					AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
+					Score = 10000,
 					Action = c =>
 					{
 						Task.Run(async delegate
 						{
 							try
 							{
-								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.id}, {runningTimeEntry.duration}, {runningTimeEntry.start}, {runningTimeEntry.project_id}, {runningTimeEntry.workspace_id}, {query.SecondToEndSearch}", "RequestEditEntry");
+								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.id}, {runningTimeEntry.duration}, {runningTimeEntry.start}, {projectId}, {runningTimeEntry.workspace_id}, {query.SecondToEndSearch}", "RequestEditEntry");
 								
-								var editedTimeEntry = await this._togglClient.EditTimeEntry(runningTimeEntry, query.SecondToEndSearch);
+								var editedTimeEntry = await this._togglClient.EditTimeEntry(runningTimeEntry, projectId, query.SecondToEndSearch);
 								if (editedTimeEntry?.id is null)
 								{
 									throw new Exception("An API error was encountered.");
@@ -516,12 +580,37 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								this._context.API.LogException("TogglTrack", "Failed to edit time entry", exception, "RequestEditEntry");
 								this._context.API.ShowMsgError("Failed to edit time entry.", exception.Message);
 							}
+							finally
+							{
+								this._selectedProjectId = -1;
+							}
 						});
 
 						return true;
 					},
 				},
 			};
+
+			if (this._selectedProjectId != -1)
+			{
+				return results;
+			}
+
+			results.Add(new Result
+			{
+				Title = "Usage Tip",
+				SubTitle = "Use -p to edit the project for this time entry",
+				IcoPath = "tip.png",
+				AutoCompleteText = $"{query.ActionKeyword} {query.Search} -p ",
+				Score = 1,
+				Action = c =>
+				{
+					this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {query.Search} -p ");
+					return false;
+				}
+			});
+
+			return results;
 		}
 
 		internal async ValueTask<List<Result>> RequestStopEntry(CancellationToken token)

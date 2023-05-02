@@ -223,7 +223,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					Title = Settings.RefreshCommand,
 					SubTitle = "Refresh plugin cache",
-					IcoPath = this._context.CurrentPluginMetadata.IcoPath,
+					IcoPath = "refresh.png",
 					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.RefreshCommand} ",
 					Score = -100,
 					Action = c =>

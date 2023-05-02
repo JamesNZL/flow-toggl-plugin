@@ -39,6 +39,7 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 - Stop currently running time entries
 - Delete currently running time entries
 - Continue a previously tracked time entry
+- Open in browser shortcut
 - Support for projects, clients, and workspaces
 - Coloured icons for projects
 - Human-friendly date and time display

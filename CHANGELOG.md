@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.4.0](https://github.com/JamesNZL/flow-toggl-plugin/compare/v1.3.0...v1.4.0) (2023-05-02)
+
+
+### Features
+
+* **ux:** :lipstick: add refresh icon ([e96ecc3](https://github.com/JamesNZL/flow-toggl-plugin/commit/e96ecc396f76a6c0efffca4a103d0c8c03c98a3f))
+* **ux:** :sparkles: implement open in browser command ([db61795](https://github.com/JamesNZL/flow-toggl-plugin/commit/db617953b0402c727fbc046c951b4fa5672e7c5f))
+
 ## [1.3.0](https://github.com/JamesNZL/flow-toggl-plugin/compare/v1.2.0...v1.3.0) (2023-04-30)
 
 

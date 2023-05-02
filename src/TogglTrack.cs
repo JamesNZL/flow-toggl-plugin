@@ -221,6 +221,19 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				},
 				new Result
 				{
+					Title = Settings.BrowserCommand,
+					SubTitle = "Open Toggl Track in browser",
+					IcoPath = "browser.png",
+					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.BrowserCommand} ",
+					Score = -50,
+					Action = c =>
+					{
+						this._context.API.OpenUrl(new Uri(@"https://track.toggl.com/timer"));
+						return true;
+					},
+				},
+				new Result
+				{
 					Title = Settings.RefreshCommand,
 					SubTitle = "Refresh plugin cache",
 					IcoPath = "refresh.png",

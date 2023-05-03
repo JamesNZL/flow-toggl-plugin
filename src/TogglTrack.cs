@@ -252,6 +252,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					{
 						_ = Task.Run(() =>
 						{
+							// This is the main one that needs to be run
 							_ = this._GetMe(true);
 							_ = this._GetRunningTimeEntry(true);
 							_ = this._GetTimeEntries(true);

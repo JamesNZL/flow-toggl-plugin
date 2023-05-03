@@ -14,7 +14,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		private PluginInitContext _context { get; set; }
 		private Settings _settings { get; set; }
 
-		private TogglClient _togglClient;
+		private TogglClient _client;
 
 		private (bool IsValid, string Token) _lastToken = (false, string.Empty);
 		private (Me? me, DateTime LastFetched) _lastMe = (null, DateTime.MinValue);
@@ -35,7 +35,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			this._context = context;
 			this._settings = settings;
 
-			this._togglClient = new TogglClient(this._settings.ApiToken);
+			this._client = new TogglClient(this._settings.ApiToken);
 		}
 
 		private async ValueTask<Me?> _GetMe(bool force = false)
@@ -50,7 +50,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				this._context.API.LogInfo("TogglTrack", "Fetching me", "_GetMe");
 				
 				this._lastMe.LastFetched = DateTime.Now;
-				return this._lastMe.me = await this._togglClient.GetMe();
+				return this._lastMe.me = await this._client.GetMe();
 			}
 			catch (Exception exception)
 			{
@@ -71,7 +71,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				this._context.API.LogInfo("TogglTrack", "Fetching running time entry", "_GetRunningTimeEntry");
 				
 				this._lastCurrentlyRunning.LastFetched = DateTime.Now;
-				return this._lastCurrentlyRunning.timeEntry = await this._togglClient.GetRunningTimeEntry();
+				return this._lastCurrentlyRunning.timeEntry = await this._client.GetRunningTimeEntry();
 			}
 			catch (Exception exception)
 			{
@@ -92,7 +92,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				this._context.API.LogInfo("TogglTrack", "Fetching time entries", "_GetTimeEntries");
 				
 				this._lastTimeEntries.LastFetched = DateTime.Now;
-				return this._lastTimeEntries.timeEntries = await this._togglClient.GetTimeEntries();
+				return this._lastTimeEntries.timeEntries = await this._client.GetTimeEntries();
 			}
 			catch (Exception exception)
 			{
@@ -120,7 +120,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				return this._lastToken.IsValid = false;
 			}
 
-			this._togglClient.UpdateToken(this._settings.ApiToken);
+			this._client.UpdateToken(this._settings.ApiToken);
 
 			return this._lastToken.IsValid = (await this._GetMe(true))?.api_token?.Equals(this._settings.ApiToken) ?? false;
 		}
@@ -413,7 +413,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {workspaceId}, {description}", "RequestStartEntry");
 								
 								// TODO: billable
-								var createdTimeEntry = await this._togglClient.CreateTimeEntry(this._selectedProjectId, workspaceId, description, null, null);
+								var createdTimeEntry = await this._client.CreateTimeEntry(this._selectedProjectId, workspaceId, description, null, null);
 								if (createdTimeEntry?.id is null)
 								{
 									throw new Exception("An API error was encountered.");
@@ -590,7 +590,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							{
 								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.id}, {runningTimeEntry.duration}, {runningTimeEntry.start}, {this._selectedProjectId}, {runningTimeEntry.workspace_id}, {description}", "RequestEditEntry");
 								
-								var editedTimeEntry = await this._togglClient.EditTimeEntry(runningTimeEntry, this._selectedProjectId, description);
+								var editedTimeEntry = await this._client.EditTimeEntry(runningTimeEntry, this._selectedProjectId, description);
 								if (editedTimeEntry?.id is null)
 								{
 									throw new Exception("An API error was encountered.");
@@ -706,7 +706,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							{
 								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.id}, {runningTimeEntry.workspace_id}, {startDate}, {elapsed.ToString(@"h\:mm\:ss")}", "RequestStopEntry");
 								
-								var stoppedTimeEntry = await this._togglClient.StopTimeEntry(runningTimeEntry.id, runningTimeEntry.workspace_id);
+								var stoppedTimeEntry = await this._client.StopTimeEntry(runningTimeEntry.id, runningTimeEntry.workspace_id);
 								if (stoppedTimeEntry?.id is null)
 								{
 									throw new Exception("An API error was encountered.");
@@ -796,7 +796,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							{
 								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.id}, {runningTimeEntry.workspace_id}, {startDate}, {elapsed.ToString(@"h\:mm\:ss")}", "RequestDeleteEntry");
 								
-								var statusCode = await this._togglClient.DeleteTimeEntry(runningTimeEntry.id, runningTimeEntry.workspace_id);
+								var statusCode = await this._client.DeleteTimeEntry(runningTimeEntry.id, runningTimeEntry.workspace_id);
 								if (statusCode is null)
 								{
 									throw new Exception("An API error was encountered.");
@@ -890,7 +890,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								this._context.API.LogInfo("TogglTrack", $"{project?.id}, {workspaceId}, {timeEntry.description}", "RequestContinueEntry");
 								
 								// TODO: billable
-								var createdTimeEntry = await this._togglClient.CreateTimeEntry(project?.id, workspaceId, timeEntry.description, null, null);
+								var createdTimeEntry = await this._client.CreateTimeEntry(project?.id, workspaceId, timeEntry.description, null, null);
 								if (createdTimeEntry?.id is null)
 								{
 									throw new Exception("An API error was encountered.");

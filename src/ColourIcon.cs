@@ -15,13 +15,15 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		private PluginInitContext _context { get; set; }
 
 		private string _colourCode;
+		private string _fallbackIcon;
 
-		internal ColourIcon(PluginInitContext context, string colourCode)
+		internal ColourIcon(PluginInitContext context, string colourCode, string fallbackIcon)
 		{
 			this._context = context;
 			this._colourCode = colourCode;
+			this._fallbackIcon = fallbackIcon;
 
-            if (ColourIcon._coloursDirectory is not null)
+			if (ColourIcon._coloursDirectory is not null)
             {
 				return;
 			}
@@ -64,11 +66,18 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 		internal string GetColourIcon()
 		{
-			var cached = FindFileImage(this._colourCode);
+            try
+            {
+                var cached = FindFileImage(this._colourCode);
 
-			return (cached is null)
-				? CreateCacheImage(this._colourCode)
-				: cached.FullName;
+                return (cached is null)
+                    ? CreateCacheImage(this._colourCode)
+                    : cached.FullName;
+            }
+            catch
+            {
+				return this._fallbackIcon;
+			}
 		}
     }
 }

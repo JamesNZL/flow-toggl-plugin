@@ -364,7 +364,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							Title = project.name,
 							SubTitle = $"{((project.client_id is not null) ? $"{me.clients?.Find(client => client.id == project.client_id)?.name} | " : string.Empty)}{project.actual_hours ?? 0} hour{(((project.actual_hours ?? 0) != 1) ? "s" : string.Empty)}",
 							IcoPath = (project.color is not null)
-								? new ColourIcon(this._context, project.color).GetColourIcon()
+								? new ColourIcon(this._context, project.color, "start.png").GetColourIcon()
 								: "start.png",
 							AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StartCommand} ",
 							Score = filteredProjects.Count - filteredProjects.IndexOf(project),
@@ -406,7 +406,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					Title = $"Start {description}",
 					SubTitle = projectName,
 					IcoPath = (project?.color is not null)
-						? new ColourIcon(this._context, project.color).GetColourIcon()
+						? new ColourIcon(this._context, project.color, "start.png").GetColourIcon()
 						: "start.png",
 					AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
 					Action = c =>
@@ -461,7 +461,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				Title = $"Start {description}{((string.IsNullOrEmpty(description) ? string.Empty : " "))}at previous stop time",
 				SubTitle = projectName,
 				IcoPath = (project?.color is not null)
-						? new ColourIcon(this._context, project.color).GetColourIcon()
+						? new ColourIcon(this._context, project.color, "start.png").GetColourIcon()
 						: "start.png",
 				AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
 				Action = c =>
@@ -604,7 +604,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							Title = project.name,
 							SubTitle = $"{((project.client_id is not null) ? $"{me.clients?.Find(client => client.id == project.client_id)?.name} | " : string.Empty)}{project.actual_hours ?? 0} hour{(((project.actual_hours ?? 0) != 1) ? "s" : string.Empty)}",
 							IcoPath = (project.color is not null)
-								? new ColourIcon(this._context, project.color).GetColourIcon()
+								? new ColourIcon(this._context, project.color, "edit.png").GetColourIcon()
 								: "edit.png",
 							AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.EditCommand} ",
 							Score = filteredProjects.Count - filteredProjects.IndexOf(project),
@@ -651,7 +651,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					Title = (string.IsNullOrEmpty(description)) ? ((string.IsNullOrEmpty(runningTimeEntry.description)) ? "(no description)" : runningTimeEntry.description) : description,
 					SubTitle = $"{projectName} | {elapsed.Humanize()} ({elapsed.ToString(@"h\:mm\:ss")})",
 					IcoPath = (project?.color is not null)
-						? new ColourIcon(this._context, project.color).GetColourIcon()
+						? new ColourIcon(this._context, project.color, "edit.png").GetColourIcon()
 						: "edit.png",
 					AutoCompleteText = $"{query.ActionKeyword} {(string.IsNullOrEmpty(description) ? ($"{query.Search} {((string.IsNullOrEmpty(runningTimeEntry.description)) ? "(no description)" : runningTimeEntry.description)}") : query.Search)}",
 					Score = 10000,
@@ -768,7 +768,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					Title = $"Stop {((string.IsNullOrEmpty(runningTimeEntry.description)) ? "(no description)" : runningTimeEntry.description)}",
 					SubTitle = $"{projectName} | {elapsed.Humanize()} ({elapsed.ToString(@"h\:mm\:ss")})",
 					IcoPath = (project?.color is not null)
-						? new ColourIcon(this._context, project.color).GetColourIcon()
+						? new ColourIcon(this._context, project.color, "stop.png").GetColourIcon()
 						: "stop.png",
 					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StopCommand} {((string.IsNullOrEmpty(runningTimeEntry.description)) ? "(no description)" : runningTimeEntry.description)}",
 					Action = c =>
@@ -858,7 +858,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					Title = $"Delete {((string.IsNullOrEmpty(runningTimeEntry.description)) ? "(no description)" : runningTimeEntry.description)}",
 					SubTitle = $"{projectName} | {elapsed.Humanize()} ({elapsed.ToString(@"h\:mm\:ss")})",
 					IcoPath = (project?.color is not null)
-						? new ColourIcon(this._context, project.color).GetColourIcon()
+						? new ColourIcon(this._context, project.color, "delete.png").GetColourIcon()
 						: "delete.png",
 					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.DeleteCommand} {((string.IsNullOrEmpty(runningTimeEntry.description)) ? "(no description)" : runningTimeEntry.description)}",
 					Action = c =>
@@ -950,7 +950,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					Title = (string.IsNullOrEmpty(timeEntry.description)) ? "(no description)" : timeEntry.description,
 					SubTitle = $"{projectName} | {elapsed.Humanize()} ({DateTime.Parse(timeEntry.start!).Humanize(false)})",
 					IcoPath = (project?.color is not null)
-							? new ColourIcon(this._context, project.color).GetColourIcon()
+							? new ColourIcon(this._context, project.color, "continue.png").GetColourIcon()
 							: "continue.png",
 					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.ContinueCommand} {((string.IsNullOrEmpty(timeEntry.description)) ? "(no description)" : timeEntry.description)}",
 					Score = timeEntries.Count - timeEntries.IndexOf(timeEntry),

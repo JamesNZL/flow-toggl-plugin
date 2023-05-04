@@ -2,7 +2,6 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Drawing.Drawing2D;
 using System.IO;
-using System.Linq;
 
 namespace Flow.Launcher.Plugin.TogglTrack
 {
@@ -40,25 +39,18 @@ namespace Flow.Launcher.Plugin.TogglTrack
             }
 		}
 
-        private static FileInfo? FindFileImage(string name)
-        {
-            var file = $"{name}.png";
-            return ColourIcon._coloursDirectory?.GetFiles(file, SearchOption.TopDirectoryOnly).FirstOrDefault();
-        }
-
-		private static string CreateCacheImage(string name)
+		private string CreateCacheImage(string path)
         {
             using (var bitmap = new Bitmap(ColourIcon.IMAGE_SIZE, ColourIcon.IMAGE_SIZE))
             using (var graphics = Graphics.FromImage(bitmap))
             {
-                var colour = ColorTranslator.FromHtml(name);
+                var colour = ColorTranslator.FromHtml(this._colourCode);
                 graphics.Clear(Color.Transparent);
                 graphics.SmoothingMode = SmoothingMode.AntiAlias;
 
                 int centre = (ColourIcon.IMAGE_SIZE - ColourIcon.CIRCLE_SIZE) / 2;
                 graphics.FillEllipse(new SolidBrush(colour), centre, centre, ColourIcon.CIRCLE_SIZE, ColourIcon.CIRCLE_SIZE);
 
-                var path = Path.Combine(ColourIcon._coloursDirectory?.FullName ?? string.Empty, $"{name}.png");
                 bitmap.Save(path, ImageFormat.Png);
                 return path;
             }
@@ -68,12 +60,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		{
             try
             {
-                var cached = FindFileImage(this._colourCode);
+                var path = Path.Combine(ColourIcon._coloursDirectory?.FullName ?? string.Empty, $"{this._colourCode}.png");
 
-                return (cached is null)
-                    ? CreateCacheImage(this._colourCode)
-                    : cached.FullName;
-            }
+				return (File.Exists(path))
+					? path
+                    : CreateCacheImage(path);
+			}
             catch
             {
 				return this._fallbackIcon;

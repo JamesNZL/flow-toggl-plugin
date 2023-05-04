@@ -4,6 +4,7 @@ if ($FlowProcess) {
     $FlowPath = $FlowProcess.Path
     Stop-Process $FlowProcess
 
+    Remove-Item ./bin -Recurse
     dotnet publish ./src -o ./bin -c Debug -r win-x64 --no-self-contained
 
     Start-Process -FilePath $FlowPath

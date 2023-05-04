@@ -58,17 +58,20 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 		internal string GetColourIcon()
 		{
+            var path = Path.Combine(ColourIcon._coloursDirectory?.FullName ?? string.Empty, $"{this._colourCode}.png");
+
             try
             {
-                var path = Path.Combine(ColourIcon._coloursDirectory?.FullName ?? string.Empty, $"{this._colourCode}.png");
-
 				return (File.Exists(path))
 					? path
                     : CreateCacheImage(path);
 			}
             catch
             {
-				return this._fallbackIcon;
+                // Check whether file was actually created or not
+				return (File.Exists(path))
+					? path
+					: this._fallbackIcon;
 			}
 		}
     }

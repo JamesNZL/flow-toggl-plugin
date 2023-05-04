@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.5.0](https://github.com/JamesNZL/flow-toggl-plugin/compare/v1.4.0...v1.5.0) (2023-05-04)
+
+
+### Features
+
+* **ux:** :children_crossing: improve edited project selection and include project name in query ([1259161](https://github.com/JamesNZL/flow-toggl-plugin/commit/1259161233d068e156708fff54887c056717c48a))
+* **ux:** :sparkles: allow starting new time entry at previous stop time ([095adbe](https://github.com/JamesNZL/flow-toggl-plugin/commit/095adbef9ec218cb3dbbcdbd9570d7d24a880244))
+* **ux:** :sparkles: implement ability to edit current project ([d6b6dde](https://github.com/JamesNZL/flow-toggl-plugin/commit/d6b6dde854a21a1b498c3b5d8160ea55f8361e7b))
+
 ## [1.4.0](https://github.com/JamesNZL/flow-toggl-plugin/compare/v1.3.0...v1.4.0) (2023-05-02)
 
 

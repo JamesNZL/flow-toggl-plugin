@@ -35,16 +35,20 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 			return await this._api.Get<List<Project>>($"workspaces/{workspaceId}/projects?per_page=500");
 		}
 
-		public async Task<TimeEntry?> CreateTimeEntry(long? projectId, long workspaceId, string? description, List<string>? tags, bool? billable)
+		public async Task<TimeEntry?> CreateTimeEntry(long? projectId, long workspaceId, string? description, DateTimeOffset? start, List<string>? tags, bool? billable)
 		{
+			var dateTimeOffset = (start is not null)
+				? (DateTimeOffset)start
+				: DateTimeOffset.UtcNow;
+
 			return await this._api.Post<TimeEntry>($"workspaces/{workspaceId}/time_entries", new
 				{
 					billable,
 					created_with = "flow-toggl-plugin",
 					description,
-					duration = -1 * DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+					duration = -1 * dateTimeOffset.ToUnixTimeSeconds(),
 					project_id = projectId ?? default(long?),
-					start = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+					start = dateTimeOffset.ToString("yyyy-MM-ddTHH:mm:ssZ"),
 					tags,
 					workspace_id = workspaceId,
 				});

@@ -311,7 +311,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return results;
 		}
 
-		// TODO: resume from last stop time
 		internal async ValueTask<List<Result>> RequestStartEntry(CancellationToken token, Query query)
 		{
 			if (token.IsCancellationRequested)
@@ -329,6 +328,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			if (this._selectedProjectId == -1 || query.SearchTerms.Length == 1)
 			{
 				this._selectedProjectId = -1;
+
+				// Start fetch for running time entries asynchronously in the backgroundd
+				_ = Task.Run(() =>
+				{
+					_ = this._GetRunningTimeEntry(true);
+				});
 
 				var projects = new List<Result>
 				{
@@ -394,7 +399,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			string description = string.Join(" ", query.SearchTerms.Skip(2));
 
-			return new List<Result>
+			var results = new List<Result>
 			{
 				new Result
 				{
@@ -413,7 +418,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {workspaceId}, {description}", "RequestStartEntry");
 								
 								// TODO: billable
-								var createdTimeEntry = await this._client.CreateTimeEntry(this._selectedProjectId, workspaceId, description, null, null);
+								var createdTimeEntry = await this._client.CreateTimeEntry(this._selectedProjectId, workspaceId, description, null, null, null);
 								if (createdTimeEntry?.id is null)
 								{
 									throw new Exception("An API error was encountered.");
@@ -430,8 +435,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							}
 							catch (Exception exception)
 							{
-								this._context.API.LogException("TogglTrack", "Failed to continue time entry", exception, "RequestStartEntry");
-								this._context.API.ShowMsgError("Failed to continue time entry.", exception.Message);
+								this._context.API.LogException("TogglTrack", "Failed to start time entry", exception, "RequestStartEntry");
+								this._context.API.ShowMsgError("Failed to start time entry.", exception.Message);
 							}
 							finally
 							{
@@ -443,6 +448,74 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					},
 				},
 			};
+
+			// Use cached time entries here to ensure responsiveness
+			var likelyPastTimeEntry = (await this._GetTimeEntries())?.First();
+			if ((likelyPastTimeEntry is null) || (likelyPastTimeEntry.stop is null))
+			{
+				return results;
+			}
+
+			results.Add(new Result
+			{
+				Title = $"Start {description}{((string.IsNullOrEmpty(description) ? string.Empty : " "))}at previous stop time",
+				SubTitle = projectName,
+				IcoPath = (project?.color is not null)
+						? new ColourIcon(this._context, project.color).GetColourIcon()
+						: "start.png",
+				AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
+				Action = c =>
+				{
+					Task.Run(async delegate
+					{
+						try
+						{
+							this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {workspaceId}, {description}, at previous stop time", "RequestStartEntry");
+
+							// Force a new fetch to ensure correctness
+							// User input has ended at this point so no responsiveness concerns
+							var lastTimeEntry = (await this._GetTimeEntries(true))?.First();
+							if (lastTimeEntry is null)
+							{
+								throw new Exception("There is no previous time entry.");
+							}
+							else if (lastTimeEntry.stop is null)
+							{
+								throw new Exception("A time entry is currently running.");
+							}
+
+							// TODO: billable
+							var createdTimeEntry = await this._client.CreateTimeEntry(this._selectedProjectId, workspaceId, description, DateTimeOffset.Parse(lastTimeEntry.stop), null, null);
+							if (createdTimeEntry?.id is null)
+							{
+								throw new Exception("An API error was encountered.");
+							}
+
+							this._context.API.ShowMsg($"Started {createdTimeEntry.description} at previous stop time", projectName, "start.png");
+
+							// Update cached running time entry state
+							_ = Task.Run(() =>
+							{
+								_ = this._GetRunningTimeEntry(true);
+								_ = this._GetTimeEntries(true);
+							});
+						}
+						catch (Exception exception)
+						{
+							this._context.API.LogException("TogglTrack", "Failed to start time entry at previous stop time", exception, "RequestStartEntry");
+							this._context.API.ShowMsgError("Failed to start time entry.", exception.Message);
+						}
+						finally
+						{
+							this._selectedProjectId = -1;
+						}
+					});
+
+					return true;
+				},
+			});
+
+			return results;
 		}
 
 		internal async ValueTask<List<Result>> RequestEditEntry(CancellationToken token, Query query)
@@ -890,7 +963,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								this._context.API.LogInfo("TogglTrack", $"{project?.id}, {workspaceId}, {timeEntry.description}", "RequestContinueEntry");
 								
 								// TODO: billable
-								var createdTimeEntry = await this._client.CreateTimeEntry(project?.id, workspaceId, timeEntry.description, null, null);
+								var createdTimeEntry = await this._client.CreateTimeEntry(project?.id, workspaceId, timeEntry.description, null, null, null);
 								if (createdTimeEntry?.id is null)
 								{
 									throw new Exception("An API error was encountered.");

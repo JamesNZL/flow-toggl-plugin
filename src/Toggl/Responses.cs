@@ -134,7 +134,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 		public long? project_id { get; set; }
 		// public string? server_deleted_at { get; set; }
 		public string? start { get; set; }
-		// public string? stop { get; set; }
+		public string? stop { get; set; }
 		// public List<long>? tag_ids { get; set; }
 		public List<string>? tags { get; set; }
 		// public long? task_id { get; set; }

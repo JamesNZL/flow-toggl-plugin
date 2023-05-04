@@ -48,16 +48,24 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 
 # Screenshots
 
+## `tgl`
 ![Default hotkeys](./assets/screenshots/default.jpg)
 
+## `tgl start`
 ![Project selection](./assets/screenshots/start.jpg)
 
+![Start time options](./assets/screenshots/start-options.jpg)
+
+## `tgl edit`
 ![Editing running time entry](./assets/screenshots/edit.jpg)
 
+## `tgl stop`
 ![Stopping running time entry](./assets/screenshots/stop.jpg)
 
+## `tgl delete`
 ![Deleting running time entry](./assets/screenshots/delete.jpg)
 
+## `tgl continue`
 ![Continue previous time entry](./assets/screenshots/continue.jpg)
 
 # Setup Instructions

@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.6.0](https://github.com/JamesNZL/flow-toggl-plugin/compare/v1.5.0...v1.6.0) (2023-05-04)
+
+
+### Features
+
+* **ux:** :children_crossing: tab autocomplete running entry description if empty edit ([098a52f](https://github.com/JamesNZL/flow-toggl-plugin/commit/098a52fe6033348f3cb851b9ae6cc0b6687bbe14))
+
+
+### Bug Fixes
+
+* :ambulance: fix `GDI+` exception ([13221b8](https://github.com/JamesNZL/flow-toggl-plugin/commit/13221b837a58aa0dae5857cd388d936a149aacc6))
+
 ## [1.5.0](https://github.com/JamesNZL/flow-toggl-plugin/compare/v1.4.0...v1.5.0) (2023-05-04)
 
 

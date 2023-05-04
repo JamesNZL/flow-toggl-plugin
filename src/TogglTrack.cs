@@ -653,7 +653,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					IcoPath = (project?.color is not null)
 						? new ColourIcon(this._context, project.color).GetColourIcon()
 						: "edit.png",
-					AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
+					AutoCompleteText = $"{query.ActionKeyword} {(string.IsNullOrEmpty(description) ? ($"{query.Search} {((string.IsNullOrEmpty(runningTimeEntry.description)) ? "(no description)" : runningTimeEntry.description)}") : query.Search)}",
 					Score = 10000,
 					Action = c =>
 					{

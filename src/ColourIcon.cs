@@ -21,6 +21,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			this._context = context;
 			this._colourCode = colourCode;
 
+            if (ColourIcon._coloursDirectory is not null)
+            {
+				return;
+			}
+
 			var imageCacheDirectoryPath = Path.Combine(this._context.CurrentPluginMetadata.PluginDirectory, "CachedImages");
 
             if (!Directory.Exists(imageCacheDirectoryPath))

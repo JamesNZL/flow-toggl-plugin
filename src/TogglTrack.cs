@@ -548,8 +548,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						SubTitle = $"{this._context.CurrentPluginMetadata.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} 5 mins",
 						IcoPath = "tip.png",
 						AutoCompleteText = $"{query.ActionKeyword} {queryToFlag} 5 mins",
-						// TODO: make this the priority
-						Score = 1,
+						Score = 100000,
 						Action = c =>
 						{
 							this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} 5 mins");
@@ -1003,7 +1002,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					SubTitle = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StopCommand} {Settings.TimeSpanFlag} 5 mins",
 					IcoPath = "tip.png",
 					AutoCompleteText = $"{query.ActionKeyword} {query.Search} 5 mins",
-					Score = 1,
+					Score = 100000,
 					Action = c =>
 					{
 						this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {query.Search} 5 mins");

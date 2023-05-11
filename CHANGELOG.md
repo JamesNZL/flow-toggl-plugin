@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.7.0](https://github.com/JamesNZL/flow-toggl-plugin/compare/v1.6.1...v1.7.0) (2023-05-11)
+
+
+### Features
+
+* **ux:** :children_crossing: increase score of usage examples ([42c9c99](https://github.com/JamesNZL/flow-toggl-plugin/commit/42c9c9961308b4b44911ac81b80d313591db7647))
+* **ux:** :sparkles: allow starting time entries in the past ([5f3886e](https://github.com/JamesNZL/flow-toggl-plugin/commit/5f3886e236d5606ac0808c8bb9cd6a53c5d9b9aa))
+* **ux:** :sparkles: allow stopping time entries in the past ([1688230](https://github.com/JamesNZL/flow-toggl-plugin/commit/1688230545128d7921c5bf658dc0f38c67ab637e))
+* **ux:** :sparkles: use `continue` to autofill `start` command ([6602bf8](https://github.com/JamesNZL/flow-toggl-plugin/commit/6602bf8c086cdb2bdf480973eef3a9a2bd8fa505))
+
+
+### Bug Fixes
+
+* **ux:** :bug: remove trailing space from final autocomplete ([e454a2f](https://github.com/JamesNZL/flow-toggl-plugin/commit/e454a2fe30ad2c24bbe2bb661baa0f4b09ef58bc))
+* **ux:** :speech_balloon: fix started time entry message box titles ([a7f7757](https://github.com/JamesNZL/flow-toggl-plugin/commit/a7f775725f6153e2bbdcbdc56f34a328e9dba80d))
+
 ### [1.6.1](https://github.com/JamesNZL/flow-toggl-plugin/compare/v1.6.0...v1.6.1) (2023-05-04)
 
 

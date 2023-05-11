@@ -398,7 +398,14 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				? $"{project.name}{clientName}"
 				: "No project";
 
-			string description = string.Join(" ", query.SearchTerms.Skip(2));
+			string description = string.Join(
+				" ",
+				(
+					(query.SearchTerms.Contains(Settings.TimeSpanFlag))
+						? query.SearchTerms.Take(Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag))
+						: query.SearchTerms
+				).Skip(2)
+			);
 
 			var results = new List<Result>
 			{
@@ -410,6 +417,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						? new ColourIcon(this._context, project.color, "start.png").GetColourIcon()
 						: "start.png",
 					AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
+					Score = 10000,
 					Action = c =>
 					{
 						Task.Run(async delegate
@@ -450,6 +458,107 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				},
 			};
 
+			if (!query.SearchTerms.Contains(Settings.TimeSpanFlag))
+			{
+				results.Add(new Result
+				{
+					Title = "Usage Tip",
+					SubTitle = $"Use {Settings.TimeSpanFlag} after the description to start this time entry in the past",
+					IcoPath = "tip.png",
+					AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ",
+					Score = 1,
+					Action = c =>
+					{
+						this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ");
+						return false;
+					}
+				});
+			}
+			else
+			{
+				try
+				{
+					var startTimeSpan = TimeSpanParser.Parse(
+						string.Join(" ", query.SearchTerms.Skip(Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag) + 1)),
+						new TimeSpanParserOptions
+						{
+							UncolonedDefault = Units.Minutes,
+							ColonedDefault = Units.Minutes,
+						}
+					);
+					// An exception will be thrown if a time span was not able to be parsed
+					// If we get here, there will have been a valid time span
+					var startTime = DateTimeOffset.UtcNow - startTimeSpan;
+
+					results.Add(new Result
+					{
+						Title = $"Start {description}{((string.IsNullOrEmpty(description) ? string.Empty : " "))}{startTime.Humanize()}",
+						SubTitle = projectName,
+						IcoPath = (project?.color is not null)
+							? new ColourIcon(this._context, project.color, "start.png").GetColourIcon()
+							: "start.png",
+						AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
+						Score = 100000,
+						Action = c =>
+						{
+							Task.Run(async delegate
+							{
+								try
+								{
+									this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {workspaceId}, {description}, {startTimeSpan.ToString()}, in the past", "RequestStartEntry");
+									
+									// TODO: billable
+									var createdTimeEntry = await this._client.CreateTimeEntry(this._selectedProjectId, workspaceId, description, startTime, null, null);
+									if (createdTimeEntry?.id is null)
+									{
+										throw new Exception("An API error was encountered.");
+									}
+
+									this._context.API.ShowMsg($"Started {createdTimeEntry.description}", projectName, "start.png");
+
+									// Update cached running time entry state
+									_ = Task.Run(() =>
+									{
+										_ = this._GetRunningTimeEntry(true);
+										_ = this._GetTimeEntries(true);
+									});
+								}
+								catch (Exception exception)
+								{
+									this._context.API.LogException("TogglTrack", "Failed to start time entry", exception, "RequestStartEntry");
+									this._context.API.ShowMsgError("Failed to start time entry.", exception.Message);
+								}
+								finally
+								{
+									this._selectedProjectId = -1;
+								}
+							});
+
+							return true;
+						},
+					});
+				}
+				catch
+				{
+					var queryToFlag = string.Join(" ", query.SearchTerms.Take(Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag)));
+
+					results.Add(new Result
+					{
+						Title = "Usage Example",
+						SubTitle = $"{this._context.CurrentPluginMetadata.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} 5 mins",
+						IcoPath = "tip.png",
+						AutoCompleteText = $"{query.ActionKeyword} {queryToFlag} 5 mins",
+						// TODO: make this the priority
+						Score = 1,
+						Action = c =>
+						{
+							this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} 5 mins");
+							return false;
+						}
+					});
+				}
+			}
+
 			// Use cached time entries here to ensure responsiveness
 			var likelyPastTimeEntry = (await this._GetTimeEntries())?.First();
 			if ((likelyPastTimeEntry is null) || (likelyPastTimeEntry.stop is null))
@@ -465,6 +574,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						? new ColourIcon(this._context, project.color, "start.png").GetColourIcon()
 						: "start.png",
 				AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
+				Score = 10000,
 				Action = c =>
 				{
 					Task.Run(async delegate

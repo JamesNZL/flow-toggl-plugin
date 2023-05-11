@@ -56,6 +56,8 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 
 ![Start time options](./assets/screenshots/start-options.jpg)
 
+![Start time in the past](./assets/screenshots/start-past.jpg)
+
 ## `tgl edit`
 ![Editing running time entry](./assets/screenshots/edit.jpg)
 

@@ -565,7 +565,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				this._selectedProjectId = runningTimeEntry.project_id;
 
 				// If the -p flag exists, set up next request for project selection
-				if (Array.IndexOf(query.SearchTerms, "-p") != -1)
+				if (Array.IndexOf(query.SearchTerms, Settings.EditProjectFlag) != -1)
 				{
 					this._selectedProjectId = -1;
 					this._editProjectState = TogglTrack.EditProjectState.NoProjectSelected;
@@ -704,13 +704,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			results.Add(new Result
 			{
 				Title = "Usage Tip",
-				SubTitle = "Use -p to edit the project for this time entry",
+				SubTitle = $"Use {Settings.EditProjectFlag} to edit the project for this time entry",
 				IcoPath = "tip.png",
-				AutoCompleteText = $"{query.ActionKeyword} {query.Search} -p ",
+				AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.EditProjectFlag} ",
 				Score = 1,
 				Action = c =>
 				{
-					this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {query.Search} -p ");
+					this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {query.Search} {Settings.EditProjectFlag} ");
 					return false;
 				}
 			});
@@ -808,18 +808,18 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				},
 			};
 
-			if (!query.SearchTerms.Contains("-t"))
+			if (!query.SearchTerms.Contains(Settings.TimeSpanFlag))
 			{
 				results.Add(new Result
 				{
 					Title = "Usage Tip",
-					SubTitle = "Use -t to stop this time entry in the past",
+					SubTitle = $"Use {Settings.TimeSpanFlag} to stop this time entry in the past",
 					IcoPath = "tip.png",
-					AutoCompleteText = $"{query.ActionKeyword} {query.Search} -t ",
+					AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ",
 					Score = 1,
 					Action = c =>
 					{
-						this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {query.Search} -t ");
+						this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ");
 						return false;
 					}
 				});
@@ -830,7 +830,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			try
 			{
 				var stopTimeSpan = TimeSpanParser.Parse(
-					string.Join(" ", query.SearchTerms.Skip(Array.IndexOf(query.SearchTerms, "-t") + 1)),
+					string.Join(" ", query.SearchTerms.Skip(Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag) + 1)),
 					new TimeSpanParserOptions
 					{
 						UncolonedDefault = Units.Minutes,
@@ -890,7 +890,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				results.Add(new Result
 				{
 					Title = "Usage Example",
-					SubTitle = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StopCommand} -t 5 mins",
+					SubTitle = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StopCommand} {Settings.TimeSpanFlag} 5 mins",
 					IcoPath = "tip.png",
 					AutoCompleteText = $"{query.ActionKeyword} {query.Search} 5 mins",
 					Score = 1,

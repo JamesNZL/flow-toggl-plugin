@@ -13,6 +13,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		internal const string BrowserCommand = "browser";
 		internal const string RefreshCommand = "refresh";
 
+		internal const string EditProjectFlag = "-p";
+		internal const string TimeSpanFlag = "-t";
+
 		/// <Summary>
 		/// Toggl Track API Token.
 		/// </Summary>

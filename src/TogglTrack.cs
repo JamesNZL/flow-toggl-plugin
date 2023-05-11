@@ -342,13 +342,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					{
 						Title = "No project",
 						IcoPath = "start.png",
-						AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StartCommand} ",
+						AutoCompleteText = $"{query.ActionKeyword} {Settings.StartCommand} ",
 						// Ensure is 1 greater than the top-priority project
 						Score = (me.projects?.Count ?? 0) + 1,
 						Action = c =>
 						{
 							this._selectedProjectId = null;
-							this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StartCommand} no-project ", true);
+							this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} no-project ", true);
 							return false;
 						},
 					},
@@ -367,12 +367,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							IcoPath = (project.color is not null)
 								? new ColourIcon(this._context, project.color, "start.png").GetColourIcon()
 								: "start.png",
-							AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StartCommand} ",
+							AutoCompleteText = $"{query.ActionKeyword} {Settings.StartCommand} ",
 							Score = filteredProjects.Count - filteredProjects.IndexOf(project),
 							Action = c =>
 							{
 								this._selectedProjectId = project.id;
-								this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StartCommand} {project.name?.ToLower().Replace(" ", "-")} ", true);
+								this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project.name?.ToLower().Replace(" ", "-")} ", true);
 								return false;
 							},
 						})
@@ -469,7 +469,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					Score = 1,
 					Action = c =>
 					{
-						this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ");
+						this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ");
 						return false;
 					}
 				});
@@ -545,13 +545,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					results.Add(new Result
 					{
 						Title = "Usage Example",
-						SubTitle = $"{this._context.CurrentPluginMetadata.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} 5 mins",
+						SubTitle = $"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} 5 mins",
 						IcoPath = "tip.png",
 						AutoCompleteText = $"{query.ActionKeyword} {queryToFlag} 5 mins",
 						Score = 100000,
 						Action = c =>
 						{
-							this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} 5 mins");
+							this._context.API.ChangeQuery($"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} 5 mins");
 							return false;
 						}
 					});
@@ -678,7 +678,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					this._selectedProjectId = -1;
 					this._editProjectState = TogglTrack.EditProjectState.NoProjectSelected;
-					this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.EditCommand} ");
+					this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.EditCommand} ");
 				}
 			}
 
@@ -690,14 +690,14 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					{
 						Title = "No project",
 						IcoPath = "edit.png",
-						AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.EditCommand} ",
+						AutoCompleteText = $"{query.ActionKeyword} {Settings.EditCommand} ",
 						// Ensure is 1 greater than the top-priority project
 						Score = (me.projects?.Count ?? 0) + 1,
 						Action = c =>
 						{
 							this._selectedProjectId = null;
 							this._editProjectState = TogglTrack.EditProjectState.ProjectSelected;
-							this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.EditCommand} no-project ", true);
+							this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.EditCommand} no-project ", true);
 							return false;
 						},
 					},
@@ -716,13 +716,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							IcoPath = (project.color is not null)
 								? new ColourIcon(this._context, project.color, "edit.png").GetColourIcon()
 								: "edit.png",
-							AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.EditCommand} ",
+							AutoCompleteText = $"{query.ActionKeyword} {Settings.EditCommand} ",
 							Score = filteredProjects.Count - filteredProjects.IndexOf(project),
 							Action = c =>
 							{
 								this._selectedProjectId = project.id;
 								this._editProjectState = TogglTrack.EditProjectState.ProjectSelected;
-								this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.EditCommand} {project.name?.ToLower().Replace(" ", "-")} ", true);
+								this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.EditCommand} {project.name?.ToLower().Replace(" ", "-")} ", true);
 								return false;
 							},
 						})
@@ -819,7 +819,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				Score = 1,
 				Action = c =>
 				{
-					this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {query.Search} {Settings.EditProjectFlag} ");
+					this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {Settings.EditProjectFlag} ");
 					return false;
 				}
 			});
@@ -880,7 +880,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					IcoPath = (project?.color is not null)
 						? new ColourIcon(this._context, project.color, "stop.png").GetColourIcon()
 						: "stop.png",
-					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StopCommand} {((string.IsNullOrEmpty(runningTimeEntry.description)) ? "(no description)" : runningTimeEntry.description)}",
+					AutoCompleteText = $"{query.ActionKeyword} {Settings.StopCommand} {((string.IsNullOrEmpty(runningTimeEntry.description)) ? "(no description)" : runningTimeEntry.description)}",
 					Score = 10000,
 					Action = c =>
 					{
@@ -928,7 +928,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					Score = 1,
 					Action = c =>
 					{
-						this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ");
+						this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ");
 						return false;
 					}
 				});
@@ -999,13 +999,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				results.Add(new Result
 				{
 					Title = "Usage Example",
-					SubTitle = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StopCommand} {Settings.TimeSpanFlag} 5 mins",
+					SubTitle = $"{query.ActionKeyword} {Settings.StopCommand} {Settings.TimeSpanFlag} 5 mins",
 					IcoPath = "tip.png",
 					AutoCompleteText = $"{query.ActionKeyword} {query.Search} 5 mins",
 					Score = 100000,
 					Action = c =>
 					{
-						this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {query.Search} 5 mins");
+						this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} 5 mins");
 						return false;
 					}
 				});
@@ -1159,12 +1159,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					IcoPath = (project?.color is not null)
 							? new ColourIcon(this._context, project.color, "continue.png").GetColourIcon()
 							: "continue.png",
-					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.ContinueCommand} {((string.IsNullOrEmpty(timeEntry.description)) ? "(no description)" : timeEntry.description)}",
+					AutoCompleteText = $"{query.ActionKeyword} {Settings.ContinueCommand} {((string.IsNullOrEmpty(timeEntry.description)) ? "(no description)" : timeEntry.description)}",
 					Score = timeEntries.Count - timeEntries.IndexOf(timeEntry),
 					Action = c =>
 					{
 						this._selectedProjectId = project?.id;
-						this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StartCommand} {project?.name?.ToLower().Replace(" ", "-") ?? "no-project"} {timeEntry.description}");
+						this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project?.name?.ToLower().Replace(" ", "-") ?? "no-project"} {timeEntry.description}");
 						return false;
 					},
 				};

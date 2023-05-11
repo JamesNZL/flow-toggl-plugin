@@ -857,7 +857,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						{
 							try
 							{
-								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.id}, {runningTimeEntry.workspace_id}, {startDate}, {shortenedElapsed.ToString(@"h\:mm\:ss")}, {stopTime}", "RequestStopEntry");
+								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.id}, {runningTimeEntry.workspace_id}, {startDate}, {shortenedElapsed.ToString(@"h\:mm\:ss")}, {stopTime}, in the past", "RequestStopEntry");
 
 								var stoppedTimeEntry = await this._client.EditTimeEntry(runningTimeEntry, null, null, stopTime);
 								if (stoppedTimeEntry?.id is null)

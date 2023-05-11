@@ -411,7 +411,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			{
 				new Result
 				{
-					Title = $"Start {description}",
+					Title = $"Start {description}{((string.IsNullOrEmpty(description) ? string.Empty : " "))}now",
 					SubTitle = projectName,
 					IcoPath = (project?.color is not null)
 						? new ColourIcon(this._context, project.color, "start.png").GetColourIcon()
@@ -875,7 +875,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			{
 				new Result
 				{
-					Title = $"Stop {((string.IsNullOrEmpty(runningTimeEntry.description)) ? "(no description)" : runningTimeEntry.description)}",
+					Title = $"Stop {((string.IsNullOrEmpty(runningTimeEntry.description)) ? "(no description)" : runningTimeEntry.description)} now",
 					SubTitle = $"{projectName} | {elapsed.Humanize()} ({elapsed.ToString(@"h\:mm\:ss")})",
 					IcoPath = (project?.color is not null)
 						? new ColourIcon(this._context, project.color, "stop.png").GetColourIcon()

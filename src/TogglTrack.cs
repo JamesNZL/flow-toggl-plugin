@@ -1163,36 +1163,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					Score = timeEntries.Count - timeEntries.IndexOf(timeEntry),
 					Action = c =>
 					{
-						Task.Run(async delegate
-						{
-							try
-							{
-								this._context.API.LogInfo("TogglTrack", $"{project?.id}, {workspaceId}, {timeEntry.description}", "RequestContinueEntry");
-								
-								// TODO: billable
-								var createdTimeEntry = await this._client.CreateTimeEntry(project?.id, workspaceId, timeEntry.description, null, null, null);
-								if (createdTimeEntry?.id is null)
-								{
-									throw new Exception("An API error was encountered.");
-								}
-
-								this._context.API.ShowMsg($"Continued {createdTimeEntry.description}", projectName, "continue.png");
-
-								// Update cached running time entry state
-								_ = Task.Run(() =>
-								{
-									_ = this._GetRunningTimeEntry(true);
-									_ = this._GetTimeEntries(true);
-								});
-							}
-							catch (Exception exception)
-							{
-								this._context.API.LogException("TogglTrack", "Failed to continue time entry", exception, "RequestContinueEntry");
-								this._context.API.ShowMsgError("Failed to continue time entry.", exception.Message);
-							}
-						});
-
-						return true;
+						this._selectedProjectId = project?.id;
+						this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StartCommand} {project?.name?.ToLower().Replace(" ", "-") ?? "no-project"} {timeEntry.description}");
+						return false;
 					},
 				};
 			});

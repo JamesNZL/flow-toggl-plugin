@@ -849,7 +849,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					IcoPath = (project?.color is not null)
 							? new ColourIcon(this._context, project.color, "stop.png").GetColourIcon()
 							: "stop.png",
-					AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
+					AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
 					Score = 100000,
 					Action = c =>
 					{

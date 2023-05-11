@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Humanizer;
+using TimeSpanParserUtil;
 using Flow.Launcher.Plugin.TogglTrack.TogglApi;
 
 namespace Flow.Launcher.Plugin.TogglTrack
@@ -663,7 +664,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							{
 								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.id}, {runningTimeEntry.duration}, {runningTimeEntry.start}, {this._selectedProjectId}, {runningTimeEntry.workspace_id}, {description}", "RequestEditEntry");
 								
-								var editedTimeEntry = await this._client.EditTimeEntry(runningTimeEntry, this._selectedProjectId, description);
+								var editedTimeEntry = await this._client.EditTimeEntry(runningTimeEntry, this._selectedProjectId, description, null);
 								if (editedTimeEntry?.id is null)
 								{
 									throw new Exception("An API error was encountered.");
@@ -717,7 +718,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return results;
 		}
 
-		internal async ValueTask<List<Result>> RequestStopEntry(CancellationToken token)
+		internal async ValueTask<List<Result>> RequestStopEntry(CancellationToken token, Query query)
 		{
 			if (token.IsCancellationRequested)
 			{
@@ -761,7 +762,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				? $"{project.name}{clientName}"
 				: "No project";
 
-			return new List<Result>
+			var results = new List<Result>
 			{
 				new Result
 				{
@@ -771,6 +772,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						? new ColourIcon(this._context, project.color, "stop.png").GetColourIcon()
 						: "stop.png",
 					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StopCommand} {((string.IsNullOrEmpty(runningTimeEntry.description)) ? "(no description)" : runningTimeEntry.description)}",
+					Score = 10000,
 					Action = c =>
 					{
 						Task.Run(async delegate
@@ -805,6 +807,102 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					},
 				},
 			};
+
+			if (!query.SearchTerms.Contains("-t"))
+			{
+				results.Add(new Result
+				{
+					Title = "Usage Tip",
+					SubTitle = "Use -t to stop this time entry in the past",
+					IcoPath = "tip.png",
+					AutoCompleteText = $"{query.ActionKeyword} {query.Search} -t ",
+					Score = 1,
+					Action = c =>
+					{
+						this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {query.Search} -t ");
+						return false;
+					}
+				});
+
+				return results;
+			}
+
+			try
+			{
+				var stopTimeSpan = TimeSpanParser.Parse(
+					string.Join(" ", query.SearchTerms.Skip(Array.IndexOf(query.SearchTerms, "-t") + 1)),
+					new TimeSpanParserOptions
+					{
+						UncolonedDefault = Units.Minutes,
+						ColonedDefault = Units.Minutes,
+					}
+				);
+				// An exception will be thrown if a time span was not able to be parsed
+				// If we get here, there will have been a valid time span
+				var stopTime = DateTimeOffset.UtcNow - stopTimeSpan;
+				var shortenedElapsed = elapsed.Subtract(stopTimeSpan);
+
+				results.Add(new Result
+				{
+					Title = $"Stop {((string.IsNullOrEmpty(runningTimeEntry.description)) ? "(no description)" : runningTimeEntry.description)} {stopTime.Humanize()}",
+					SubTitle = $"{projectName} | {shortenedElapsed.Humanize()} ({shortenedElapsed.ToString(@"h\:mm\:ss")})",
+					IcoPath = (project?.color is not null)
+							? new ColourIcon(this._context, project.color, "stop.png").GetColourIcon()
+							: "stop.png",
+					AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
+					Score = 100000,
+					Action = c =>
+					{
+						Task.Run(async delegate
+						{
+							try
+							{
+								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.id}, {runningTimeEntry.workspace_id}, {startDate}, {shortenedElapsed.ToString(@"h\:mm\:ss")}, {stopTime}", "RequestStopEntry");
+
+								var stoppedTimeEntry = await this._client.EditTimeEntry(runningTimeEntry, null, null, stopTime);
+								if (stoppedTimeEntry?.id is null)
+								{
+									throw new Exception("An API error was encountered.");
+								}
+
+								this._context.API.ShowMsg($"Stopped {stoppedTimeEntry.description}", $"{shortenedElapsed.ToString(@"h\:mm\:ss")} elapsed", "stop.png");
+
+								// Update cached running time entry state
+								_ = Task.Run(() =>
+								{
+									_ = this._GetRunningTimeEntry(true);
+									_ = this._GetTimeEntries(true);
+								});
+							}
+							catch (Exception exception)
+							{
+								this._context.API.LogException("TogglTrack", "Failed to stop time entry", exception, "RequestStopEntry");
+								this._context.API.ShowMsgError("Failed to stop time entry.", exception.Message);
+							}
+						});
+
+						return true;
+					},
+				});
+			}
+			catch
+			{
+				results.Add(new Result
+				{
+					Title = "Usage Example",
+					SubTitle = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StopCommand} -t 5 mins",
+					IcoPath = "tip.png",
+					AutoCompleteText = $"{query.ActionKeyword} {query.Search} 5 mins",
+					Score = 1,
+					Action = c =>
+					{
+						this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {query.Search} 5 mins");
+						return false;
+					}
+				});
+			}
+
+			return results;
 		}
 
 		internal async ValueTask<List<Result>> RequestDeleteEntry(CancellationToken token)

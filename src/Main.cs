@@ -31,9 +31,19 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			this._togglTrack = new TogglTrack(this._context, this._settings);
 			
+			// Complete the API calls on background threads so plugin initialisation can proceed as soon as possible
+			// Cache is not immediately needed so no need to block for it to fulfil
 			await Task.Run(() =>
 			{
-				_ = this._togglTrack.RefreshCache();
+				_ = Task.Run(async () =>
+				{
+					if (!await this._togglTrack!.VerifyApiToken())
+					{
+						return;
+					}
+
+					this._togglTrack.RefreshCache();
+				});
 			});
 		}
 

@@ -545,7 +545,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						Title = "Usage Example",
 						SubTitle = $"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} 5 mins",
 						IcoPath = "tip.png",
-						AutoCompleteText = $"{query.ActionKeyword} {queryToFlag} 5 mins",
+						AutoCompleteText = $"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} 5 mins",
 						Score = 100000,
 						Action = c =>
 						{
@@ -901,7 +901,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						Title = "Usage Example",
 						SubTitle = $"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} 5 mins",
 						IcoPath = "tip.png",
-						AutoCompleteText = $"{query.ActionKeyword} {queryToFlag} 5 mins",
+						AutoCompleteText = $"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} 5 mins",
 						Score = 100000,
 						Action = c =>
 						{

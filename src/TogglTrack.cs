@@ -456,6 +456,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				results.Add(new Result
 				{
 					Title = "Usage Tip",
+					// TODO: use -10 to be 10 minutes in the past
+					// ! BREAKING CHANGE
 					SubTitle = $"Use {Settings.TimeSpanFlag} after the description to start this time entry in the past",
 					IcoPath = "tip.png",
 					AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ",
@@ -624,7 +626,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return results;
 		}
 
-		// TODO: start x minutes earlier
 		internal async ValueTask<List<Result>> RequestEditEntry(CancellationToken token, Query query)
 		{
 			if (token.IsCancellationRequested)
@@ -770,7 +771,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							{
 								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.id}, {runningTimeEntry.duration}, {runningTimeEntry.start}, {this._selectedProjectId}, {runningTimeEntry.workspace_id}, {description}", "RequestEditEntry");
 								
-								var editedTimeEntry = await this._client.EditTimeEntry(runningTimeEntry, this._selectedProjectId, description, null);
+								var editedTimeEntry = await this._client.EditTimeEntry(runningTimeEntry, this._selectedProjectId, description, null, null);
 								if (editedTimeEntry?.id is null)
 								{
 									throw new Exception("An API error was encountered.");
@@ -801,6 +802,115 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					},
 				},
 			};
+
+			if (!query.SearchTerms.Contains(Settings.TimeSpanFlag))
+			{
+				results.Add(new Result
+				{
+					Title = "Usage Tip",
+					SubTitle = $"Use {Settings.TimeSpanFlag} after the description to edit the start time",
+					IcoPath = "tip.png",
+					AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ",
+					Score = 1,
+					Action = c =>
+					{
+						this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ");
+						return false;
+					}
+				});
+			}
+			else
+			{
+				try
+				{
+					var startTimeSpan = TimeSpanParser.Parse(
+						string.Join(" ", query.SearchTerms.Skip(Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag) + 1)),
+						new TimeSpanParserOptions
+						{
+							UncolonedDefault = Units.Minutes,
+							ColonedDefault = Units.Minutes,
+						}
+					);
+					// An exception will be thrown if a time span was not able to be parsed
+					// If we get here, there will have been a valid time span
+					var startTime = startDate + startTimeSpan;
+					// TODO: just mutate elapsed
+					var lengthenedElapsed = elapsed.Subtract(startTimeSpan);
+
+					// Remove -t flag from description
+					description = string.Join(" ", query.SearchTerms.Take(Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag)).Skip(
+						(this._editProjectState == TogglTrack.EditProjectState.ProjectSelected)
+							? 2
+							: 1
+					));
+
+					results.Add(new Result
+					{
+						Title = (string.IsNullOrEmpty(description)) ? ((string.IsNullOrEmpty(runningTimeEntry.description)) ? "(no description)" : runningTimeEntry.description) : description,
+						SubTitle = $"{projectName} | {lengthenedElapsed.Humanize()} ({lengthenedElapsed.ToString(@"h\:mm\:ss")})",
+						IcoPath = (project?.color is not null)
+							? new ColourIcon(this._context, project.color, "edit.png").GetColourIcon()
+							: "edit.png",
+						AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
+						Score = 100000,
+						Action = c =>
+						{
+							Task.Run(async delegate
+							{
+								try
+								{
+									this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.id}, {runningTimeEntry.duration}, {runningTimeEntry.start}, {this._selectedProjectId}, {runningTimeEntry.workspace_id}, {description}, {startTime.ToString("yyyy-MM-ddTHH:mm:ssZ")}, {startTimeSpan.ToString()}, edit start time", "RequestEditEntry");
+									
+									var editedTimeEntry = await this._client.EditTimeEntry(runningTimeEntry, this._selectedProjectId, description, startTime, null);
+									if (editedTimeEntry?.id is null)
+									{
+										throw new Exception("An API error was encountered.");
+									}
+
+									this._context.API.ShowMsg($"Edited {editedTimeEntry.description}", $"{projectName} | {lengthenedElapsed.ToString(@"h\:mm\:ss")}", "edit.png");
+
+									// Update cached running time entry state
+									_ = Task.Run(() =>
+									{
+										_ = this._GetRunningTimeEntry(true);
+										_ = this._GetTimeEntries(true);
+									});
+								}
+								catch (Exception exception)
+								{
+									this._context.API.LogException("TogglTrack", "Failed to edit time entry", exception, "RequestEditEntry");
+									this._context.API.ShowMsgError("Failed to edit time entry.", exception.Message);
+								}
+								finally
+								{
+									this._selectedProjectId = -1;
+									this._editProjectState = TogglTrack.EditProjectState.NoProjectChange;
+								}
+							});
+
+							return true;
+						},
+					});
+				}
+				catch
+				{
+					var queryToFlag = string.Join(" ", query.SearchTerms.Take(Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag)));
+
+					results.Add(new Result
+					{
+						Title = "Usage Example",
+						SubTitle = $"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} 5 mins",
+						IcoPath = "tip.png",
+						AutoCompleteText = $"{query.ActionKeyword} {queryToFlag} 5 mins",
+						Score = 100000,
+						Action = c =>
+						{
+							this._context.API.ChangeQuery($"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} 5 mins");
+							return false;
+						}
+					});
+				}
+			}
 
 			if (this._editProjectState != TogglTrack.EditProjectState.NoProjectChange)
 			{
@@ -965,7 +1075,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							{
 								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.id}, {runningTimeEntry.workspace_id}, {startDate}, {shortenedElapsed.ToString(@"h\:mm\:ss")}, {stopTime}, in the past", "RequestStopEntry");
 
-								var stoppedTimeEntry = await this._client.EditTimeEntry(runningTimeEntry, null, null, stopTime);
+								var stoppedTimeEntry = await this._client.EditTimeEntry(runningTimeEntry, null, null, null, stopTime);
 								if (stoppedTimeEntry?.id is null)
 								{
 									throw new Exception("An API error was encountered.");

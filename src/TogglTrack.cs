@@ -398,14 +398,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				? $"{project.name}{clientName}"
 				: "No project";
 
-			string description = string.Join(
-				" ",
-				(
-					(query.SearchTerms.Contains(Settings.TimeSpanFlag))
-						? query.SearchTerms.Take(Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag))
-						: query.SearchTerms
-				).Skip(2)
-			);
+			string description = string.Join(" ", query.SearchTerms.Skip(2));
 
 			var results = new List<Result>
 			{
@@ -489,6 +482,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					// An exception will be thrown if a time span was not able to be parsed
 					// If we get here, there will have been a valid time span
 					var startTime = DateTimeOffset.UtcNow - startTimeSpan;
+
+					// Remove -t flag from description
+					description = string.Join(" ", query.SearchTerms.Take(Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag)).Skip(2));
 
 					results.Add(new Result
 					{
@@ -628,6 +624,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return results;
 		}
 
+		// TODO: start x minutes earlier
 		internal async ValueTask<List<Result>> RequestEditEntry(CancellationToken token, Query query)
 		{
 			if (token.IsCancellationRequested)

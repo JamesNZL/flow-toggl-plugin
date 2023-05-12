@@ -484,11 +484,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					var startTime = DateTimeOffset.UtcNow + startTimeSpan;
 
 					// Remove -t flag from description
-					description = string.Join(" ", query.SearchTerms.Take(Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag)).Skip(2));
+					string sanitisedDescription = string.Join(" ", query.SearchTerms.Take(Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag)).Skip(2));
 
 					results.Add(new Result
 					{
-						Title = $"Start {description}{((string.IsNullOrEmpty(description) ? string.Empty : " "))}{startTime.Humanize()}",
+						Title = $"Start {sanitisedDescription}{((string.IsNullOrEmpty(sanitisedDescription) ? string.Empty : " "))}{startTime.Humanize()}",
 						SubTitle = projectName,
 						IcoPath = (project?.color is not null)
 							? new ColourIcon(this._context, project.color, "start.png").GetColourIcon()
@@ -501,16 +501,16 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							{
 								try
 								{
-									this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {workspaceId}, {description}, {startTimeSpan.ToString()}, time span flag", "RequestStartEntry");
+									this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {workspaceId}, {sanitisedDescription}, {startTimeSpan.ToString()}, time span flag", "RequestStartEntry");
 									
 									// TODO: billable
-									var createdTimeEntry = await this._client.CreateTimeEntry(this._selectedProjectId, workspaceId, description, startTime, null, null);
+									var createdTimeEntry = await this._client.CreateTimeEntry(this._selectedProjectId, workspaceId, sanitisedDescription, startTime, null, null);
 									if (createdTimeEntry?.id is null)
 									{
 										throw new Exception("An API error was encountered.");
 									}
 
-									this._context.API.ShowMsg($"Started {createdTimeEntry.description}{((string.IsNullOrEmpty(description) ? string.Empty : " "))}{startTime.Humanize()}", projectName, "start.png");
+									this._context.API.ShowMsg($"Started {createdTimeEntry.description}{((string.IsNullOrEmpty(sanitisedDescription) ? string.Empty : " "))}{startTime.Humanize()}", projectName, "start.png");
 
 									// Update cached running time entry state
 									_ = Task.Run(() =>
@@ -832,10 +832,10 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					// An exception will be thrown if a time span was not able to be parsed
 					// If we get here, there will have been a valid time span
 					var startTime = startDate + startTimeSpan;
-					elapsed = elapsed.Subtract(startTimeSpan);
+					var newElapsed = elapsed.Subtract(startTimeSpan);
 
 					// Remove -t flag from description
-					description = string.Join(" ", query.SearchTerms.Take(Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag)).Skip(
+					string sanitisedDescription = string.Join(" ", query.SearchTerms.Take(Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag)).Skip(
 						(this._editProjectState == TogglTrack.EditProjectState.ProjectSelected)
 							? 2
 							: 1
@@ -843,8 +843,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 					results.Add(new Result
 					{
-						Title = (string.IsNullOrEmpty(description)) ? ((string.IsNullOrEmpty(runningTimeEntry.description)) ? "(no description)" : runningTimeEntry.description) : description,
-						SubTitle = $"{projectName} | {elapsed.Humanize()} ({elapsed.ToString(@"h\:mm\:ss")})",
+						Title = (string.IsNullOrEmpty(sanitisedDescription)) ? ((string.IsNullOrEmpty(runningTimeEntry.description)) ? "(no description)" : runningTimeEntry.description) : sanitisedDescription,
+						SubTitle = $"{projectName} | {newElapsed.Humanize()} ({newElapsed.ToString(@"h\:mm\:ss")})",
 						IcoPath = (project?.color is not null)
 							? new ColourIcon(this._context, project.color, "edit.png").GetColourIcon()
 							: "edit.png",
@@ -856,15 +856,15 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							{
 								try
 								{
-									this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.id}, {runningTimeEntry.duration}, {runningTimeEntry.start}, {this._selectedProjectId}, {runningTimeEntry.workspace_id}, {description}, {startTime.ToString("yyyy-MM-ddTHH:mm:ssZ")}, {startTimeSpan.ToString()}, edit start time", "RequestEditEntry");
+									this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.id}, {runningTimeEntry.duration}, {runningTimeEntry.start}, {this._selectedProjectId}, {runningTimeEntry.workspace_id}, {sanitisedDescription}, {startTime.ToString("yyyy-MM-ddTHH:mm:ssZ")}, {startTimeSpan.ToString()}, edit start time", "RequestEditEntry");
 									
-									var editedTimeEntry = await this._client.EditTimeEntry(runningTimeEntry, this._selectedProjectId, description, startTime, null);
+									var editedTimeEntry = await this._client.EditTimeEntry(runningTimeEntry, this._selectedProjectId, sanitisedDescription, startTime, null);
 									if (editedTimeEntry?.id is null)
 									{
 										throw new Exception("An API error was encountered.");
 									}
 
-									this._context.API.ShowMsg($"Edited {editedTimeEntry.description}", $"{projectName} | {elapsed.ToString(@"h\:mm\:ss")}", "edit.png");
+									this._context.API.ShowMsg($"Edited {editedTimeEntry.description}", $"{projectName} | {newElapsed.ToString(@"h\:mm\:ss")}", "edit.png");
 
 									// Update cached running time entry state
 									_ = Task.Run(() =>
@@ -1053,12 +1053,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				// An exception will be thrown if a time span was not able to be parsed
 				// If we get here, there will have been a valid time span
 				var stopTime = DateTimeOffset.UtcNow + stopTimeSpan;
-				elapsed = elapsed.Subtract(stopTimeSpan);
+				var newElapsed = elapsed.Subtract(stopTimeSpan);
 
 				results.Add(new Result
 				{
 					Title = $"Stop {((string.IsNullOrEmpty(runningTimeEntry.description)) ? "(no description)" : runningTimeEntry.description)} {stopTime.Humanize()}",
-					SubTitle = $"{projectName} | {elapsed.Humanize()} ({elapsed.ToString(@"h\:mm\:ss")})",
+					SubTitle = $"{projectName} | {newElapsed.Humanize()} ({newElapsed.ToString(@"h\:mm\:ss")})",
 					IcoPath = (project?.color is not null)
 							? new ColourIcon(this._context, project.color, "stop.png").GetColourIcon()
 							: "stop.png",
@@ -1070,7 +1070,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						{
 							try
 							{
-								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.id}, {runningTimeEntry.workspace_id}, {startDate}, {elapsed.ToString(@"h\:mm\:ss")}, {stopTime}, time span flag", "RequestStopEntry");
+								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.id}, {runningTimeEntry.workspace_id}, {startDate}, {newElapsed.ToString(@"h\:mm\:ss")}, {stopTime}, time span flag", "RequestStopEntry");
 
 								var stoppedTimeEntry = await this._client.EditTimeEntry(runningTimeEntry, null, null, null, stopTime);
 								if (stoppedTimeEntry?.id is null)
@@ -1078,7 +1078,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									throw new Exception("An API error was encountered.");
 								}
 
-								this._context.API.ShowMsg($"Stopped {stoppedTimeEntry.description}", $"{elapsed.ToString(@"h\:mm\:ss")} elapsed", "stop.png");
+								this._context.API.ShowMsg($"Stopped {stoppedTimeEntry.description}", $"{newElapsed.ToString(@"h\:mm\:ss")} elapsed", "stop.png");
 
 								// Update cached running time entry state
 								_ = Task.Run(() =>

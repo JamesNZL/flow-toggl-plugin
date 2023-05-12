@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.0.1](https://github.com/JamesNZL/flow-toggl-plugin/compare/v2.0.0...v2.0.1) (2023-05-12)
+
+
+### Bug Fixes
+
+* **ux:** :bug: fully fix ignored sanitisation of `-t` from other results ([4789d71](https://github.com/JamesNZL/flow-toggl-plugin/commit/4789d714214e30fb4c849792b7a638b9c7d88fc6))
+
 ## [2.0.0](https://github.com/JamesNZL/flow-toggl-plugin/compare/v1.8.0...v2.0.0) (2023-05-12)
 
 

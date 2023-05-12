@@ -456,9 +456,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				results.Add(new Result
 				{
 					Title = "Usage Tip",
-					// TODO: use -10 to be 10 minutes in the past
-					// ! BREAKING CHANGE
-					SubTitle = $"Use {Settings.TimeSpanFlag} after the description to start this time entry in the past",
+					SubTitle = $"Use {Settings.TimeSpanFlag} after the description to specify the start time",
 					IcoPath = "tip.png",
 					AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ",
 					Score = 1,
@@ -483,7 +481,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					);
 					// An exception will be thrown if a time span was not able to be parsed
 					// If we get here, there will have been a valid time span
-					var startTime = DateTimeOffset.UtcNow - startTimeSpan;
+					var startTime = DateTimeOffset.UtcNow + startTimeSpan;
 
 					// Remove -t flag from description
 					description = string.Join(" ", query.SearchTerms.Take(Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag)).Skip(2));
@@ -503,7 +501,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							{
 								try
 								{
-									this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {workspaceId}, {description}, {startTimeSpan.ToString()}, in the past", "RequestStartEntry");
+									this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {workspaceId}, {description}, {startTimeSpan.ToString()}, time span flag", "RequestStartEntry");
 									
 									// TODO: billable
 									var createdTimeEntry = await this._client.CreateTimeEntry(this._selectedProjectId, workspaceId, description, startTime, null, null);
@@ -543,13 +541,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					results.Add(new Result
 					{
 						Title = "Usage Example",
-						SubTitle = $"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} 5 mins",
+						SubTitle = $"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} -5 mins",
 						IcoPath = "tip.png",
-						AutoCompleteText = $"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} 5 mins",
+						AutoCompleteText = $"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} -5 mins",
 						Score = 100000,
 						Action = c =>
 						{
-							this._context.API.ChangeQuery($"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} 5 mins");
+							this._context.API.ChangeQuery($"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} -5 mins");
 							return false;
 						}
 					});
@@ -1028,7 +1026,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				results.Add(new Result
 				{
 					Title = "Usage Tip",
-					SubTitle = $"Use {Settings.TimeSpanFlag} to stop this time entry in the past",
+					SubTitle = $"Use {Settings.TimeSpanFlag} to specify the stop time",
 					IcoPath = "tip.png",
 					AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ",
 					Score = 1,
@@ -1054,7 +1052,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				);
 				// An exception will be thrown if a time span was not able to be parsed
 				// If we get here, there will have been a valid time span
-				var stopTime = DateTimeOffset.UtcNow - stopTimeSpan;
+				var stopTime = DateTimeOffset.UtcNow + stopTimeSpan;
 				elapsed = elapsed.Subtract(stopTimeSpan);
 
 				results.Add(new Result
@@ -1072,7 +1070,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						{
 							try
 							{
-								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.id}, {runningTimeEntry.workspace_id}, {startDate}, {elapsed.ToString(@"h\:mm\:ss")}, {stopTime}, in the past", "RequestStopEntry");
+								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.id}, {runningTimeEntry.workspace_id}, {startDate}, {elapsed.ToString(@"h\:mm\:ss")}, {stopTime}, time span flag", "RequestStopEntry");
 
 								var stoppedTimeEntry = await this._client.EditTimeEntry(runningTimeEntry, null, null, null, stopTime);
 								if (stoppedTimeEntry?.id is null)
@@ -1105,13 +1103,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				results.Add(new Result
 				{
 					Title = "Usage Example",
-					SubTitle = $"{query.ActionKeyword} {Settings.StopCommand} {Settings.TimeSpanFlag} 5 mins",
+					SubTitle = $"{query.ActionKeyword} {Settings.StopCommand} {Settings.TimeSpanFlag} -5 mins",
 					IcoPath = "tip.png",
-					AutoCompleteText = $"{query.ActionKeyword} {query.Search} 5 mins",
+					AutoCompleteText = $"{query.ActionKeyword} {query.Search} -5 mins",
 					Score = 100000,
 					Action = c =>
 					{
-						this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} 5 mins");
+						this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} -5 mins");
 						return false;
 					}
 				});

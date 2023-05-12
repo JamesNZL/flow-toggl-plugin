@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.0.0](https://github.com/JamesNZL/flow-toggl-plugin/compare/v1.8.0...v2.0.0) (2023-05-12)
+
+
+### ⚠ BREAKING CHANGES
+
+* **ux:** this changes behaviour from same user input
+
+use `-t -5` to move the start/stop time backwards in time
+
+use `-t 5` to move the start/stop time forwards in time
+
+previously, `tgl start` and `tgl stop` would treat `-t 5` as moving backwards, and vice-versa
+
+### Features
+
+* **ux:** :children_crossing: use consistent positive/negative time span parsing ([1d489c4](https://github.com/JamesNZL/flow-toggl-plugin/commit/1d489c448464c27aaa5b01c29ce0cb2a22c8ac00))
+* **ux:** :sparkles: allow editing start time in `tgl edit` ([e4dc303](https://github.com/JamesNZL/flow-toggl-plugin/commit/e4dc3039c4a6472c0549127b316fd27aa9140577))
+
+
+### Bug Fixes
+
+* **ux:** :bug: do not sanitise `-t` flag from description of standard `tgl start` ([1d6720a](https://github.com/JamesNZL/flow-toggl-plugin/commit/1d6720a4b7abe13851af74703f92b91a915372fc))
+* **ux:** :bug: fix broken autocomplete of time span flag usage example ([a8e3c7d](https://github.com/JamesNZL/flow-toggl-plugin/commit/a8e3c7d04b78d9cdee76b3296dd59cc0bd7edbad))
+
 ## [1.8.0](https://github.com/JamesNZL/flow-toggl-plugin/compare/v1.7.0...v1.8.0) (2023-05-11)
 
 

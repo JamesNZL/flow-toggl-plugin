@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.1.1](https://github.com/JamesNZL/flow-toggl-plugin/compare/v2.1.0...v2.1.1) (2023-05-12)
+
+
+### Bug Fixes
+
+* :zap: do not verify api token on `tgl refresh` command ([2489a7b](https://github.com/JamesNZL/flow-toggl-plugin/commit/2489a7b856be9df321e2048496fe83cd6a366574))
+
 ## [2.1.0](https://github.com/JamesNZL/flow-toggl-plugin/compare/v2.0.1...v2.1.0) (2023-05-12)
 
 

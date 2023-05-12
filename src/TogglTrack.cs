@@ -363,7 +363,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						filteredProjects.ConvertAll(project => new Result
 						{
 							Title = project.name,
-							SubTitle = $"{((project.client_id is not null) ? $"{me.clients?.Find(client => client.id == project.client_id)?.name} | " : string.Empty)}{project.actual_hours ?? 0} hour{(((project.actual_hours ?? 0) != 1) ? "s" : string.Empty)}",
+							SubTitle = $"{((project.client_id is not null) ? $"{me.clients?.Find(client => client.id == project.client_id)?.name} | " : string.Empty)}{project.actual_hours ?? 0} {(((project.actual_hours ?? 0) != 1) ? "hours" : "hour")}",
 							IcoPath = (project.color is not null)
 								? new ColourIcon(this._context, project.color, "start.png").GetColourIcon()
 								: "start.png",
@@ -372,7 +372,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							Action = c =>
 							{
 								this._selectedProjectId = project.id;
-								this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project.name?.ToLower().Replace(" ", "-")} ", true);
+								this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project.name?.Kebaberize()} ", true);
 								return false;
 							},
 						})
@@ -709,7 +709,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						filteredProjects.ConvertAll(project => new Result
 						{
 							Title = project.name,
-							SubTitle = $"{((project.client_id is not null) ? $"{me.clients?.Find(client => client.id == project.client_id)?.name} | " : string.Empty)}{project.actual_hours ?? 0} hour{(((project.actual_hours ?? 0) != 1) ? "s" : string.Empty)}",
+							SubTitle = $"{((project.client_id is not null) ? $"{me.clients?.Find(client => client.id == project.client_id)?.name} | " : string.Empty)}{project.actual_hours ?? 0} {(((project.actual_hours ?? 0) != 1) ? "hours" : "hour")}",
 							IcoPath = (project.color is not null)
 								? new ColourIcon(this._context, project.color, "edit.png").GetColourIcon()
 								: "edit.png",
@@ -719,7 +719,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							{
 								this._selectedProjectId = project.id;
 								this._editProjectState = TogglTrack.EditProjectState.ProjectSelected;
-								this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.EditCommand} {project.name?.ToLower().Replace(" ", "-")} ", true);
+								this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.EditCommand} {project.name?.Kebaberize()} ", true);
 								return false;
 							},
 						})
@@ -1161,7 +1161,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					Action = c =>
 					{
 						this._selectedProjectId = project?.id;
-						this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project?.name?.ToLower().Replace(" ", "-") ?? "no-project"} {timeEntry.description}");
+						this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project?.name?.Kebaberize() ?? "no-project"} {timeEntry.description}");
 						return false;
 					},
 				};

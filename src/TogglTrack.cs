@@ -102,6 +102,22 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 		}
 
+		internal async Task RefreshCache()
+		{
+			if (!await this.VerifyApiToken())
+			{
+				return;
+			}
+
+			_ = Task.Run(() =>
+			{
+				// This is the main one that needs to be run
+				_ = this._GetMe(true);
+				_ = this._GetRunningTimeEntry(true);
+				_ = this._GetTimeEntries(true);
+			});
+		}
+
 		internal async ValueTask<bool> VerifyApiToken()
 		{
 			if (!InternetAvailability.IsInternetAvailable())
@@ -251,14 +267,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					Score = -100,
 					Action = c =>
 					{
-						_ = Task.Run(() =>
-						{
-							// This is the main one that needs to be run
-							_ = this._GetMe(true);
-							_ = this._GetRunningTimeEntry(true);
-							_ = this._GetTimeEntries(true);
-						});
-
+						_ = this.RefreshCache();
 						return true;
 					},
 				},

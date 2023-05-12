@@ -30,7 +30,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			Main._viewModel = new SettingsViewModel(this._settings);
 
 			this._togglTrack = new TogglTrack(this._context, this._settings);
-			await this._togglTrack.VerifyApiToken();
+			await this._togglTrack.RefreshCache();
 		}
 
 		/// <summary>

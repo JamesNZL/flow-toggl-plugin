@@ -242,6 +242,19 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				},
 				new Result
 				{
+					Title = Settings.ViewCommand,
+					SubTitle = "View tracked time reports",
+					IcoPath = "view.png",
+					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.ViewCommand} ",
+					Score = 5,
+					Action = c =>
+					{
+						this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.ViewCommand} ");
+						return false;
+					},
+				},
+				new Result
+				{
 					Title = Settings.BrowserCommand,
 					SubTitle = "Open Toggl Track in browser",
 					IcoPath = "browser.png",
@@ -1287,6 +1300,74 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return (string.IsNullOrWhiteSpace(query.SecondToEndSearch))
 				? entries
 				: entries.FindAll(result =>
+				{
+					return this._context.API.FuzzySearch(query.SecondToEndSearch, result.Title).Score > 0;
+				});
+		}
+
+		internal async ValueTask<List<Result>> RequestViewReports(CancellationToken token, Query query)
+		{
+			if (token.IsCancellationRequested)
+			{
+				return new List<Result>();
+			}
+
+			// var me = await this._GetMe();
+			// if (me is null)
+			// {
+			// 	return this.NotifyUnknownError();
+			// }
+
+			var timeEntries = await this._GetTimeEntries();
+			if (timeEntries is null)
+			{
+				return new List<Result>
+				{
+					new Result
+					{
+						Title = $"No previous time entries",
+						SubTitle = "There are no time entries to report on.",
+						IcoPath = this._context.CurrentPluginMetadata.IcoPath,
+						Action = c =>
+						{
+							return true;
+						},
+					},
+				};
+			}
+
+			if (query.SearchTerms.Length == 1 || !Settings.ViewDurationArguments.Exists(duration => duration.argument == query.SearchTerms[1]))
+			{
+				var results = Settings.ViewDurationArguments.ConvertAll(duration =>
+				{
+					return new Result
+					{
+						Title = duration.argument,
+						SubTitle = $"View {duration.spanString} tracked time report",
+						IcoPath = "view.png",
+						AutoCompleteText = $"{query.ActionKeyword} {Settings.ViewCommand} {duration.argument} ",
+						Score = Settings.ViewDurationArguments.Count - Settings.ViewDurationArguments.IndexOf(duration),
+						Action = c =>
+						{
+							this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.ViewCommand} {duration.argument} ", true);
+							return false;
+						},
+					};
+				});
+				
+				return (string.IsNullOrWhiteSpace(query.SecondToEndSearch))
+					? results
+					: results.FindAll(result =>
+					{
+						return this._context.API.FuzzySearch(query.SecondToEndSearch, result.Title).Score > 0;
+					});
+			}
+
+			var reports = new List<Result>();
+
+			return (string.IsNullOrWhiteSpace(query.SecondToEndSearch))
+				? reports
+				: reports.FindAll(result =>
 				{
 					return this._context.API.FuzzySearch(query.SecondToEndSearch, result.Title).Score > 0;
 				});

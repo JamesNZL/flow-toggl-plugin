@@ -72,13 +72,14 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				return await this._togglTrack.GetDefaultHotKeys();
 			}
 
-			return query.FirstSearch.ToLower() switch
+			return (query.FirstSearch.ToLower()) switch
 			{
 				Settings.StartCommand => await this._togglTrack.RequestStartEntry(token, query),
 				Settings.EditCommand => await this._togglTrack.RequestEditEntry(token, query),
 				Settings.StopCommand => await this._togglTrack.RequestStopEntry(token, query),
 				Settings.DeleteCommand => await this._togglTrack.RequestDeleteEntry(token),
 				Settings.ContinueCommand => await this._togglTrack.RequestContinueEntry(token, query),
+				Settings.ViewCommand => await this._togglTrack.RequestViewReports(token, query),
 				_ => (await this._togglTrack.GetDefaultHotKeys())
 					.FindAll(result =>
 					{

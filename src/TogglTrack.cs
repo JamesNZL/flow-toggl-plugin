@@ -1057,6 +1057,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				// An exception will be thrown if a time span was not able to be parsed
 				// If we get here, there will have been a valid time span
 				var stopTime = DateTimeOffset.UtcNow + stopTimeSpan;
+				if (stopTime.CompareTo(startDate) < 0)
+				{
+					// Ensure stop is not before start
+					stopTime = startDate;
+				}
+
 				var newElapsed = stopTime.Subtract(startDate);
 
 				results.Add(new Result

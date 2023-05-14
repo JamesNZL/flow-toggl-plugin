@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.1.2](https://github.com/JamesNZL/flow-toggl-plugin/compare/v2.1.1...v2.1.2) (2023-05-14)
+
+
+### Bug Fixes
+
+* **ux:** :bug: ensure stop time is not before start ([b969773](https://github.com/JamesNZL/flow-toggl-plugin/commit/b9697733409259b0de17a7ef241ee7f01a26fc08))
+* **ux:** :bug: fix wrong elapsed time calculation when using `-t` ([#3](https://github.com/JamesNZL/flow-toggl-plugin/issues/3)) ([7fcfa85](https://github.com/JamesNZL/flow-toggl-plugin/commit/7fcfa85e3c0316e97c9fd37c3a1b09b53202352d))
+
 ### [2.1.1](https://github.com/JamesNZL/flow-toggl-plugin/compare/v2.1.0...v2.1.1) (2023-05-12)
 
 

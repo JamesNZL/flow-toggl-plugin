@@ -1341,12 +1341,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			 */
 			if (query.SearchTerms.Length == 1 || !Settings.ViewDurationArguments.Exists(duration => duration.Argument == query.SearchTerms[1]))
 			{
-				var results = Settings.ViewDurationArguments.ConvertAll(duration =>
+				var durations = Settings.ViewDurationArguments.ConvertAll(duration =>
 				{
 					return new Result
 					{
 						Title = duration.Argument,
-						SubTitle = $"View {duration.Interpolation} tracked time report",
+						SubTitle = $"View tracked time report for {duration.Interpolation}",
 						IcoPath = "view.png",
 						AutoCompleteText = $"{query.ActionKeyword} {Settings.ViewCommand} {duration.Argument} ",
 						Score = Settings.ViewDurationArguments.Count - Settings.ViewDurationArguments.IndexOf(duration),
@@ -1359,21 +1359,45 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				});
 				
 				return (string.IsNullOrWhiteSpace(query.SecondToEndSearch))
-					? results
-					: results.FindAll(result =>
+					? durations
+					: durations.FindAll(result =>
 					{
 						return this._context.API.FuzzySearch(query.SecondToEndSearch, result.Title).Score > 0;
 					});
 			}
 
-			var reports = new List<Result>();
-
-			return (string.IsNullOrWhiteSpace(query.SecondToEndSearch))
-				? reports
-				: reports.FindAll(result =>
+			/* 
+			 * Report groupinging selection --- tgl view [duration] [entries | projects | clients]
+			 "View tracked time report by Project"
+			 */
+			if (query.SearchTerms.Length == 2 || !Settings.ViewGroupingArguments.Exists(grouping => grouping.Argument == query.SearchTerms[2]))
+			{
+				var groupings = Settings.ViewGroupingArguments.ConvertAll(grouping =>
 				{
-					return this._context.API.FuzzySearch(query.SecondToEndSearch, result.Title).Score > 0;
+					return new Result
+					{
+						Title = grouping.Argument,
+						SubTitle = grouping.Interpolation,
+						IcoPath = "view.png",
+						AutoCompleteText = $"{query.ActionKeyword} {Settings.ViewCommand} {query.SearchTerms[1]} {grouping.Argument} ",
+						Score = Settings.ViewGroupingArguments.Count - Settings.ViewGroupingArguments.IndexOf(grouping),
+						Action = c =>
+						{
+							this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.ViewCommand} {query.SearchTerms[1]} {grouping.Argument} ", true);
+							return false;
+						},
+					};
 				});
+				
+				return (string.IsNullOrWhiteSpace(string.Join(" ", query.SearchTerms.Skip(2))))
+					? groupings
+					: groupings.FindAll(result =>
+					{
+						return this._context.API.FuzzySearch(string.Join(" ", query.SearchTerms.Skip(2)), result.Title).Score > 0;
+					});
+			}
+
+			return new List<Result>();
 		}
 	}
 }

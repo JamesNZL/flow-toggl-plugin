@@ -24,22 +24,40 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			new CommandArgument
 			{
 				Argument = "day",
-				Interpolation = "today's",
+				Interpolation = "today",
 			},
 			new CommandArgument
 			{
 				Argument = "week",
-				Interpolation = "this week's",
+				Interpolation = "this week",
 			},
 			new CommandArgument
 			{
 				Argument = "month",
-				Interpolation = "this month's",
+				Interpolation = "this month",
 			},
 			new CommandArgument
 			{
 				Argument = "year",
-				Interpolation = "this year's",
+				Interpolation = "this year",
+			},
+		};
+		internal static readonly List<CommandArgument> ViewGroupingArguments = new List<CommandArgument>
+		{
+			new CommandArgument
+			{
+				Argument = "entries",
+				Interpolation = "View tracked time entries",
+			},
+			new CommandArgument
+			{
+				Argument = "projects",
+				Interpolation = "View tracked time grouped by project",
+			},
+			new CommandArgument
+			{
+				Argument = "clients",
+				Interpolation = "View tracked time grouped by client",
 			},
 		};
 

@@ -344,7 +344,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					new Result
 					{
-						Title = "No project",
+						Title = "No Project",
 						IcoPath = "start.png",
 						AutoCompleteText = $"{query.ActionKeyword} {Settings.StartCommand} ",
 						// Ensure is 1 greater than the top-priority project
@@ -400,7 +400,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				: string.Empty;
 			string projectName = (project is not null)
 				? $"{project.name}{clientName}"
-				: "No project";
+				: "No Project";
 
 			string description = string.Join(" ", query.SearchTerms.Skip(2));
 
@@ -688,7 +688,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					new Result
 					{
-						Title = "No project",
+						Title = "No Project",
 						IcoPath = "edit.png",
 						AutoCompleteText = $"{query.ActionKeyword} {Settings.EditCommand} ",
 						// Ensure is 1 greater than the top-priority project
@@ -748,7 +748,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				: string.Empty;
 			string projectName = (project is not null)
 				? $"{project.name}{clientName}"
-				: "No project";
+				: "No Project";
 
 			string description = (this._editProjectState == TogglTrack.EditProjectState.ProjectSelected)
 				? string.Join(" ", query.SearchTerms.Skip(2))
@@ -977,7 +977,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				: string.Empty;
 			string projectName = (project is not null)
 				? $"{project.name}{clientName}"
-				: "No project";
+				: "No Project";
 
 			var results = new List<Result>
 			{
@@ -1170,7 +1170,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				: string.Empty;
 			string projectName = (project is not null)
 				? $"{project.name}{clientName}"
-				: "No project";
+				: "No Project";
 
 			return new List<Result>
 			{
@@ -1264,7 +1264,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					: string.Empty;
 				string projectName = (project is not null)
 					? $"{project.name}{clientName}"
-					: "No project";
+					: "No Project";
 
 				return new Result
 				{

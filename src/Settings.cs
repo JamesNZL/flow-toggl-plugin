@@ -19,28 +19,28 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		internal const string EditProjectFlag = "-p";
 		internal const string TimeSpanFlag = "-t";
 
-		internal static readonly List<ViewDuration> ViewDurationArguments = new List<ViewDuration>
+		internal static readonly List<CommandArgument> ViewDurationArguments = new List<CommandArgument>
 		{
-			new ViewDuration
-			(
-				"day",
-				"today's"
-			),
-			new ViewDuration
-			(
-				"week",
-				"this week's"
-			),
-			new ViewDuration
-			(
-				"month",
-				"this month's"
-			),
-			new ViewDuration
-			(
-				"year",
-				"this year's"
-			),
+			new CommandArgument
+			{
+				Argument = "day",
+				Interpolation = "today's",
+			},
+			new CommandArgument
+			{
+				Argument = "week",
+				Interpolation = "this week's",
+			},
+			new CommandArgument
+			{
+				Argument = "month",
+				Interpolation = "this month's",
+			},
+			new CommandArgument
+			{
+				Argument = "year",
+				Interpolation = "this year's",
+			},
 		};
 
 		/// <Summary>
@@ -49,15 +49,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		public string ApiToken { get; set; } = string.Empty;
 	}
 
-	public class ViewDuration
+	public class CommandArgument
 	{
-		public string argument;
-		public string spanString;
-
-		public ViewDuration(string argument, string spanString)
-		{
-			this.argument = argument;
-			this.spanString = spanString;
-		}
+		#nullable disable
+		public string Argument { get; set; }
+		public string Interpolation { get; set; }
+		#nullable enable
 	}
 }

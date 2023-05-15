@@ -1336,20 +1336,23 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				};
 			}
 
-			if (query.SearchTerms.Length == 1 || !Settings.ViewDurationArguments.Exists(duration => duration.argument == query.SearchTerms[1]))
+			/* 
+			 * Report duration selection --- tgl view [day | week | month | year]
+			 */
+			if (query.SearchTerms.Length == 1 || !Settings.ViewDurationArguments.Exists(duration => duration.Argument == query.SearchTerms[1]))
 			{
 				var results = Settings.ViewDurationArguments.ConvertAll(duration =>
 				{
 					return new Result
 					{
-						Title = duration.argument,
-						SubTitle = $"View {duration.spanString} tracked time report",
+						Title = duration.Argument,
+						SubTitle = $"View {duration.Interpolation} tracked time report",
 						IcoPath = "view.png",
-						AutoCompleteText = $"{query.ActionKeyword} {Settings.ViewCommand} {duration.argument} ",
+						AutoCompleteText = $"{query.ActionKeyword} {Settings.ViewCommand} {duration.Argument} ",
 						Score = Settings.ViewDurationArguments.Count - Settings.ViewDurationArguments.IndexOf(duration),
 						Action = c =>
 						{
-							this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.ViewCommand} {duration.argument} ", true);
+							this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.ViewCommand} {duration.Argument} ", true);
 							return false;
 						},
 					};

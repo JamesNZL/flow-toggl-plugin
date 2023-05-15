@@ -10,15 +10,18 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 		private readonly static string _baseUrl = "https://api.track.toggl.com/api/v9/";
 		private readonly static string _reportsUrl = "https://api.track.toggl.com/reports/api/v3/";
 		private readonly AuthenticatedFetch _api;
+		private readonly AuthenticatedFetch _reportsApi;
 
 		public TogglClient(string token)
 		{
 			this._api = new AuthenticatedFetch(token, TogglClient._baseUrl);
+			this._reportsApi = new AuthenticatedFetch(token, TogglClient._reportsUrl);
 		}
 
 		public void UpdateToken(string token)
 		{
 			this._api.UpdateToken(token);
+			this._reportsApi.UpdateToken(token);
 		}
 
 		/* 
@@ -121,7 +124,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 
 		public async Task<List<SummaryProjectReport>?> GetSummaryProjectReports(long workspaceId, DateTimeOffset start, DateTimeOffset? end)
 		{
-			return await this._api.Post<List<SummaryProjectReport>>($"workspace/{workspaceId}/projects/summary", new
+			return await this._reportsApi.Post<List<SummaryProjectReport>>($"workspace/{workspaceId}/projects/summary", new
 			{
 				start_date = start.ToString("yyyy-MM-dd"),
 				end_date = end?.ToString("yyyy-MM-dd"),

@@ -1312,11 +1312,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				return new List<Result>();
 			}
 
-			// var me = await this._GetMe();
-			// if (me is null)
-			// {
-			// 	return this.NotifyUnknownError();
-			// }
+			var me = await this._GetMe();
+			if (me is null)
+			{
+				return this.NotifyUnknownError();
+			}
 
 			var timeEntries = await this._GetTimeEntries();
 			if (timeEntries is null)
@@ -1395,6 +1395,75 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					{
 						return this._context.API.FuzzySearch(string.Join(" ", query.SearchTerms.Skip(2)), result.Title).Score > 0;
 					});
+			}
+
+			// TODO: use Regex capture to parse these args from the query
+			// or a better way if i can think of anything else
+			string spanArgument = query.SearchTerms[1];
+			string groupingArgument = query.SearchTerms[2];
+
+			var spanConfiguration = Settings.ViewSpanArguments.Values.ToList().Find(span => span.Argument == spanArgument);
+
+			if (spanConfiguration is null)
+			{
+				return this.NotifyUnknownError();
+			}
+
+			var start = spanConfiguration.Start(DateTimeOffset.Now);
+			var end = spanConfiguration.End(DateTimeOffset.Now);
+			
+			this._context.API.LogInfo("TogglTrack", $"{spanArgument}, {groupingArgument}, {start}, {end}", "RequestViewReports");
+
+			// ! TODO: this is just a single test case
+			if (groupingArgument == Settings.ViewGroupingArguments[Settings.ViewGroupingKeys.Projects].Argument)
+			{
+				// TODO: do I want to cache this?
+				// ^ would need to cache the params too
+				// it is the specific _client.Method and the DateTimeOffsets that change
+				var projects = await this._client.GetSummaryProjectReports(me.default_workspace_id, start, end);
+
+				if (projects is null)
+				{
+					return this.NotifyUnknownError();
+				}
+
+				var total = TimeSpan.FromSeconds(projects.Sum(project => project.tracked_seconds));
+
+				var results = new List<Result>
+				{
+					new Result
+					{
+						Title = $"{total.Humanize()} tracked {spanConfiguration.Interpolation} ({total.ToString(@"h\:mm\:ss")})",
+						IcoPath = "view.png",
+						// AutoCompleteText = 
+						Score = (int)total.TotalSeconds,
+						// Action = c =>
+					},
+				};
+
+				results.AddRange(
+					projects
+						.FindAll(summaryProject => summaryProject.user_id == me.id)
+						.ConvertAll(summaryProject => 
+						{
+							var project = me.projects?.Find(project => project.id == summaryProject.project_id);
+							var elapsed = TimeSpan.FromSeconds(summaryProject.tracked_seconds);
+
+							return new Result
+							{
+								Title = project?.name ?? "No Project",
+								SubTitle = $"{((project?.client_id is not null) ? $"{me.clients?.Find(client => client.id == project.client_id)?.name} | " : string.Empty)}{elapsed.Humanize()} ({elapsed.ToString(@"h\:mm\:ss")})",
+								IcoPath = (project?.color is not null)
+									? new ColourIcon(this._context, project.color, "view.png").GetColourIcon()
+									: "view.png",
+								// AutoCompleteText = 
+								Score = (int)summaryProject.tracked_seconds,
+								// Action = c =>
+							};
+						})
+				);
+
+				return results;
 			}
 
 			return new List<Result>();

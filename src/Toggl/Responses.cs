@@ -14,7 +14,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 		// public string? email { get; set; }
 		// public string? fullname { get; set; }
 		// public bool? has_password { get; set; }
-		// public long? id { get; set; }
+		public long? id { get; set; }
 		// public string? image_url { get; set; }
 		// public string? intercom_hash { get; set; }
 		// public List<string>? oath_providers { get; set; }

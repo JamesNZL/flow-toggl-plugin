@@ -1337,30 +1337,30 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 
 			/* 
-			 * Report duration selection --- tgl view [day | week | month | year]
+			 * Report span selection --- tgl view [day | week | month | year]
 			 */
-			if (query.SearchTerms.Length == 1 || !Settings.ViewDurationArguments.Values.ToList().Exists(duration => duration.Argument == query.SearchTerms[1]))
+			if (query.SearchTerms.Length == 1 || !Settings.ViewSpanArguments.Values.ToList().Exists(span => span.Argument == query.SearchTerms[1]))
 			{
-				var durations = Settings.ViewDurationArguments.Values.ToList().ConvertAll(duration =>
+				var spans = Settings.ViewSpanArguments.Values.ToList().ConvertAll(span =>
 				{
 					return new Result
 					{
-						Title = duration.Argument,
-						SubTitle = $"View tracked time report for {duration.Interpolation}",
+						Title = span.Argument,
+						SubTitle = $"View tracked time report for {span.Interpolation}",
 						IcoPath = "view.png",
-						AutoCompleteText = $"{query.ActionKeyword} {Settings.ViewCommand} {duration.Argument} ",
-						Score = duration.Score,
+						AutoCompleteText = $"{query.ActionKeyword} {Settings.ViewCommand} {span.Argument} ",
+						Score = span.Score,
 						Action = c =>
 						{
-							this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.ViewCommand} {duration.Argument} ", true);
+							this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.ViewCommand} {span.Argument} ", true);
 							return false;
 						},
 					};
 				});
 				
 				return (string.IsNullOrWhiteSpace(query.SecondToEndSearch))
-					? durations
-					: durations.FindAll(result =>
+					? spans
+					: spans.FindAll(result =>
 					{
 						return this._context.API.FuzzySearch(query.SecondToEndSearch, result.Title).Score > 0;
 					});

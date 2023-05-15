@@ -19,17 +19,17 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		internal const string EditProjectFlag = "-p";
 		internal const string TimeSpanFlag = "-t";
 
-		internal enum ViewDurationKeys
+		internal enum ViewSpanKeys
 		{
 			Day,
 			Week,
 			Month,
 			Year,
 		}
-		internal static readonly Dictionary<Settings.ViewDurationKeys, CommandArgument> ViewDurationArguments = new Dictionary<Settings.ViewDurationKeys, CommandArgument>
+		internal static readonly Dictionary<Settings.ViewSpanKeys, CommandArgument> ViewSpanArguments = new Dictionary<Settings.ViewSpanKeys, CommandArgument>
 		{
 			{
-				Settings.ViewDurationKeys.Day,
+				Settings.ViewSpanKeys.Day,
 				new CommandArgument
 				{
 					Argument = "day",
@@ -38,7 +38,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				}
 			},
 			{
-				Settings.ViewDurationKeys.Week,
+				Settings.ViewSpanKeys.Week,
 				new CommandArgument
 				{
 					Argument = "week",
@@ -47,7 +47,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				}
 			},
 			{
-				Settings.ViewDurationKeys.Month,
+				Settings.ViewSpanKeys.Month,
 				new CommandArgument
 				{
 					Argument = "month",
@@ -56,7 +56,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				}
 			},
 			{
-				Settings.ViewDurationKeys.Year,
+				Settings.ViewSpanKeys.Year,
 				new CommandArgument
 				{
 					Argument = "year",

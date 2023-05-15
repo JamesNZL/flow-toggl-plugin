@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.1.3](https://github.com/JamesNZL/flow-toggl-plugin/compare/v2.1.2...v2.1.3) (2023-05-15)
+
+
+### Bug Fixes
+
+* **ux:** :speech_balloon: fix casing of `"No Project"` to match toggl ([65ebf8d](https://github.com/JamesNZL/flow-toggl-plugin/commit/65ebf8de721730959501ede175f2a1c515ac96a8))
+
 ### [2.1.2](https://github.com/JamesNZL/flow-toggl-plugin/compare/v2.1.1...v2.1.2) (2023-05-14)
 
 

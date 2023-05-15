@@ -19,45 +19,87 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		internal const string EditProjectFlag = "-p";
 		internal const string TimeSpanFlag = "-t";
 
-		internal static readonly List<CommandArgument> ViewDurationArguments = new List<CommandArgument>
+		internal enum ViewDurationKeys
 		{
-			new CommandArgument
+			Day,
+			Week,
+			Month,
+			Year,
+		}
+		internal static readonly Dictionary<Settings.ViewDurationKeys, CommandArgument> ViewDurationArguments = new Dictionary<Settings.ViewDurationKeys, CommandArgument>
+		{
 			{
-				Argument = "day",
-				Interpolation = "today",
+				Settings.ViewDurationKeys.Day,
+				new CommandArgument
+				{
+					Argument = "day",
+					Interpolation = "today",
+					Score = 400
+				}
 			},
-			new CommandArgument
 			{
-				Argument = "week",
-				Interpolation = "this week",
+				Settings.ViewDurationKeys.Week,
+				new CommandArgument
+				{
+					Argument = "week",
+					Interpolation = "this week",
+					Score = 300
+				}
 			},
-			new CommandArgument
 			{
-				Argument = "month",
-				Interpolation = "this month",
+				Settings.ViewDurationKeys.Month,
+				new CommandArgument
+				{
+					Argument = "month",
+					Interpolation = "this month",
+					Score = 200
+				}
 			},
-			new CommandArgument
 			{
-				Argument = "year",
-				Interpolation = "this year",
+				Settings.ViewDurationKeys.Year,
+				new CommandArgument
+				{
+					Argument = "year",
+					Interpolation = "this year",
+					Score = 100
+				}
 			},
 		};
-		internal static readonly List<CommandArgument> ViewGroupingArguments = new List<CommandArgument>
+
+		internal enum ViewGroupingKeys
 		{
-			new CommandArgument
+			Entries,
+			Projects,
+			Clients,
+		}
+		internal static readonly Dictionary<Settings.ViewGroupingKeys, CommandArgument> ViewGroupingArguments = new Dictionary<Settings.ViewGroupingKeys, CommandArgument>
+		{
 			{
-				Argument = "entries",
-				Interpolation = "View tracked time entries",
+				Settings.ViewGroupingKeys.Entries,
+				new CommandArgument
+				{
+					Argument = "entries",
+					Interpolation = "View tracked time entries",
+					Score = 300
+				}
 			},
-			new CommandArgument
 			{
-				Argument = "projects",
-				Interpolation = "View tracked time grouped by project",
+				Settings.ViewGroupingKeys.Projects,
+				new CommandArgument
+				{
+					Argument = "projects",
+					Interpolation = "View tracked time grouped by project",
+					Score = 200
+				}
 			},
-			new CommandArgument
 			{
-				Argument = "clients",
-				Interpolation = "View tracked time grouped by client",
+				Settings.ViewGroupingKeys.Clients,
+				new CommandArgument
+				{
+					Argument = "clients",
+					Interpolation = "View tracked time grouped by client",
+					Score = 100
+				}
 			},
 		};
 
@@ -72,6 +114,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		#nullable disable
 		public string Argument { get; set; }
 		public string Interpolation { get; set; }
+		public int Score { get; set; }
 		#nullable enable
 	}
 }

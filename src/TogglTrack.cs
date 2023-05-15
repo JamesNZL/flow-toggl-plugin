@@ -1339,9 +1339,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			/* 
 			 * Report duration selection --- tgl view [day | week | month | year]
 			 */
-			if (query.SearchTerms.Length == 1 || !Settings.ViewDurationArguments.Exists(duration => duration.Argument == query.SearchTerms[1]))
+			if (query.SearchTerms.Length == 1 || !Settings.ViewDurationArguments.Values.ToList().Exists(duration => duration.Argument == query.SearchTerms[1]))
 			{
-				var durations = Settings.ViewDurationArguments.ConvertAll(duration =>
+				var durations = Settings.ViewDurationArguments.Values.ToList().ConvertAll(duration =>
 				{
 					return new Result
 					{
@@ -1349,7 +1349,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						SubTitle = $"View tracked time report for {duration.Interpolation}",
 						IcoPath = "view.png",
 						AutoCompleteText = $"{query.ActionKeyword} {Settings.ViewCommand} {duration.Argument} ",
-						Score = Settings.ViewDurationArguments.Count - Settings.ViewDurationArguments.IndexOf(duration),
+						Score = duration.Score,
 						Action = c =>
 						{
 							this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.ViewCommand} {duration.Argument} ", true);
@@ -1370,9 +1370,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			 * Report groupinging selection --- tgl view [duration] [entries | projects | clients]
 			 "View tracked time report by Project"
 			 */
-			if (query.SearchTerms.Length == 2 || !Settings.ViewGroupingArguments.Exists(grouping => grouping.Argument == query.SearchTerms[2]))
+			if (query.SearchTerms.Length == 2 || !Settings.ViewGroupingArguments.Values.ToList().Exists(grouping => grouping.Argument == query.SearchTerms[2]))
 			{
-				var groupings = Settings.ViewGroupingArguments.ConvertAll(grouping =>
+				var groupings = Settings.ViewGroupingArguments.Values.ToList().ConvertAll(grouping =>
 				{
 					return new Result
 					{
@@ -1380,7 +1380,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						SubTitle = grouping.Interpolation,
 						IcoPath = "view.png",
 						AutoCompleteText = $"{query.ActionKeyword} {Settings.ViewCommand} {query.SearchTerms[1]} {grouping.Argument} ",
-						Score = Settings.ViewGroupingArguments.Count - Settings.ViewGroupingArguments.IndexOf(grouping),
+						Score = grouping.Score,
 						Action = c =>
 						{
 							this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.ViewCommand} {query.SearchTerms[1]} {grouping.Argument} ", true);

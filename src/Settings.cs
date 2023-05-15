@@ -112,9 +112,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 	public class CommandArgument
 	{
 		#nullable disable
-		public string Argument { get; set; }
-		public string Interpolation { get; set; }
-		public int Score { get; set; }
+		public string Argument { get; init; }
+		public string Interpolation { get; init; }
+		public int Score { get; init; }
 		#nullable enable
 	}
 }

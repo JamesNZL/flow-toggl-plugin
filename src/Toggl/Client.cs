@@ -8,6 +8,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 	public class TogglClient
 	{
 		private readonly static string _baseUrl = "https://api.track.toggl.com/api/v9/";
+		private readonly static string _reportsUrl = "https://api.track.toggl.com/reports/api/v3/";
 		private readonly AuthenticatedFetch _api;
 
 		public TogglClient(string token)
@@ -19,6 +20,10 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 		{
 			this._api.UpdateToken(token);
 		}
+
+		/* 
+	     * Standard API
+		 */
 
 		public async Task<Me?> GetMe()
 		{
@@ -42,16 +47,16 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 				: DateTimeOffset.UtcNow;
 
 			return await this._api.Post<TimeEntry>($"workspaces/{workspaceId}/time_entries", new
-				{
-					billable,
-					created_with = "flow-toggl-plugin",
-					description,
-					duration = -1 * dateTimeOffset.ToUnixTimeSeconds(),
-					project_id = projectId ?? default(long?),
-					start = dateTimeOffset.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-					tags,
-					workspace_id = workspaceId,
-				});
+			{
+				billable,
+				created_with = "flow-toggl-plugin",
+				description,
+				duration = -1 * dateTimeOffset.ToUnixTimeSeconds(),
+				project_id = projectId ?? default(long?),
+				start = dateTimeOffset.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+				tags,
+				workspace_id = workspaceId,
+			});
 		}
 		
 		public async Task<TimeEntry?> EditTimeEntry(TimeEntry timeEntry, long? projectId, string? description, DateTimeOffset? start, DateTimeOffset? stop)
@@ -67,17 +72,17 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 			}
 
 			return await this._api.Put<TimeEntry>($"workspaces/{timeEntry.workspace_id}/time_entries/{timeEntry.id}", new
-				{
-					timeEntry.billable,
-					created_with = "flow-toggl-plugin",
-					description,
-					duration,
-					project_id = projectId,
-					start = start?.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-					stop = stop?.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-					timeEntry.tags,
-					timeEntry.workspace_id,
-				});
+			{
+				timeEntry.billable,
+				created_with = "flow-toggl-plugin",
+				description,
+				duration,
+				project_id = projectId,
+				start = start?.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+				stop = stop?.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+				timeEntry.tags,
+				timeEntry.workspace_id,
+			});
 		}
 
 		public async Task<TimeEntry?> GetRunningTimeEntry()
@@ -108,6 +113,19 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 		public async Task<List<TimeEntry>?> GetTimeEntries()
 		{
 			return await this._api.Get<List<TimeEntry>>($"me/time_entries");
+		}
+
+		/* 
+		 * Reports API
+		 */
+
+		public async Task<List<SummaryProjectReport>?> GetSummaryProjectReports(long workspaceId, DateTimeOffset? start, DateTimeOffset? end)
+		{
+			return await this._api.Post<List<SummaryProjectReport>>($"workspace/{workspaceId}/projects/summary", new
+			{
+				end_date = end?.ToString("yyyy-MM-dd"),
+				start_date = start?.ToString("yyyy-MM-dd"),
+			});
 		}
 	}
 }

@@ -121,7 +121,6 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 		// public long? workspace_id { get; set; }
 	}
 
-
 	public class TimeEntry
 	{
 		// public string? at { get; set; }
@@ -143,5 +142,13 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 		// public long? user_id { get; set; }
 		// public long? wid { get; set; }
 		public long workspace_id { get; set; }
+	}
+
+	public class SummaryProjectReport
+	{
+		// public long billable_seconds { get; set; }
+		public long project_id { get; set; }
+		public long tracked_seconds { get; set; }
+		public long user_id { get; set; }
 	}
 }

@@ -119,12 +119,12 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 		 * Reports API
 		 */
 
-		public async Task<List<SummaryProjectReport>?> GetSummaryProjectReports(long workspaceId, DateTimeOffset? start, DateTimeOffset? end)
+		public async Task<List<SummaryProjectReport>?> GetSummaryProjectReports(long workspaceId, DateTimeOffset start, DateTimeOffset? end)
 		{
 			return await this._api.Post<List<SummaryProjectReport>>($"workspace/{workspaceId}/projects/summary", new
 			{
+				start_date = start.ToString("yyyy-MM-dd"),
 				end_date = end?.ToString("yyyy-MM-dd"),
-				start_date = start?.ToString("yyyy-MM-dd"),
 			});
 		}
 	}

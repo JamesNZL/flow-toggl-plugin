@@ -559,7 +559,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 
 			// Use cached time entries here to ensure responsiveness
-			var likelyPastTimeEntry = (await this._GetTimeEntries())?.First();
+			var likelyPastTimeEntry = (await this._GetTimeEntries())?.FirstOrDefault();
 			if ((likelyPastTimeEntry is null) || (likelyPastTimeEntry.stop is null))
 			{
 				return results;
@@ -584,7 +584,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 							// Force a new fetch to ensure correctness
 							// User input has ended at this point so no responsiveness concerns
-							var lastTimeEntry = (await this._GetTimeEntries(true))?.First();
+							var lastTimeEntry = (await this._GetTimeEntries(true))?.FirstOrDefault();
 							if (lastTimeEntry is null)
 							{
 								throw new Exception("There is no previous time entry.");

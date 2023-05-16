@@ -1474,6 +1474,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								IcoPath = (project?.color is not null)
 									? new ColourIcon(this._context, project.color, "view.png").GetColourIcon()
 									: "view.png",
+								// TODO: 
 								// AutoCompleteText = 
 								Score = (int)group.seconds,
 								// Action = c =>
@@ -1506,6 +1507,42 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				}
 				case (Settings.ViewGroupingKeys.Entries):
 				{
+					timeEntries.groups.ForEach(group =>
+					{
+						if (group.sub_groups is null)
+						{
+							return;
+						}
+						
+						var project = me.projects?.Find(project => project.id == group.id);
+						var client = me.clients?.Find(client => client.id == project?.client_id);
+
+						string clientName = (client is not null)
+							? $" • {client.name}"
+							: string.Empty;
+						string projectName = (project is not null)
+							? $"{project.name}{clientName}"
+							: "No Project";
+
+						results.AddRange(
+							group.sub_groups.ConvertAll(subGroup =>
+							{
+								var elapsed = TimeSpan.FromSeconds(subGroup.seconds);
+
+								return new Result
+								{
+									Title = (string.IsNullOrEmpty(subGroup.title)) ? "(no description)" : subGroup.title,
+									SubTitle = $"{projectName} | {elapsed.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)elapsed.TotalHours}:{elapsed.ToString(@"mm\:ss")})",
+									IcoPath = (project?.color is not null)
+											? new ColourIcon(this._context, project.color, "view.png").GetColourIcon()
+											: "view.png",
+									// AutoCompleteText = 
+									Score = (int)elapsed.TotalSeconds,
+									// Action = c =>
+								};
+							})
+						);
+					});
 					break;
 				}
 			}

@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.1.5](https://github.com/JamesNZL/flow-toggl-plugin/compare/v2.1.4...v2.1.5) (2023-05-16)
+
+
+### Bug Fixes
+
+* **ux:** :ambulance: do not display fractional hours ([4547aee](https://github.com/JamesNZL/flow-toggl-plugin/commit/4547aee42318d48555c7b62e999c19c65a012a2a))
+
 ### [2.1.4](https://github.com/JamesNZL/flow-toggl-plugin/compare/v2.1.3...v2.1.4) (2023-05-16)
 
 

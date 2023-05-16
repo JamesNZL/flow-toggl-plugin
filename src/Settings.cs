@@ -27,95 +27,77 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			Month,
 			Year,
 		}
-		internal static readonly Dictionary<Settings.ViewSpanKeys, ViewSpanCommandArgument> ViewSpanArguments = new Dictionary<Settings.ViewSpanKeys, ViewSpanCommandArgument>
+		internal static readonly List<ViewSpanCommandArgument> ViewSpanArguments = new List<ViewSpanCommandArgument>
 		{
+			new ViewSpanCommandArgument
 			{
-				Settings.ViewSpanKeys.Day,
-				new ViewSpanCommandArgument
-				{
-					Argument = "day",
-					Interpolation = "today",
-					Score = 400,
-					// Today
-					Start = now => now,
-					End = now => now
-				}
+				Argument = "day",
+				Interpolation = "today",
+				Score = 400,
+				// Today
+				Start = now => now,
+				End = now => now,
 			},
+			new ViewSpanCommandArgument
 			{
-				Settings.ViewSpanKeys.Week,
-				new ViewSpanCommandArgument
-				{
-					Argument = "week",
-					Interpolation = "this week",
-					Score = 300,
-					// Monday of the current week
-					Start = now => now.AddDays(-(int)now.DayOfWeek + 1),
-					// Sunday of the current week
-					End = now => now.AddDays(-(int)now.DayOfWeek + 7)
-				}
+				Argument = "week",
+				Interpolation = "this week",
+				Score = 300,
+				// Monday of the current week
+				Start = now => now.AddDays(-(int)now.DayOfWeek + 1),
+				// Sunday of the current week
+				End = now => now.AddDays(-(int)now.DayOfWeek + 7),
 			},
+			new ViewSpanCommandArgument
 			{
-				Settings.ViewSpanKeys.Month,
-				new ViewSpanCommandArgument
-				{
-					Argument = "month",
-					Interpolation = "this month",
-					Score = 200,
-					// First day of the current month
-					Start = now => new DateTimeOffset(now.Year, now.Month, 1, 0, 0, 0, now.Offset),
-					// Last day of the current month
-					End = now => new DateTimeOffset(now.Year, now.Month, DateTime.DaysInMonth(now.Year, now.Month), 0, 0, 0, now.Offset)
-				}
+				Argument = "month",
+				Interpolation = "this month",
+				Score = 200,
+				// First day of the current month
+				Start = now => new DateTimeOffset(now.Year, now.Month, 1, 0, 0, 0, now.Offset),
+				// Last day of the current month
+				End = now => new DateTimeOffset(now.Year, now.Month, DateTime.DaysInMonth(now.Year, now.Month), 0, 0, 0, now.Offset),
 			},
+			new ViewSpanCommandArgument
 			{
-				Settings.ViewSpanKeys.Year,
-				new ViewSpanCommandArgument
-				{
-					Argument = "year",
-					Interpolation = "this year",
-					Score = 100,
-					// First day of the current year
-					Start = now => new DateTimeOffset(now.Year, now.Month, 1, 0, 0, 0, now.Offset),
-					// Last day of the current year
-					End = now => new DateTimeOffset(now.Year, 12, 31, 0, 0, 0, now.Offset)
-				}
+				Argument = "year",
+				Interpolation = "this year",
+				Score = 100,
+				// First day of the current year
+				Start = now => new DateTimeOffset(now.Year, now.Month, 1, 0, 0, 0, now.Offset),
+				// Last day of the current year
+				End = now => new DateTimeOffset(now.Year, 12, 31, 0, 0, 0, now.Offset),
 			},
 		};
 
-		internal enum ViewGroupingKeys
+		public enum ViewGroupingKeys
 		{
-			Entries,
 			Projects,
 			Clients,
+			Entries,
 		}
-		internal static readonly Dictionary<Settings.ViewGroupingKeys, CommandArgument> ViewGroupingArguments = new Dictionary<Settings.ViewGroupingKeys, CommandArgument>
+		internal static readonly List<ViewGroupingCommandArgument> ViewGroupingArguments = new List<ViewGroupingCommandArgument>
 		{
+			new ViewGroupingCommandArgument
 			{
-				Settings.ViewGroupingKeys.Projects,
-				new CommandArgument
-				{
-					Argument = "projects",
-					Interpolation = "View tracked time grouped by project",
-					Score = 300
-				}
+				Argument = "projects",
+				Interpolation = "View tracked time grouped by project",
+				Score = 300,
+				Grouping = Settings.ViewGroupingKeys.Projects,
 			},
+			new ViewGroupingCommandArgument
 			{
-				Settings.ViewGroupingKeys.Clients,
-				new CommandArgument
-				{
-					Argument = "clients",
-					Interpolation = "View tracked time grouped by client",
-					Score = 200
-				}
+				Argument = "clients",
+				Interpolation = "View tracked time grouped by client",
+				Score = 200,
+				Grouping = Settings.ViewGroupingKeys.Clients,
 			},
+			new ViewGroupingCommandArgument
 			{
-				Settings.ViewGroupingKeys.Entries,
-				new CommandArgument
-				{
-					Argument = "entries",
-					Interpolation = "View tracked time entries",
-					Score = 100
-				}
+				Argument = "entries",
+				Interpolation = "View tracked time entries",
+				Score = 100,
+				Grouping = Settings.ViewGroupingKeys.Entries,
 			},
 		};
 
@@ -139,6 +121,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		#nullable disable
 		public Func<DateTimeOffset, DateTimeOffset> Start { get; init; }
 		public Func<DateTimeOffset, DateTimeOffset> End { get; init; }
+		#nullable enable
+	}
+
+	public class ViewGroupingCommandArgument : CommandArgument
+	{
+		#nullable disable
+		public Settings.ViewGroupingKeys Grouping { get; init; }
 		#nullable enable
 	}
 }

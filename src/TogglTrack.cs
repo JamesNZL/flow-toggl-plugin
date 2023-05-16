@@ -1361,9 +1361,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			/* 
 			 * Report span selection --- tgl view [day | week | month | year]
 			 */
-			if (query.SearchTerms.Length == ArgumentIndices.Span || !Settings.ViewSpanArguments.Values.ToList().Exists(span => span.Argument == query.SearchTerms[ArgumentIndices.Span]))
+			if (query.SearchTerms.Length == ArgumentIndices.Span || !Settings.ViewSpanArguments.Exists(span => span.Argument == query.SearchTerms[ArgumentIndices.Span]))
 			{
-				var spans = Settings.ViewSpanArguments.Values.ToList().ConvertAll(span =>
+				var spans = Settings.ViewSpanArguments.ConvertAll(span =>
 				{
 					return new Result
 					{
@@ -1392,9 +1392,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			/* 
 			 * Report groupinging selection --- tgl view [duration] [projects | clients | entries]
 			 */
-			if (query.SearchTerms.Length == ArgumentIndices.Grouping || !Settings.ViewGroupingArguments.Values.ToList().Exists(grouping => grouping.Argument == query.SearchTerms[ArgumentIndices.Grouping]))
+			if (query.SearchTerms.Length == ArgumentIndices.Grouping || !Settings.ViewGroupingArguments.Exists(grouping => grouping.Argument == query.SearchTerms[ArgumentIndices.Grouping]))
 			{
-				var groupings = Settings.ViewGroupingArguments.Values.ToList().ConvertAll(grouping =>
+				var groupings = Settings.ViewGroupingArguments.ConvertAll(grouping =>
 				{
 					return new Result
 					{
@@ -1423,9 +1423,10 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			string spanArgument = query.SearchTerms[ArgumentIndices.Span];
 			string groupingArgument = query.SearchTerms[ArgumentIndices.Grouping];
 
-			var spanConfiguration = Settings.ViewSpanArguments.Values.ToList().Find(span => span.Argument == spanArgument);
+			var spanConfiguration = Settings.ViewSpanArguments.Find(span => span.Argument == spanArgument);
+			var groupingConfiguration = Settings.ViewGroupingArguments.Find(grouping => grouping.Argument == groupingArgument);
 
-			if (spanConfiguration is null)
+			if ((spanConfiguration is null) || (groupingConfiguration is null))
 			{
 				return this.NotifyUnknownError();
 			}
@@ -1437,8 +1438,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			// TODO: do I want to cache this?
 			// ^ would need to cache the params too
-			// TODO: it is just the "grouping" and "sub_grouping" inside that need to change
-			var timeEntries = await this._client.GetSummaryTimeEntries(me.default_workspace_id, me.id, start, end);
+			var timeEntries = await this._client.GetSummaryTimeEntries(me.default_workspace_id, me.id, groupingConfiguration.Grouping, start, end);
 
 			var total = TimeSpan.FromSeconds(timeEntries?.groups?.Sum(group => group.seconds) ?? 0);
 
@@ -1457,29 +1457,57 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				return results;
 			}
 
-			// ! TODO: this is just a single test case
-			// TODO: is there *any* nice way to make this a switch case?
-			if (groupingArgument == Settings.ViewGroupingArguments[Settings.ViewGroupingKeys.Projects].Argument)
+			switch (groupingConfiguration.Grouping)
 			{
-				results.AddRange(
-					timeEntries.groups.ConvertAll(group =>
-					{
-						var project = me.projects?.Find(project => project.id == group.id);
-						var elapsed = TimeSpan.FromSeconds(group.seconds);
-
-						return new Result
+				case (Settings.ViewGroupingKeys.Projects):
+				{
+					results.AddRange(
+						timeEntries.groups.ConvertAll(group =>
 						{
-							Title = project?.name ?? "No Project",
-							SubTitle = $"{((project?.client_id is not null) ? $"{me.clients?.Find(client => client.id == project.client_id)?.name} | " : string.Empty)}{elapsed.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)elapsed.TotalHours}:{elapsed.ToString(@"mm\:ss")})",
-							IcoPath = (project?.color is not null)
-								? new ColourIcon(this._context, project.color, "view.png").GetColourIcon()
-								: "view.png",
-							// AutoCompleteText = 
-							Score = (int)group.seconds,
-							// Action = c =>
-						};
-					})
-				);
+							var project = me.projects?.Find(project => project.id == group.id);
+							var elapsed = TimeSpan.FromSeconds(group.seconds);
+
+							return new Result
+							{
+								Title = project?.name ?? "No Project",
+								SubTitle = $"{((project?.client_id is not null) ? $"{me.clients?.Find(client => client.id == project.client_id)?.name} | " : string.Empty)}{elapsed.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)elapsed.TotalHours}:{elapsed.ToString(@"mm\:ss")})",
+								IcoPath = (project?.color is not null)
+									? new ColourIcon(this._context, project.color, "view.png").GetColourIcon()
+									: "view.png",
+								// AutoCompleteText = 
+								Score = (int)group.seconds,
+								// Action = c =>
+							};
+						})
+					);
+					break;
+				}
+				case (Settings.ViewGroupingKeys.Clients):
+				{
+					results.AddRange(
+						timeEntries.groups.ConvertAll(group =>
+						{
+							var client = me.clients?.Find(client => client.id == group.id);
+							var elapsed = TimeSpan.FromSeconds(group.seconds);
+
+							return new Result
+							{
+								Title = client?.name ?? "No Client",
+								SubTitle = $"{elapsed.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)elapsed.TotalHours}:{elapsed.ToString(@"mm\:ss")})",
+								// TODO: colour based on highest-tracked project
+								IcoPath = "view.png",
+								// AutoCompleteText = 
+								Score = (int)group.seconds,
+								// Action = c =>
+							};
+						})
+					);
+					break;
+				}
+				case (Settings.ViewGroupingKeys.Entries):
+				{
+					break;
+				}
 			}
 
 			return results;

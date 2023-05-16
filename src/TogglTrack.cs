@@ -1351,24 +1351,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				return this.NotifyUnknownError();
 			}
 
-			var timeEntries = await this._GetTimeEntries();
-			if (timeEntries is null)
-			{
-				return new List<Result>
-				{
-					new Result
-					{
-						Title = $"No previous time entries",
-						SubTitle = "There are no time entries to report on.",
-						IcoPath = this._context.CurrentPluginMetadata.IcoPath,
-						Action = c =>
-						{
-							return true;
-						},
-					},
-				};
-			}
-
 			var ArgumentIndices = new
 			{
 				Command = 0,
@@ -1453,59 +1435,54 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			
 			this._context.API.LogInfo("TogglTrack", $"{spanArgument}, {groupingArgument}, {start}, {end}", "RequestViewReports");
 
-			// ! TODO: this is just a single test case
-			if (groupingArgument == Settings.ViewGroupingArguments[Settings.ViewGroupingKeys.Projects].Argument)
+			// TODO: do I want to cache this?
+			// ^ would need to cache the params too
+			// TODO: it is just the "grouping" and "sub_grouping" inside that need to change
+			var timeEntries = await this._client.GetSummaryTimeEntries(me.default_workspace_id, me.id, start, end);
+
+			var total = TimeSpan.FromSeconds(timeEntries?.groups?.Sum(group => group.seconds) ?? 0);
+
+			var results = new List<Result>
 			{
-				// TODO: do I want to cache this?
-				// ^ would need to cache the params too
-				// it is the specific _client.Method and the DateTimeOffsets that change
-				var projects = await this._client.GetSummaryProjectReports(me.default_workspace_id, start, end);
-
-				if (projects is null)
+				new Result
 				{
-					return this.NotifyUnknownError();
-				}
+					Title = $"{total.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} tracked {spanConfiguration.Interpolation} ({(int)total.TotalHours}:{total.ToString(@"mm\:ss")})",
+					IcoPath = "view.png",
+					Score = (int)total.TotalSeconds,
+				},
+			};
 
-				var total = TimeSpan.FromSeconds(projects.Sum(project => project.tracked_seconds));
-
-				var results = new List<Result>
-				{
-					new Result
-					{
-						Title = $"{total.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} tracked {spanConfiguration.Interpolation} ({(int)total.TotalHours}:{total.ToString(@"mm\:ss")})",
-						IcoPath = "view.png",
-						// AutoCompleteText = 
-						Score = (int)total.TotalSeconds,
-						// Action = c =>
-					},
-				};
-
-				results.AddRange(
-					projects
-						.FindAll(summaryProject => summaryProject.user_id == me.id)
-						.ConvertAll(summaryProject => 
-						{
-							var project = me.projects?.Find(project => project.id == summaryProject.project_id);
-							var elapsed = TimeSpan.FromSeconds(summaryProject.tracked_seconds);
-
-							return new Result
-							{
-								Title = project?.name ?? "No Project",
-								SubTitle = $"{((project?.client_id is not null) ? $"{me.clients?.Find(client => client.id == project.client_id)?.name} | " : string.Empty)}{elapsed.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)elapsed.TotalHours}:{elapsed.ToString(@"mm\:ss")})",
-								IcoPath = (project?.color is not null)
-									? new ColourIcon(this._context, project.color, "view.png").GetColourIcon()
-									: "view.png",
-								// AutoCompleteText = 
-								Score = (int)summaryProject.tracked_seconds,
-								// Action = c =>
-							};
-						})
-				);
-
+			if ((timeEntries is null) || (timeEntries.groups is null))
+			{
 				return results;
 			}
 
-			return new List<Result>();
+			// ! TODO: this is just a single test case
+			// TODO: is there *any* nice way to make this a switch case?
+			if (groupingArgument == Settings.ViewGroupingArguments[Settings.ViewGroupingKeys.Projects].Argument)
+			{
+				results.AddRange(
+					timeEntries.groups.ConvertAll(group =>
+					{
+						var project = me.projects?.Find(project => project.id == group.id);
+						var elapsed = TimeSpan.FromSeconds(group.seconds);
+
+						return new Result
+						{
+							Title = project?.name ?? "No Project",
+							SubTitle = $"{((project?.client_id is not null) ? $"{me.clients?.Find(client => client.id == project.client_id)?.name} | " : string.Empty)}{elapsed.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)elapsed.TotalHours}:{elapsed.ToString(@"mm\:ss")})",
+							IcoPath = (project?.color is not null)
+								? new ColourIcon(this._context, project.color, "view.png").GetColourIcon()
+								: "view.png",
+							// AutoCompleteText = 
+							Score = (int)group.seconds,
+							// Action = c =>
+						};
+					})
+				);
+			}
+
+			return results;
 		}
 	}
 }

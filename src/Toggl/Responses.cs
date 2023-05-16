@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 {
@@ -14,7 +15,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 		// public string? email { get; set; }
 		// public string? fullname { get; set; }
 		// public bool? has_password { get; set; }
-		public long? id { get; set; }
+		public long id { get; set; }
 		// public string? image_url { get; set; }
 		// public string? intercom_hash { get; set; }
 		// public List<string>? oath_providers { get; set; }
@@ -144,11 +145,25 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 		public long workspace_id { get; set; }
 	}
 
-	public class SummaryProjectReport
+	public class SummaryTimeEntry
 	{
-		// public long billable_seconds { get; set; }
-		public long project_id { get; set; }
-		public long tracked_seconds { get; set; }
-		public long user_id { get; set; }
+		public List<SummaryTimeEntryGroup>? groups { get; set; }
+	}
+
+	public class SummaryTimeEntryGroup
+	{
+		public long id { get; set; }
+		public List<SummaryTimeEntrySubGroup>? sub_groups { get; set; }
+		public long seconds
+		{
+			get => this?.sub_groups?.Sum(subGroup => subGroup.seconds) ?? 0;
+		}
+	}
+
+	public class SummaryTimeEntrySubGroup
+	{
+		public long? id { get; set; }
+		public string? title { get; set; }
+		public long seconds { get; set; }
 	}
 }

@@ -1367,7 +1367,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 
 			/* 
-			 * Report groupinging selection --- tgl view [duration] [entries | projects | clients]
+			 * Report groupinging selection --- tgl view [duration] [projects | clients | entries]
 			 "View tracked time report by Project"
 			 */
 			if (query.SearchTerms.Length == 2 || !Settings.ViewGroupingArguments.Values.ToList().Exists(grouping => grouping.Argument == query.SearchTerms[2]))

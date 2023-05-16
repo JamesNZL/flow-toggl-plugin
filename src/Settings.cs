@@ -91,21 +91,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		internal static readonly Dictionary<Settings.ViewGroupingKeys, CommandArgument> ViewGroupingArguments = new Dictionary<Settings.ViewGroupingKeys, CommandArgument>
 		{
 			{
-				Settings.ViewGroupingKeys.Entries,
-				new CommandArgument
-				{
-					Argument = "entries",
-					Interpolation = "View tracked time entries",
-					Score = 300
-				}
-			},
-			{
 				Settings.ViewGroupingKeys.Projects,
 				new CommandArgument
 				{
 					Argument = "projects",
 					Interpolation = "View tracked time grouped by project",
-					Score = 200
+					Score = 300
 				}
 			},
 			{
@@ -114,6 +105,15 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					Argument = "clients",
 					Interpolation = "View tracked time grouped by client",
+					Score = 200
+				}
+			},
+			{
+				Settings.ViewGroupingKeys.Entries,
+				new CommandArgument
+				{
+					Argument = "entries",
+					Interpolation = "View tracked time entries",
 					Score = 100
 				}
 			},

@@ -403,11 +403,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					);
 				}
 
-				return (string.IsNullOrWhiteSpace(string.Join(" ", query.SearchTerms.Skip(ArgumentIndices.Project))))
+				string projectQuery = Main.ExtractFromQuery(query, ArgumentIndices.Project);
+				return (string.IsNullOrWhiteSpace(projectQuery))
 					? projects
 					: projects.FindAll(result =>
 					{
-						return this._context.API.FuzzySearch(string.Join(" ", query.SearchTerms.Skip(ArgumentIndices.Project)), $"{result.Title} {Regex.Replace(result.SubTitle, @"(?: \| )?\d+ hours?$", string.Empty)}").Score > 0;
+						return this._context.API.FuzzySearch(projectQuery, $"{result.Title} {Regex.Replace(result.SubTitle, @"(?: \| )?\d+ hours?$", string.Empty)}").Score > 0;
 					});
 			}
 
@@ -422,7 +423,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				? $"{project.name}{clientName}"
 				: "No Project";
 
-			string description = string.Join(" ", query.SearchTerms.Skip(ArgumentIndices.Description));
+			string description = Main.ExtractFromQuery(query, ArgumentIndices.Description);
 
 			var results = new List<Result>
 			{
@@ -496,7 +497,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				try
 				{
 					var startTimeSpan = TimeSpanParser.Parse(
-						string.Join(" ", query.SearchTerms.Skip(Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag) + 1)),
+						Main.ExtractFromQuery(query, Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag) + 1),
 						new TimeSpanParserOptions
 						{
 							UncolonedDefault = Units.Minutes,
@@ -758,11 +759,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					);
 				}
 
-				return (string.IsNullOrWhiteSpace(string.Join(" ", query.SearchTerms.Skip(ArgumentIndices.Project))))
+				string projectQuery = Main.ExtractFromQuery(query, ArgumentIndices.Project);
+				return (string.IsNullOrWhiteSpace(projectQuery))
 					? projects
 					: projects.FindAll(result =>
 					{
-						return this._context.API.FuzzySearch(string.Join(" ", query.SearchTerms.Skip(ArgumentIndices.Project)), $"{result.Title} {Regex.Replace(result.SubTitle, @"(?: \| )?\d+ hours?$", string.Empty)}").Score > 0;
+						return this._context.API.FuzzySearch(projectQuery, $"{result.Title} {Regex.Replace(result.SubTitle, @"(?: \| )?\d+ hours?$", string.Empty)}").Score > 0;
 					});
 			}
 
@@ -779,13 +781,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				? $"{project.name}{clientName}"
 				: "No Project";
 
-			string description = string.Join(
-				" ",
-				query.SearchTerms.Skip(
-					(this._editProjectState == TogglTrack.EditProjectState.ProjectSelected)
-						? ArgumentIndices.DescriptionWithProject
-						: ArgumentIndices.DescriptionWithoutProject
-				)
+			string description = Main.ExtractFromQuery(
+				query,
+				(this._editProjectState == TogglTrack.EditProjectState.ProjectSelected)
+					? ArgumentIndices.DescriptionWithProject
+					: ArgumentIndices.DescriptionWithoutProject
 			);
 
 			var results = new List<Result>
@@ -860,7 +860,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				try
 				{
 					var startTimeSpan = TimeSpanParser.Parse(
-						string.Join(" ", query.SearchTerms.Skip(Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag) + 1)),
+						Main.ExtractFromQuery(query, Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag) + 1),
 						new TimeSpanParserOptions
 						{
 							UncolonedDefault = Units.Minutes,
@@ -1086,7 +1086,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			try
 			{
 				var stopTimeSpan = TimeSpanParser.Parse(
-					string.Join(" ", query.SearchTerms.Skip(Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag) + 1)),
+					Main.ExtractFromQuery(query, Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag) + 1),
 					new TimeSpanParserOptions
 					{
 						UncolonedDefault = Units.Minutes,
@@ -1329,11 +1329,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				};
 			});
 
-			return (string.IsNullOrWhiteSpace(string.Join(" ", query.SearchTerms.Skip(ArgumentIndices.Description))))
+			string entriesQuery = Main.ExtractFromQuery(query, ArgumentIndices.Description);
+			return (string.IsNullOrWhiteSpace(entriesQuery))
 				? entries
 				: entries.FindAll(result =>
 				{
-					return this._context.API.FuzzySearch(string.Join(" ", query.SearchTerms.Skip(ArgumentIndices.Description)), result.Title).Score > 0;
+					return this._context.API.FuzzySearch(entriesQuery, result.Title).Score > 0;
 				});
 		}
 
@@ -1396,12 +1397,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						},
 					};
 				});
-				
-				return (string.IsNullOrWhiteSpace(string.Join(" ", query.SearchTerms.Skip(ArgumentIndices.Span))))
+
+				string spanQuery = Main.ExtractFromQuery(query, ArgumentIndices.Span);
+				return (string.IsNullOrWhiteSpace(spanQuery))
 					? spans
 					: spans.FindAll(result =>
 					{
-						return this._context.API.FuzzySearch(string.Join(" ", query.SearchTerms.Skip(ArgumentIndices.Span)), result.Title).Score > 0;
+						return this._context.API.FuzzySearch(spanQuery, result.Title).Score > 0;
 					});
 			}
 
@@ -1426,12 +1428,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						},
 					};
 				});
-				
-				return (string.IsNullOrWhiteSpace(string.Join(" ", query.SearchTerms.Skip(ArgumentIndices.Grouping))))
+
+				string groupingsQuery = Main.ExtractFromQuery(query, ArgumentIndices.Grouping);
+				return (string.IsNullOrWhiteSpace(groupingsQuery))
 					? groupings
 					: groupings.FindAll(result =>
 					{
-						return this._context.API.FuzzySearch(string.Join(" ", query.SearchTerms.Skip(ArgumentIndices.Grouping)), result.Title).Score > 0;
+						return this._context.API.FuzzySearch(groupingsQuery, result.Title).Score > 0;
 					});
 			}
 

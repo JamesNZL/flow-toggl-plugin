@@ -1,5 +1,6 @@
 using System.Windows.Controls;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Flow.Launcher.Plugin.TogglTrack.ViewModels;
@@ -17,6 +18,14 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		private Settings? _settings;
 
 		internal TogglTrack? _togglTrack;
+
+		public static string ExtractFromQuery(Query query, int index)
+		{
+			return (index == 1)
+				// Expect slight performance improvement by using query.SecondToEndSearch directly
+				? query.SecondToEndSearch
+				: string.Join(" ", query.SearchTerms.Skip(index));
+		}
 
 		/// <summary>
 		/// Runs on plugin initialisation.

@@ -343,7 +343,14 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				return this.NotifyUnknownError();
 			}
 
-			if (this._selectedProjectId == -1 || query.SearchTerms.Length == 1)
+			var ArgumentIndices = new
+			{
+				Command = 0,
+				Project = 1,
+				Description = 2,
+			};
+
+			if (this._selectedProjectId == -1 || query.SearchTerms.Length == ArgumentIndices.Project)
 			{
 				this._selectedProjectId = -1;
 
@@ -396,11 +403,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					);
 				}
 
-				return (string.IsNullOrWhiteSpace(query.SecondToEndSearch))
+				return (string.IsNullOrWhiteSpace(string.Join(" ", query.SearchTerms.Skip(ArgumentIndices.Project))))
 					? projects
 					: projects.FindAll(result =>
 					{
-						return this._context.API.FuzzySearch(query.SecondToEndSearch, $"{result.Title} {Regex.Replace(result.SubTitle, @"(?: \| )?\d+ hours?$", string.Empty)}").Score > 0;
+						return this._context.API.FuzzySearch(string.Join(" ", query.SearchTerms.Skip(ArgumentIndices.Project)), $"{result.Title} {Regex.Replace(result.SubTitle, @"(?: \| )?\d+ hours?$", string.Empty)}").Score > 0;
 					});
 			}
 
@@ -415,7 +422,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				? $"{project.name}{clientName}"
 				: "No Project";
 
-			string description = string.Join(" ", query.SearchTerms.Skip(2));
+			string description = string.Join(" ", query.SearchTerms.Skip(ArgumentIndices.Description));
 
 			var results = new List<Result>
 			{
@@ -501,7 +508,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					var startTime = DateTimeOffset.UtcNow + startTimeSpan;
 
 					// Remove -t flag from description
-					string sanitisedDescription = string.Join(" ", query.SearchTerms.Take(Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag)).Skip(2));
+					string sanitisedDescription = string.Join(" ", query.SearchTerms.Take(Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag)).Skip(ArgumentIndices.Description));
 
 					results.Add(new Result
 					{
@@ -674,8 +681,17 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				};
 			}
 
+			var ArgumentIndices = new
+			{
+				Command = 0,
+				// If it exists
+				Project = 1,
+				DescriptionWithoutProject = 1,
+				DescriptionWithProject = 2,
+			};
+
 			// Reset project selection if query emptied to 'tgl edit '
-			if (query.SearchTerms.Length == 1 && this._editProjectState == TogglTrack.EditProjectState.ProjectSelected)
+			if (query.SearchTerms.Length == (ArgumentIndices.Command + 1) && this._editProjectState == TogglTrack.EditProjectState.ProjectSelected)
 			{
 				this._selectedProjectId = -1;
 				this._editProjectState = TogglTrack.EditProjectState.NoProjectChange;
@@ -742,11 +758,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					);
 				}
 
-				return (string.IsNullOrWhiteSpace(query.SecondToEndSearch))
+				return (string.IsNullOrWhiteSpace(string.Join(" ", query.SearchTerms.Skip(ArgumentIndices.Project))))
 					? projects
 					: projects.FindAll(result =>
 					{
-						return this._context.API.FuzzySearch(query.SecondToEndSearch, $"{result.Title} {Regex.Replace(result.SubTitle, @"(?: \| )?\d+ hours?$", string.Empty)}").Score > 0;
+						return this._context.API.FuzzySearch(string.Join(" ", query.SearchTerms.Skip(ArgumentIndices.Project)), $"{result.Title} {Regex.Replace(result.SubTitle, @"(?: \| )?\d+ hours?$", string.Empty)}").Score > 0;
 					});
 			}
 
@@ -763,9 +779,14 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				? $"{project.name}{clientName}"
 				: "No Project";
 
-			string description = (this._editProjectState == TogglTrack.EditProjectState.ProjectSelected)
-				? string.Join(" ", query.SearchTerms.Skip(2))
-				: query.SecondToEndSearch;
+			string description = string.Join(
+				" ",
+				query.SearchTerms.Skip(
+					(this._editProjectState == TogglTrack.EditProjectState.ProjectSelected)
+						? ArgumentIndices.DescriptionWithProject
+						: ArgumentIndices.DescriptionWithoutProject
+				)
+			);
 
 			var results = new List<Result>
 			{
@@ -852,11 +873,16 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					var newElapsed = elapsed.Subtract(startTimeSpan);
 
 					// Remove -t flag from description
-					string sanitisedDescription = string.Join(" ", query.SearchTerms.Take(Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag)).Skip(
-						(this._editProjectState == TogglTrack.EditProjectState.ProjectSelected)
-							? 2
-							: 1
-					));
+					string sanitisedDescription = string.Join(
+						" ",
+						query.SearchTerms
+							.Take(Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag))
+							.Skip(
+								(this._editProjectState == TogglTrack.EditProjectState.ProjectSelected)
+									? ArgumentIndices.DescriptionWithProject
+									: ArgumentIndices.DescriptionWithoutProject
+							)
+					);
 
 					results.Add(new Result
 					{
@@ -1262,6 +1288,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				};
 			}
 
+			var ArgumentIndices = new
+			{
+				Command = 0,
+				Description = 1,
+			};
+
 			var entries = timeEntries.ConvertAll(timeEntry => 
 			{
 				var elapsed = (timeEntry.duration < 0)
@@ -1297,11 +1329,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				};
 			});
 
-			return (string.IsNullOrWhiteSpace(query.SecondToEndSearch))
+			return (string.IsNullOrWhiteSpace(string.Join(" ", query.SearchTerms.Skip(ArgumentIndices.Description))))
 				? entries
 				: entries.FindAll(result =>
 				{
-					return this._context.API.FuzzySearch(query.SecondToEndSearch, result.Title).Score > 0;
+					return this._context.API.FuzzySearch(string.Join(" ", query.SearchTerms.Skip(ArgumentIndices.Description)), result.Title).Score > 0;
 				});
 		}
 
@@ -1336,10 +1368,17 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				};
 			}
 
+			var ArgumentIndices = new
+			{
+				Command = 0,
+				Span = 1,
+				Grouping = 2,
+			};
+
 			/* 
 			 * Report span selection --- tgl view [day | week | month | year]
 			 */
-			if (query.SearchTerms.Length == 1 || !Settings.ViewSpanArguments.Values.ToList().Exists(span => span.Argument == query.SearchTerms[1]))
+			if (query.SearchTerms.Length == ArgumentIndices.Span || !Settings.ViewSpanArguments.Values.ToList().Exists(span => span.Argument == query.SearchTerms[ArgumentIndices.Span]))
 			{
 				var spans = Settings.ViewSpanArguments.Values.ToList().ConvertAll(span =>
 				{
@@ -1358,19 +1397,18 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					};
 				});
 				
-				return (string.IsNullOrWhiteSpace(query.SecondToEndSearch))
+				return (string.IsNullOrWhiteSpace(string.Join(" ", query.SearchTerms.Skip(ArgumentIndices.Span))))
 					? spans
 					: spans.FindAll(result =>
 					{
-						return this._context.API.FuzzySearch(query.SecondToEndSearch, result.Title).Score > 0;
+						return this._context.API.FuzzySearch(string.Join(" ", query.SearchTerms.Skip(ArgumentIndices.Span)), result.Title).Score > 0;
 					});
 			}
 
 			/* 
 			 * Report groupinging selection --- tgl view [duration] [projects | clients | entries]
-			 "View tracked time report by Project"
 			 */
-			if (query.SearchTerms.Length == 2 || !Settings.ViewGroupingArguments.Values.ToList().Exists(grouping => grouping.Argument == query.SearchTerms[2]))
+			if (query.SearchTerms.Length == ArgumentIndices.Grouping || !Settings.ViewGroupingArguments.Values.ToList().Exists(grouping => grouping.Argument == query.SearchTerms[ArgumentIndices.Grouping]))
 			{
 				var groupings = Settings.ViewGroupingArguments.Values.ToList().ConvertAll(grouping =>
 				{
@@ -1389,18 +1427,16 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					};
 				});
 				
-				return (string.IsNullOrWhiteSpace(string.Join(" ", query.SearchTerms.Skip(2))))
+				return (string.IsNullOrWhiteSpace(string.Join(" ", query.SearchTerms.Skip(ArgumentIndices.Grouping))))
 					? groupings
 					: groupings.FindAll(result =>
 					{
-						return this._context.API.FuzzySearch(string.Join(" ", query.SearchTerms.Skip(2)), result.Title).Score > 0;
+						return this._context.API.FuzzySearch(string.Join(" ", query.SearchTerms.Skip(ArgumentIndices.Grouping)), result.Title).Score > 0;
 					});
 			}
 
-			// TODO: use Regex capture to parse these args from the query
-			// or a better way if i can think of anything else
-			string spanArgument = query.SearchTerms[1];
-			string groupingArgument = query.SearchTerms[2];
+			string spanArgument = query.SearchTerms[ArgumentIndices.Span];
+			string groupingArgument = query.SearchTerms[ArgumentIndices.Grouping];
 
 			var spanConfiguration = Settings.ViewSpanArguments.Values.ToList().Find(span => span.Argument == spanArgument);
 

@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.1.4](https://github.com/JamesNZL/flow-toggl-plugin/compare/v2.1.3...v2.1.4) (2023-05-16)
+
+
+### Bug Fixes
+
+* **ux:** :bug: fix incorrect time strings when longer than 1 day ([#6](https://github.com/JamesNZL/flow-toggl-plugin/issues/6)) ([58ed0e3](https://github.com/JamesNZL/flow-toggl-plugin/commit/58ed0e351ed43c8be6d5278eecf9332d930b2b36))
+
 ### [2.1.3](https://github.com/JamesNZL/flow-toggl-plugin/compare/v2.1.2...v2.1.3) (2023-05-15)
 
 

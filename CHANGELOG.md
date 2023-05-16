@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.1.6](https://github.com/JamesNZL/flow-toggl-plugin/compare/v2.1.5...v2.1.6) (2023-05-16)
+
+
+### Bug Fixes
+
+* **ux:** :bug: fix `start` crash when no previous time entries ([#7](https://github.com/JamesNZL/flow-toggl-plugin/issues/7)) ([196b68e](https://github.com/JamesNZL/flow-toggl-plugin/commit/196b68ef35506c174517f36cfa04080954c1e579))
+
 ### [2.1.5](https://github.com/JamesNZL/flow-toggl-plugin/compare/v2.1.4...v2.1.5) (2023-05-16)
 
 

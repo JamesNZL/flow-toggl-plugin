@@ -64,7 +64,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				Interpolation = "this year",
 				Score = 100,
 				// First day of the current year
-				Start = now => new DateTimeOffset(now.Year, now.Month, 1, 0, 0, 0, now.Offset),
+				Start = now => new DateTimeOffset(now.Year, 1, 1, 0, 0, 0, now.Offset),
 				// Last day of the current year
 				End = now => new DateTimeOffset(now.Year, 12, 31, 0, 0, 0, now.Offset),
 			},

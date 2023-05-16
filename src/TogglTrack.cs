@@ -1472,7 +1472,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					new Result
 					{
-						Title = $"{total.Humanize()} tracked {spanConfiguration.Interpolation} ({total.ToString(@"h\:mm\:ss")})",
+						Title = $"{total.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} tracked {spanConfiguration.Interpolation} ({(int)total.TotalHours}:{total.ToString(@"mm\:ss")})",
 						IcoPath = "view.png",
 						// AutoCompleteText = 
 						Score = (int)total.TotalSeconds,
@@ -1491,7 +1491,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							return new Result
 							{
 								Title = project?.name ?? "No Project",
-								SubTitle = $"{((project?.client_id is not null) ? $"{me.clients?.Find(client => client.id == project.client_id)?.name} | " : string.Empty)}{elapsed.Humanize()} ({elapsed.ToString(@"h\:mm\:ss")})",
+								SubTitle = $"{((project?.client_id is not null) ? $"{me.clients?.Find(client => client.id == project.client_id)?.name} | " : string.Empty)}{elapsed.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)elapsed.TotalHours}:{elapsed.ToString(@"mm\:ss")})",
 								IcoPath = (project?.color is not null)
 									? new ColourIcon(this._context, project.color, "view.png").GetColourIcon()
 									: "view.png",

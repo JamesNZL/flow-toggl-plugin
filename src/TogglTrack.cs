@@ -1491,12 +1491,16 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							var client = me.clients?.Find(client => client.id == group.id);
 							var elapsed = TimeSpan.FromSeconds(group.seconds);
 
+							var highestProjectId = group.sub_groups?.MaxBy(subGroup => subGroup.seconds)?.id;
+							var highestProject = me.projects?.Find(project => project.id == highestProjectId);
+
 							return new Result
 							{
 								Title = client?.name ?? "No Client",
 								SubTitle = $"{elapsed.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)elapsed.TotalHours}:{elapsed.ToString(@"mm\:ss")})",
-								// TODO: colour based on highest-tracked project
-								IcoPath = "view.png",
+								IcoPath = (highestProject?.color is not null)
+									? new ColourIcon(this._context, highestProject.color, "view.png").GetColourIcon()
+									: "view.png",
 								// AutoCompleteText = 
 								Score = (int)group.seconds,
 								// Action = c =>

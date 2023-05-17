@@ -1445,8 +1445,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			// TODO: Promise.all()
 			// TODO: do I want to cache this?
 			// ^ would need to cache the params too
-			// TODO: rename to summary
-			var timeEntries = await this._client.GetSummaryTimeEntries(me.default_workspace_id, me.id, groupingConfiguration.Grouping, start, end);
+			var summary = await this._client.GetSummaryTimeEntries(me.default_workspace_id, me.id, groupingConfiguration.Grouping, start, end);
 
 			// Use cached time entry here to improve responsiveness
 			var runningTimeEntry = await this._GetRunningTimeEntry();
@@ -1454,7 +1453,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				? TimeSpan.Zero
 				: DateTimeOffset.UtcNow.Subtract(DateTimeOffset.Parse(runningTimeEntry.start!));
 
-			var total = TimeSpan.FromSeconds(timeEntries?.groups?.Sum(group => group.seconds) ?? 0) + runningElapsed;
+			var total = TimeSpan.FromSeconds(summary?.groups?.Sum(group => group.seconds) ?? 0) + runningElapsed;
 
 			var results = new List<Result>
 			{
@@ -1466,7 +1465,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				},
 			};
 
-			if ((timeEntries is null) || (timeEntries.groups is null))
+			if ((summary is null) || (summary.groups is null))
 			{
 				return results;
 			}
@@ -1477,7 +1476,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					if (runningTimeEntry is not null)
 					{
-						var projectGroup = timeEntries.groups.Find(group => group.id == runningTimeEntry.project_id);
+						var projectGroup = summary.groups.Find(group => group.id == runningTimeEntry.project_id);
 						var entrySubGroup = projectGroup?.sub_groups?.Find(subGroup => subGroup.title == runningTimeEntry.description);
 
 						if (entrySubGroup is not null)
@@ -1505,7 +1504,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						}
 						else
 						{
-							timeEntries.groups.Add(new SummaryTimeEntryGroup
+							summary.groups.Add(new SummaryTimeEntryGroup
 							{
 								id = runningTimeEntry.project_id,
 								sub_groups = new List<SummaryTimeEntrySubGroup>
@@ -1521,7 +1520,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					}
 
 					results.AddRange(
-						timeEntries.groups.ConvertAll(group =>
+						summary.groups.ConvertAll(group =>
 						{
 							var project = me.projects?.Find(project => project.id == group.id);
 							var elapsed = TimeSpan.FromSeconds(group.seconds);
@@ -1550,7 +1549,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 						if (runningProject?.client_id is not null)
 						{
-							var clientGroup = timeEntries.groups.Find(group => group.id == runningProject.client_id);
+							var clientGroup = summary.groups.Find(group => group.id == runningProject.client_id);
 							var projectSubGroup = clientGroup?.sub_groups?.Find(subGroup => subGroup.id == runningProject.id);
 
 							if (projectSubGroup is not null)
@@ -1578,7 +1577,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							}
 							else
 							{
-								timeEntries.groups.Add(new SummaryTimeEntryGroup
+								summary.groups.Add(new SummaryTimeEntryGroup
 								{
 									id = runningTimeEntry.project_id,
 									sub_groups = new List<SummaryTimeEntrySubGroup>
@@ -1595,7 +1594,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					}
 
 					results.AddRange(
-						timeEntries.groups.ConvertAll(group =>
+						summary.groups.ConvertAll(group =>
 						{
 							var client = me.clients?.Find(client => client.id == group.id);
 							var elapsed = TimeSpan.FromSeconds(group.seconds);
@@ -1622,7 +1621,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					if (runningTimeEntry is not null)
 					{
-						var projectGroup = timeEntries.groups.Find(group => group.id == runningTimeEntry.project_id);
+						var projectGroup = summary.groups.Find(group => group.id == runningTimeEntry.project_id);
 						var entrySubGroup = projectGroup?.sub_groups?.Find(subGroup => subGroup.title == runningTimeEntry.description);
 
 						if (entrySubGroup is not null)
@@ -1650,7 +1649,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						}
 						else
 						{
-							timeEntries.groups.Add(new SummaryTimeEntryGroup
+							summary.groups.Add(new SummaryTimeEntryGroup
 							{
 								id = runningTimeEntry.project_id,
 								sub_groups = new List<SummaryTimeEntrySubGroup>
@@ -1665,7 +1664,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						}
 					}
 
-					timeEntries.groups.ForEach(group =>
+					summary.groups.ForEach(group =>
 					{
 						if (group.sub_groups is null)
 						{

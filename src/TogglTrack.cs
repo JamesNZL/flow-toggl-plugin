@@ -123,6 +123,36 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 		}
 
+		private async ValueTask<SummaryTimeEntry?> _GetSummaryTimeEntries(long workspaceId, long userId, Settings.ViewGroupingKeys reportGrouping, DateTimeOffset start, DateTimeOffset? end, bool force = false)
+		{
+			string cacheKey = $"SummaryTimeEntries{workspaceId}{userId}{(int)reportGrouping}{start.ToString("yyyy-MM-dd")}{end?.ToString("yyyy-MM-dd")}";
+
+			this._context.API.LogInfo("TogglTrack", cacheKey);
+
+			if (!force && this._cache.Contains(cacheKey))
+			{
+				return (SummaryTimeEntry?)this._cache.Get(cacheKey);
+			}
+
+			try
+			{
+				this._context.API.LogInfo("TogglTrack", "Fetching summary time entries for reports", "_GetSummaryTimeEntries");
+				
+				var summary = await this._client.GetSummaryTimeEntries(workspaceId, userId, reportGrouping, start, end);
+
+				#pragma warning disable CS8604 // Possible null reference argument
+				this._cache.Set(cacheKey, summary, DateTimeOffset.Now.AddSeconds(30));
+				#pragma warning restore CS8604 // Possible null reference argument
+
+				return summary;
+			}
+			catch (Exception exception)
+			{
+				this._context.API.LogException("TogglTrack", "Failed to fetch summary time entries for reports", exception, "_GetSummaryTimeEntries");
+				return null;
+			}
+		}
+
 		internal void RefreshCache()
 		{
 			_ = Task.Run(() =>
@@ -154,6 +184,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 
 			this._client.UpdateToken(this._settings.ApiToken);
+			// TODO: refresh all caches
 
 			return this._lastToken.IsValid = (await this._GetMe(true))?.api_token?.Equals(this._settings.ApiToken) ?? false;
 		}
@@ -378,6 +409,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				// Start fetch for time entries asynchronously in the backgroundd
 				_ = Task.Run(() =>
 				{
+					// TODO: this does too many fetches
 					_ = this._GetTimeEntries(true);
 				});
 
@@ -1387,6 +1419,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				// Start fetch for running time entries asynchronously in the backgroundd
 				_ = Task.Run(() =>
 				{
+					// TODO: this does too many fetches
 					_ = this._GetRunningTimeEntry(true);
 				});
 
@@ -1463,10 +1496,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			
 			this._context.API.LogInfo("TogglTrack", $"{spanArgument}, {groupingArgument}, {start}, {end}", "RequestViewReports");
 
-			// TODO: Promise.all()
-			// TODO: do I want to cache this?
-			// ^ would need to cache the params too
-			var summary = await this._client.GetSummaryTimeEntries(me.default_workspace_id, me.id, groupingConfiguration.Grouping, start, end);
+			var summary = await this._GetSummaryTimeEntries(me.default_workspace_id, me.id, groupingConfiguration.Grouping, start, end);
 
 			// Use cached time entry here to improve responsiveness
 			var runningTimeEntry = await this._GetRunningTimeEntry();

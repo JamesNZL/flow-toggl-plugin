@@ -1633,6 +1633,14 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					}
 					
 					var project = me.projects?.Find(project => project.id == selectedProjectGroup.id);
+					var client = me.clients?.Find(client => client.id == project?.client_id);
+
+					string clientName = (client is not null)
+						? $" • {client.name}"
+						: string.Empty;
+					string projectName = (project is not null)
+						? $"{project.name}{clientName}"
+						: "No Project";
 
 					var subResults = selectedProjectGroup.sub_groups.ConvertAll(subGroup =>
 					{
@@ -1646,6 +1654,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									? new ColourIcon(this._context, project.color, "view.png").GetColourIcon()
 									: "view.png",
 							AutoCompleteText = $"{query.ActionKeyword} {Settings.ViewCommand} {spanConfiguration.Argument} {groupingConfiguration.Argument} {((string.IsNullOrEmpty(subGroup.title)) ? "(no description)" : subGroup.title)}",
+							// TODO: + x so this takes priroity if only 1 result
 							Score = (int)elapsed.TotalSeconds,
 							Action = c =>
 							{
@@ -1660,6 +1669,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					subResults.Add(new Result
 					{
 						Title = $"{subTotal.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} tracked {spanConfiguration.Interpolation} ({(int)subTotal.TotalHours}:{subTotal.ToString(@"mm\:ss")})",
+						SubTitle = projectName,
 						IcoPath = "view.png",
 						AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
 						Score = (int)subTotal.TotalSeconds,
@@ -1808,6 +1818,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					subResults.Add(new Result
 					{
 						Title = $"{subTotal.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} tracked {spanConfiguration.Interpolation} ({(int)subTotal.TotalHours}:{subTotal.ToString(@"mm\:ss")})",
+						SubTitle = client?.name ?? "No Client",
 						IcoPath = "view.png",
 						AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
 						Score = (int)subTotal.TotalSeconds,

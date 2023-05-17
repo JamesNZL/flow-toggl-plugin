@@ -1415,18 +1415,21 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				Grouping = 2,
 			};
 
+			if (query.SearchTerms.Length == ArgumentIndices.Span)
+			{
+				// Start fetch for running time entries asynchronously in the background
+				_ = Task.Run(() =>
+				{
+					_ = this._GetRunningTimeEntry(true);
+				});
+			}
+
 			/* 
 			 * Report span selection --- tgl view [day | week | month | year]
 			 */
+
 			if (query.SearchTerms.Length == ArgumentIndices.Span || !Settings.ViewSpanArguments.Exists(span => span.Argument == query.SearchTerms[ArgumentIndices.Span]))
 			{
-				// Start fetch for running time entries asynchronously in the backgroundd
-				_ = Task.Run(() =>
-				{
-					// TODO: this does too many fetches
-					_ = this._GetRunningTimeEntry(true);
-				});
-
 				var spans = Settings.ViewSpanArguments.ConvertAll(span =>
 				{
 					return new Result

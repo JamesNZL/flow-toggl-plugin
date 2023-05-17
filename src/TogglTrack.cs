@@ -23,6 +23,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		private MemoryCache _cache = MemoryCache.Default;
 
 		private long? _selectedProjectId = -1;
+		private long? _selectedClientId = -1;
 		
 		private enum EditProjectState
 		{
@@ -262,6 +263,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		internal async ValueTask<List<Result>> GetDefaultHotKeys()
 		{
 			this._selectedProjectId = -1;
+			this._selectedClientId = -1;
 			this._editProjectState = TogglTrack.EditProjectState.NoProjectChange;
 
 			var results = new List<Result>
@@ -1398,6 +1400,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			if (token.IsCancellationRequested)
 			{
 				this._selectedProjectId = -1;
+				this._selectedClientId = -1;
 				return new List<Result>();
 			}
 
@@ -1423,6 +1426,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					_ = this._GetRunningTimeEntry(true);
 				});
+			}
+
+			else if (query.SearchTerms.Length == ArgumentIndices.GroupingName)
+			{
+				this._selectedProjectId = -1;
+				this._selectedClientId = -1;
 			}
 
 			/* 
@@ -1534,11 +1543,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			{
 				case (Settings.ViewGroupingKeys.Projects):
 				{
-					if (query.SearchTerms.Length == ArgumentIndices.GroupingName)
-					{
-						this._selectedProjectId = -1;
-					}
-
 					if (runningTimeEntry is not null)
 					{
 						// Perform deep copy of summary so the cache is not mutated
@@ -1729,35 +1733,93 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						}
 					}
 
-					results.AddRange(
-						summary.groups.ConvertAll(group =>
-						{
-							var client = me.clients?.Find(client => client.id == group.id);
-							var elapsed = TimeSpan.FromSeconds(group.seconds);
-
-							var highestProjectId = group.sub_groups?.MaxBy(subGroup => subGroup.seconds)?.id;
-							var highestProject = me.projects?.Find(project => project.id == highestProjectId);
-
-							return new Result
+					if (this._selectedClientId == -1)
+					{	
+						results.AddRange(
+							summary.groups.ConvertAll(group =>
 							{
-								Title = client?.name ?? "No Client",
-								SubTitle = $"{elapsed.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)elapsed.TotalHours}:{elapsed.ToString(@"mm\:ss")})",
-								IcoPath = (highestProject?.color is not null)
-									? new ColourIcon(this._context, highestProject.color, "view.png").GetColourIcon()
-									: "view.png",
-								AutoCompleteText = $"{query.ActionKeyword} {Settings.ViewCommand} {spanConfiguration.Argument} {groupingConfiguration.Argument} ",
-								Score = (int)group.seconds,
-								Action = c =>
-								{
-									// this._selectedProjectId = project?.id;
-									this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.ViewCommand} {spanConfiguration.Argument} {groupingConfiguration.Argument} {client?.name?.Kebaberize() ?? "No Client"} ", true);
-									return false;
-								}
-							};
-						})
-					);
+								var client = me.clients?.Find(client => client.id == group.id);
+								var elapsed = TimeSpan.FromSeconds(group.seconds);
 
-					break;
+								var highestProjectId = group.sub_groups?.MaxBy(subGroup => subGroup.seconds)?.id;
+								var highestProject = me.projects?.Find(project => project.id == highestProjectId);
+
+								return new Result
+								{
+									Title = client?.name ?? "No Client",
+									SubTitle = $"{elapsed.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)elapsed.TotalHours}:{elapsed.ToString(@"mm\:ss")})",
+									IcoPath = (highestProject?.color is not null)
+										? new ColourIcon(this._context, highestProject.color, "view.png").GetColourIcon()
+										: "view.png",
+									AutoCompleteText = $"{query.ActionKeyword} {Settings.ViewCommand} {spanConfiguration.Argument} {groupingConfiguration.Argument} ",
+									Score = (int)group.seconds,
+									Action = c =>
+									{
+										this._selectedClientId = client?.id;
+										this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.ViewCommand} {spanConfiguration.Argument} {groupingConfiguration.Argument} {client?.name?.Kebaberize() ?? "No Client"} ", true);
+										return false;
+									}
+								};
+							})
+						);
+						break;
+					}
+
+					var selectedClientGroup = summary.groups.Find(group => group.id == this._selectedClientId);
+
+					if (selectedClientGroup?.sub_groups is null)
+					{
+						break;
+					}
+					
+					var client = me.clients?.Find(client => client.id == selectedClientGroup.id);
+
+					var subResults = selectedClientGroup.sub_groups.ConvertAll(subGroup =>
+					{
+						var project = me.projects?.Find(project => project.id == subGroup.id);
+						var elapsed = TimeSpan.FromSeconds(subGroup.seconds);
+
+						return new Result
+						{
+							Title = project?.name ?? "No Project",
+							SubTitle = $"{((client?.id is not null) ? $"{client?.name} | " : string.Empty)}{elapsed.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)elapsed.TotalHours}:{elapsed.ToString(@"mm\:ss")})",
+							IcoPath = (project?.color is not null)
+								? new ColourIcon(this._context, project.color, "view.png").GetColourIcon()
+								: "view.png",
+							AutoCompleteText = $"{query.ActionKeyword} {Settings.ViewCommand} {spanConfiguration.Argument} {groupingConfiguration.Argument} ",
+							Score = (int)subGroup.seconds,
+							Action = c =>
+							{
+								this._selectedClientId = -1;
+								this._selectedProjectId = project?.id;
+
+								if (string.IsNullOrEmpty(groupingConfiguration.SubArgument))
+								{
+									throw new Exception("Invalid ViewGroupingCommandArgument configuration: Missing 'SubArgument' field.");
+								}
+
+								this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.ViewCommand} {spanConfiguration.Argument} {groupingConfiguration.SubArgument} {project?.name?.Kebaberize() ?? "No Project"} ", true);
+								return false;
+							}
+						};
+					});
+
+					var subTotal = TimeSpan.FromSeconds(selectedClientGroup.seconds);
+					subResults.Add(new Result
+					{
+						Title = $"{subTotal.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} tracked {spanConfiguration.Interpolation} ({(int)subTotal.TotalHours}:{subTotal.ToString(@"mm\:ss")})",
+						IcoPath = "view.png",
+						AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
+						Score = (int)subTotal.TotalSeconds,
+					});
+
+					string subNameQuery = Main.ExtractFromQuery(query, ArgumentIndices.SubGroupingName);
+					return (string.IsNullOrWhiteSpace(subNameQuery))
+						? subResults
+						: subResults.FindAll(result =>
+						{
+							return this._context.API.FuzzySearch(subNameQuery, result.Title).Score > 0;
+						});
 				}
 				case (Settings.ViewGroupingKeys.Entries):
 				{

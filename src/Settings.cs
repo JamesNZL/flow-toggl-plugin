@@ -76,28 +76,34 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			Clients,
 			Entries,
 		}
+		private const string ViewGroupingProjectsArgument = "projects";
+		private const string ViewGroupingClientsArgument = "clients";
+		private const string ViewGroupingEntriesArgument = "entries";
 		internal static readonly List<ViewGroupingCommandArgument> ViewGroupingArguments = new List<ViewGroupingCommandArgument>
 		{
 			new ViewGroupingCommandArgument
 			{
-				Argument = "projects",
+				Argument = Settings.ViewGroupingProjectsArgument,
 				Interpolation = "View tracked time grouped by project",
 				Score = 300,
 				Grouping = Settings.ViewGroupingKeys.Projects,
+				SubArgument = null,
 			},
 			new ViewGroupingCommandArgument
 			{
-				Argument = "clients",
+				Argument = Settings.ViewGroupingClientsArgument,
 				Interpolation = "View tracked time grouped by client",
 				Score = 200,
 				Grouping = Settings.ViewGroupingKeys.Clients,
+				SubArgument = Settings.ViewGroupingProjectsArgument,
 			},
 			new ViewGroupingCommandArgument
 			{
-				Argument = "entries",
+				Argument = Settings.ViewGroupingEntriesArgument,
 				Interpolation = "View tracked time entries",
 				Score = 100,
 				Grouping = Settings.ViewGroupingKeys.Entries,
+				SubArgument = null,
 			},
 		};
 
@@ -128,6 +134,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 	{
 		#nullable disable
 		public Settings.ViewGroupingKeys Grouping { get; init; }
+		public string SubArgument { get; init; }
 		#nullable enable
 	}
 }

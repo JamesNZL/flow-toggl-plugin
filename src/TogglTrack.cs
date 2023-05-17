@@ -1520,6 +1520,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					Title = $"{total.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} tracked {spanConfiguration.Interpolation} ({(int)total.TotalHours}:{total.ToString(@"mm\:ss")})",
 					IcoPath = "view.png",
+					AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
 					Score = (int)total.TotalSeconds,
 				},
 			};
@@ -1656,6 +1657,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					{
 						Title = $"{subTotal.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} tracked {spanConfiguration.Interpolation} ({(int)subTotal.TotalHours}:{subTotal.ToString(@"mm\:ss")})",
 						IcoPath = "view.png",
+						AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
 						Score = (int)subTotal.TotalSeconds,
 					});
 

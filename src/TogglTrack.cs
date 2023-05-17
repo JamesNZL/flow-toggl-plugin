@@ -1530,7 +1530,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					Title = $"{total.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} tracked {spanConfiguration.Interpolation} ({(int)total.TotalHours}:{total.ToString(@"mm\:ss")})",
 					IcoPath = "view.png",
 					AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
-					Score = (int)total.TotalSeconds,
+					Score = (int)total.TotalSeconds + 1000,
 				},
 			};
 
@@ -1654,7 +1654,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									? new ColourIcon(this._context, project.color, "view.png").GetColourIcon()
 									: "view.png",
 							AutoCompleteText = $"{query.ActionKeyword} {Settings.ViewCommand} {spanConfiguration.Argument} {groupingConfiguration.Argument} {((string.IsNullOrEmpty(subGroup.title)) ? "(no description)" : subGroup.title)}",
-							// TODO: + x so this takes priroity if only 1 result
 							Score = (int)elapsed.TotalSeconds,
 							Action = c =>
 							{
@@ -1672,7 +1671,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						SubTitle = projectName,
 						IcoPath = "view.png",
 						AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
-						Score = (int)subTotal.TotalSeconds,
+						Score = (int)subTotal.TotalSeconds + 1000,
 					});
 
 					string subNameQuery = Main.ExtractFromQuery(query, ArgumentIndices.SubGroupingName);
@@ -1821,7 +1820,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						SubTitle = client?.name ?? "No Client",
 						IcoPath = "view.png",
 						AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
-						Score = (int)subTotal.TotalSeconds,
+						Score = (int)subTotal.TotalSeconds + 1000,
 					});
 
 					string subNameQuery = Main.ExtractFromQuery(query, ArgumentIndices.SubGroupingName);

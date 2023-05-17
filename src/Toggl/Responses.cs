@@ -152,7 +152,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 
 	public class SummaryTimeEntryGroup
 	{
-		public long id { get; set; }
+		public long? id { get; set; }
 		public List<SummaryTimeEntrySubGroup>? sub_groups { get; set; }
 		public long seconds
 		{

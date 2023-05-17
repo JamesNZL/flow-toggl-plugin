@@ -1363,6 +1363,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			 */
 			if (query.SearchTerms.Length == ArgumentIndices.Span || !Settings.ViewSpanArguments.Exists(span => span.Argument == query.SearchTerms[ArgumentIndices.Span]))
 			{
+				// Start fetch for running time entries asynchronously in the backgroundd
+				_ = Task.Run(() =>
+				{
+					_ = this._GetRunningTimeEntry(true);
+				});
+
 				var spans = Settings.ViewSpanArguments.ConvertAll(span =>
 				{
 					return new Result
@@ -1436,11 +1442,19 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			
 			this._context.API.LogInfo("TogglTrack", $"{spanArgument}, {groupingArgument}, {start}, {end}", "RequestViewReports");
 
+			// TODO: Promise.all()
 			// TODO: do I want to cache this?
 			// ^ would need to cache the params too
+			// TODO: rename to summary
 			var timeEntries = await this._client.GetSummaryTimeEntries(me.default_workspace_id, me.id, groupingConfiguration.Grouping, start, end);
 
-			var total = TimeSpan.FromSeconds(timeEntries?.groups?.Sum(group => group.seconds) ?? 0);
+			// Use cached time entry here to improve responsiveness
+			var runningTimeEntry = await this._GetRunningTimeEntry();
+			var runningElapsed = (runningTimeEntry is null)
+				? TimeSpan.Zero
+				: DateTimeOffset.UtcNow.Subtract(DateTimeOffset.Parse(runningTimeEntry.start!));
+
+			var total = TimeSpan.FromSeconds(timeEntries?.groups?.Sum(group => group.seconds) ?? 0) + runningElapsed;
 
 			var results = new List<Result>
 			{
@@ -1461,6 +1475,51 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			{
 				case (Settings.ViewGroupingKeys.Projects):
 				{
+					if (runningTimeEntry is not null)
+					{
+						var projectGroup = timeEntries.groups.Find(group => group.id == runningTimeEntry.project_id);
+						var entrySubGroup = projectGroup?.sub_groups?.Find(subGroup => subGroup.title == runningTimeEntry.description);
+
+						if (entrySubGroup is not null)
+						{
+							entrySubGroup.seconds += (int)runningElapsed.TotalSeconds;
+						}
+						else if (projectGroup?.sub_groups is not null)
+						{
+							projectGroup.sub_groups.Add(new SummaryTimeEntrySubGroup
+							{
+								title = runningTimeEntry.description,
+								seconds = (int)runningElapsed.TotalSeconds,
+							});
+						}
+						else if (projectGroup is not null)
+						{
+							projectGroup.sub_groups = new List<SummaryTimeEntrySubGroup>
+							{
+								new SummaryTimeEntrySubGroup
+								{
+									title = runningTimeEntry.description,
+									seconds = (int)runningElapsed.TotalSeconds,
+								},
+							};
+						}
+						else
+						{
+							timeEntries.groups.Add(new SummaryTimeEntryGroup
+							{
+								id = runningTimeEntry.project_id,
+								sub_groups = new List<SummaryTimeEntrySubGroup>
+								{
+									new SummaryTimeEntrySubGroup
+									{
+										title = runningTimeEntry.description,
+										seconds = (int)runningElapsed.TotalSeconds,
+									},
+								},
+							});
+						}
+					}
+
 					results.AddRange(
 						timeEntries.groups.ConvertAll(group =>
 						{
@@ -1485,6 +1544,56 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				}
 				case (Settings.ViewGroupingKeys.Clients):
 				{
+					if (runningTimeEntry is not null)
+					{
+						Project? runningProject = me.projects?.Find(project => project.id == runningTimeEntry.project_id);
+
+						if (runningProject?.client_id is not null)
+						{
+							var clientGroup = timeEntries.groups.Find(group => group.id == runningProject.client_id);
+							var projectSubGroup = clientGroup?.sub_groups?.Find(subGroup => subGroup.id == runningProject.id);
+
+							if (projectSubGroup is not null)
+							{
+								projectSubGroup.seconds += (int)runningElapsed.TotalSeconds;
+							}
+							else if (clientGroup?.sub_groups is not null)
+							{
+								clientGroup.sub_groups.Add(new SummaryTimeEntrySubGroup
+								{
+									title = runningTimeEntry.description,
+									seconds = (int)runningElapsed.TotalSeconds,
+								});
+							}
+							else if (clientGroup is not null)
+							{
+								clientGroup.sub_groups = new List<SummaryTimeEntrySubGroup>
+								{
+									new SummaryTimeEntrySubGroup
+									{
+										title = runningTimeEntry.description,
+										seconds = (int)runningElapsed.TotalSeconds,
+									},
+								};
+							}
+							else
+							{
+								timeEntries.groups.Add(new SummaryTimeEntryGroup
+								{
+									id = runningTimeEntry.project_id,
+									sub_groups = new List<SummaryTimeEntrySubGroup>
+									{
+										new SummaryTimeEntrySubGroup
+										{
+											title = runningTimeEntry.description,
+											seconds = (int)runningElapsed.TotalSeconds,
+										},
+									},
+								});
+							}
+						}
+					}
+
 					results.AddRange(
 						timeEntries.groups.ConvertAll(group =>
 						{
@@ -1511,6 +1620,51 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				}
 				case (Settings.ViewGroupingKeys.Entries):
 				{
+					if (runningTimeEntry is not null)
+					{
+						var projectGroup = timeEntries.groups.Find(group => group.id == runningTimeEntry.project_id);
+						var entrySubGroup = projectGroup?.sub_groups?.Find(subGroup => subGroup.title == runningTimeEntry.description);
+
+						if (entrySubGroup is not null)
+						{
+							entrySubGroup.seconds += (int)runningElapsed.TotalSeconds;
+						}
+						else if (projectGroup?.sub_groups is not null)
+						{
+							projectGroup.sub_groups.Add(new SummaryTimeEntrySubGroup
+							{
+								title = runningTimeEntry.description,
+								seconds = (int)runningElapsed.TotalSeconds,
+							});
+						}
+						else if (projectGroup is not null)
+						{
+							projectGroup.sub_groups = new List<SummaryTimeEntrySubGroup>
+							{
+								new SummaryTimeEntrySubGroup
+								{
+									title = runningTimeEntry.description,
+									seconds = (int)runningElapsed.TotalSeconds,
+								},
+							};
+						}
+						else
+						{
+							timeEntries.groups.Add(new SummaryTimeEntryGroup
+							{
+								id = runningTimeEntry.project_id,
+								sub_groups = new List<SummaryTimeEntrySubGroup>
+								{
+									new SummaryTimeEntrySubGroup
+									{
+										title = runningTimeEntry.description,
+										seconds = (int)runningElapsed.TotalSeconds,
+									},
+								},
+							});
+						}
+					}
+
 					timeEntries.groups.ForEach(group =>
 					{
 						if (group.sub_groups is null)

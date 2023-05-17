@@ -1642,8 +1642,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									: "view.png",
 							AutoCompleteText = $"{query.ActionKeyword} {Settings.ViewCommand} {spanConfiguration.Argument} {groupingConfiguration.Argument} {((string.IsNullOrEmpty(subGroup.title)) ? "(no description)" : subGroup.title)}",
 							Score = (int)elapsed.TotalSeconds,
-							// TODO: RequestStartEntry, clear selectedProject
-							// Action = c =>
+							Action = c =>
+							{
+								this._selectedProjectId = project?.id;
+								this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project?.name?.Kebaberize() ?? "no-project"} {subGroup.title}");
+								return false;
+							},
 						};
 					});
 
@@ -1839,8 +1843,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 											: "view.png",
 									AutoCompleteText = $"{query.ActionKeyword} {Settings.ViewCommand} {spanConfiguration.Argument} {groupingConfiguration.Argument} {((string.IsNullOrEmpty(subGroup.title)) ? "(no description)" : subGroup.title)}",
 									Score = (int)elapsed.TotalSeconds,
-									// TODO: RequestStartEntry
-									// Action = c =>
+									Action = c =>
+									{
+										this._selectedProjectId = project?.id;
+										this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project?.name?.Kebaberize() ?? "no-project"} {subGroup.title}");
+										return false;
+									},
 								};
 							})
 						);

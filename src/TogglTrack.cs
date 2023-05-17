@@ -404,17 +404,19 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				Description = 2,
 			};
 
-			if (this._selectedProjectId == -1 || query.SearchTerms.Length == ArgumentIndices.Project)
+			if (query.SearchTerms.Length == ArgumentIndices.Project)
 			{
 				this._selectedProjectId = -1;
-
-				// Start fetch for time entries asynchronously in the backgroundd
+				
+				// Start fetch for time entries asynchronously in the background
 				_ = Task.Run(() =>
 				{
-					// TODO: this does too many fetches
 					_ = this._GetTimeEntries(true);
 				});
+			}
 
+			if (this._selectedProjectId == -1)
+			{
 				var projects = new List<Result>
 				{
 					new Result

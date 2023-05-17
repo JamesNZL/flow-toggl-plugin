@@ -1,5 +1,6 @@
 using System;
 using System.Text.RegularExpressions;
+using System.Text.Json;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -123,6 +124,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 		}
 
+		// TODO: need way to invalidate all caches
 		private async ValueTask<SummaryTimeEntry?> _GetSummaryTimeEntries(long workspaceId, long userId, Settings.ViewGroupingKeys reportGrouping, DateTimeOffset start, DateTimeOffset? end, bool force = false)
 		{
 			string cacheKey = $"SummaryTimeEntries{workspaceId}{userId}{(int)reportGrouping}{start.ToString("yyyy-MM-dd")}{end?.ToString("yyyy-MM-dd")}";
@@ -1527,6 +1529,14 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					if (runningTimeEntry is not null)
 					{
+						// Perform deep copy of summary so the cache is not mutated
+						var serialisedSummary = JsonSerializer.Serialize<SummaryTimeEntry>(summary);
+						summary = JsonSerializer.Deserialize<SummaryTimeEntry>(serialisedSummary);
+						if ((summary is null) || (summary.groups is null))
+						{
+							return results;
+						}
+
 						var projectGroup = summary.groups.Find(group => group.id == runningTimeEntry.project_id);
 						var entrySubGroup = projectGroup?.sub_groups?.Find(subGroup => subGroup.title == runningTimeEntry.description);
 
@@ -1596,6 +1606,14 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					if (runningTimeEntry is not null)
 					{
+						// Perform deep copy of summary so the cache is not mutated
+						var serialisedSummary = JsonSerializer.Serialize<SummaryTimeEntry>(summary);
+						summary = JsonSerializer.Deserialize<SummaryTimeEntry>(serialisedSummary);
+						if ((summary is null) || (summary.groups is null))
+						{
+							return results;
+						}
+
 						Project? runningProject = me.projects?.Find(project => project.id == runningTimeEntry.project_id);
 
 						if (runningProject?.client_id is not null)
@@ -1672,6 +1690,14 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					if (runningTimeEntry is not null)
 					{
+						// Perform deep copy of summary so the cache is not mutated
+						var serialisedSummary = JsonSerializer.Serialize<SummaryTimeEntry>(summary);
+						summary = JsonSerializer.Deserialize<SummaryTimeEntry>(serialisedSummary);
+						if ((summary is null) || (summary.groups is null))
+						{
+							return results;
+						}
+
 						var projectGroup = summary.groups.Find(group => group.id == runningTimeEntry.project_id);
 						var entrySubGroup = projectGroup?.sub_groups?.Find(subGroup => subGroup.title == runningTimeEntry.description);
 

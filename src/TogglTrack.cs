@@ -129,8 +129,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		{
 			string cacheKey = $"SummaryTimeEntries{workspaceId}{userId}{(int)reportGrouping}{start.ToString("yyyy-MM-dd")}{end?.ToString("yyyy-MM-dd")}";
 
-			this._context.API.LogInfo("TogglTrack", cacheKey);
-
 			if (!force && this._cache.Contains(cacheKey))
 			{
 				return (SummaryTimeEntry?)this._cache.Get(cacheKey);

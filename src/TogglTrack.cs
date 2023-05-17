@@ -1411,6 +1411,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				Command = 0,
 				Span = 1,
 				Grouping = 2,
+				Name = 3,
 			};
 
 			if (query.SearchTerms.Length == ArgumentIndices.Span)
@@ -1596,10 +1597,14 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								IcoPath = (project?.color is not null)
 									? new ColourIcon(this._context, project.color, "view.png").GetColourIcon()
 									: "view.png",
-								// TODO: 
-								// AutoCompleteText = 
+								AutoCompleteText = $"{query.ActionKeyword} {Settings.ViewCommand} {spanConfiguration.Argument} {groupingConfiguration.Argument} ",
 								Score = (int)group.seconds,
+								Action = c =>
+								{
 								// Action = c =>
+									this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.ViewCommand} {spanConfiguration.Argument} {groupingConfiguration.Argument} {project?.name?.Kebaberize() ?? "No Project"} ", true);
+									return false;
+								}
 							};
 						})
 					);
@@ -1681,9 +1686,14 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								IcoPath = (highestProject?.color is not null)
 									? new ColourIcon(this._context, highestProject.color, "view.png").GetColourIcon()
 									: "view.png",
-								// AutoCompleteText = 
+								AutoCompleteText = $"{query.ActionKeyword} {Settings.ViewCommand} {spanConfiguration.Argument} {groupingConfiguration.Argument} ",
 								Score = (int)group.seconds,
+								Action = c =>
+								{
 								// Action = c =>
+									this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.ViewCommand} {spanConfiguration.Argument} {groupingConfiguration.Argument} {client?.name?.Kebaberize() ?? "No Client"} ", true);
+									return false;
+								}
 							};
 						})
 					);
@@ -1773,8 +1783,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									IcoPath = (project?.color is not null)
 											? new ColourIcon(this._context, project.color, "view.png").GetColourIcon()
 											: "view.png",
-									// AutoCompleteText = 
+									AutoCompleteText = $"{query.ActionKeyword} {Settings.ViewCommand} {spanConfiguration.Argument} {groupingConfiguration.Argument} {((string.IsNullOrEmpty(subGroup.title)) ? "(no description)" : subGroup.title)}",
 									Score = (int)elapsed.TotalSeconds,
+									// TODO: RequestStartEntry
 									// Action = c =>
 								};
 							})
@@ -1784,7 +1795,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				}
 			}
 
-			return results;
+			string nameQuery = Main.ExtractFromQuery(query, ArgumentIndices.Name);
+			return (string.IsNullOrWhiteSpace(nameQuery))
+				? results
+				: results.FindAll(result =>
+				{
+					return this._context.API.FuzzySearch(nameQuery, result.Title).Score > 0;
+				});
 		}
 	}
 }

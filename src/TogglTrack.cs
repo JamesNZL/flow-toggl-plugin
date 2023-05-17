@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Runtime.Caching;
 using Humanizer;
 using TimeSpanParserUtil;
 using Flow.Launcher.Plugin.TogglTrack.TogglApi;
@@ -16,11 +17,10 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		private Settings _settings { get; set; }
 
 		private TogglClient _client;
-
 		private (bool IsValid, string Token) _lastToken = (false, string.Empty);
-		private (Me? me, DateTime LastFetched) _lastMe = (null, DateTime.MinValue);
-		private (TimeEntry? timeEntry, DateTime LastFetched) _lastCurrentlyRunning = (null, DateTime.MinValue);
-		private (List<TimeEntry>? timeEntries, DateTime LastFetched) _lastTimeEntries = (null, DateTime.MinValue);
+
+		private MemoryCache _cache = MemoryCache.Default;
+
 		private long? _selectedProjectId = -1;
 		
 		private enum EditProjectState
@@ -41,17 +41,24 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 		private async ValueTask<Me?> _GetMe(bool force = false)
 		{
-			if (!force && ((DateTime.Now - this._lastMe.LastFetched).TotalDays < 3))
+			const string cacheKey = "Me";
+
+			if (!force && this._cache.Contains(cacheKey))
 			{
-				return this._lastMe.me;
+				return (Me?)this._cache.Get(cacheKey);
 			}
 
 			try
 			{
 				this._context.API.LogInfo("TogglTrack", "Fetching me", "_GetMe");
 				
-				this._lastMe.LastFetched = DateTime.Now;
-				return this._lastMe.me = await this._client.GetMe();
+				var me = await this._client.GetMe();
+
+				#pragma warning disable CS8604 // Possible null reference argument
+				this._cache.Set(cacheKey, me, DateTimeOffset.Now.AddDays(3));
+				#pragma warning restore CS8604 // Possible null reference argument
+
+				return me;
 			}
 			catch (Exception exception)
 			{
@@ -62,17 +69,24 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 		private async ValueTask<TimeEntry?> _GetRunningTimeEntry(bool force = false)
 		{
-			if (!force && ((DateTime.Now - this._lastCurrentlyRunning.LastFetched).TotalSeconds < 30))
+			const string cacheKey = "RunningTimeEntry";
+
+			if (!force && this._cache.Contains(cacheKey))
 			{
-				return this._lastCurrentlyRunning.timeEntry;
+				return (TimeEntry?)this._cache.Get(cacheKey);
 			}
 
 			try
 			{
 				this._context.API.LogInfo("TogglTrack", "Fetching running time entry", "_GetRunningTimeEntry");
 				
-				this._lastCurrentlyRunning.LastFetched = DateTime.Now;
-				return this._lastCurrentlyRunning.timeEntry = await this._client.GetRunningTimeEntry();
+				var runningTimeEntry = await this._client.GetRunningTimeEntry();
+
+				#pragma warning disable CS8604 // Possible null reference argument
+				this._cache.Set(cacheKey, runningTimeEntry, DateTimeOffset.Now.AddSeconds(30));
+				#pragma warning restore CS8604 // Possible null reference argument
+
+				return runningTimeEntry;
 			}
 			catch (Exception exception)
 			{
@@ -83,17 +97,24 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 		private async ValueTask<List<TimeEntry>?> _GetTimeEntries(bool force = false)
 		{
-			if (!force && ((DateTime.Now - this._lastTimeEntries.LastFetched).TotalSeconds < 30))
+			const string cacheKey = "TimeEntries";
+
+			if (!force && this._cache.Contains(cacheKey))
 			{
-				return this._lastTimeEntries.timeEntries;
+				return (List<TimeEntry>?)this._cache.Get(cacheKey);
 			}
 
 			try
 			{
 				this._context.API.LogInfo("TogglTrack", "Fetching time entries", "_GetTimeEntries");
 				
-				this._lastTimeEntries.LastFetched = DateTime.Now;
-				return this._lastTimeEntries.timeEntries = await this._client.GetTimeEntries();
+				var timeEntries = await this._client.GetTimeEntries();
+
+				#pragma warning disable CS8604 // Possible null reference argument
+				this._cache.Set(cacheKey, timeEntries, DateTimeOffset.Now.AddSeconds(30));
+				#pragma warning restore CS8604 // Possible null reference argument
+
+				return timeEntries;
 			}
 			catch (Exception exception)
 			{

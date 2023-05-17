@@ -334,10 +334,10 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			{
 				this._selectedProjectId = -1;
 
-				// Start fetch for running time entries asynchronously in the backgroundd
+				// Start fetch for time entries asynchronously in the backgroundd
 				_ = Task.Run(() =>
 				{
-					_ = this._GetRunningTimeEntry(true);
+					_ = this._GetTimeEntries(true);
 				});
 
 				var projects = new List<Result>

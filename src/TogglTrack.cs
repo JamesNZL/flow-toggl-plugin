@@ -1629,30 +1629,36 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					
 					var project = me.projects?.Find(project => project.id == selectedProjectGroup.id);
 
-					results.AddRange(
-						selectedProjectGroup.sub_groups.ConvertAll(subGroup =>
-						{
-							var elapsed = TimeSpan.FromSeconds(subGroup.seconds);
+					var subResults = selectedProjectGroup.sub_groups.ConvertAll(subGroup =>
+					{
+						var elapsed = TimeSpan.FromSeconds(subGroup.seconds);
 
-							return new Result
-							{
-								Title = (string.IsNullOrEmpty(subGroup.title)) ? "(no description)" : subGroup.title,
-								SubTitle = $"{elapsed.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)elapsed.TotalHours}:{elapsed.ToString(@"mm\:ss")})",
-								IcoPath = (project?.color is not null)
-										? new ColourIcon(this._context, project.color, "view.png").GetColourIcon()
-										: "view.png",
-								AutoCompleteText = $"{query.ActionKeyword} {Settings.ViewCommand} {spanConfiguration.Argument} {groupingConfiguration.Argument} {((string.IsNullOrEmpty(subGroup.title)) ? "(no description)" : subGroup.title)}",
-								Score = (int)elapsed.TotalSeconds,
-								// TODO: RequestStartEntry, clear selectedProject
-								// Action = c =>
-							};
-						})
-					);
+						return new Result
+						{
+							Title = (string.IsNullOrEmpty(subGroup.title)) ? "(no description)" : subGroup.title,
+							SubTitle = $"{elapsed.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)elapsed.TotalHours}:{elapsed.ToString(@"mm\:ss")})",
+							IcoPath = (project?.color is not null)
+									? new ColourIcon(this._context, project.color, "view.png").GetColourIcon()
+									: "view.png",
+							AutoCompleteText = $"{query.ActionKeyword} {Settings.ViewCommand} {spanConfiguration.Argument} {groupingConfiguration.Argument} {((string.IsNullOrEmpty(subGroup.title)) ? "(no description)" : subGroup.title)}",
+							Score = (int)elapsed.TotalSeconds,
+							// TODO: RequestStartEntry, clear selectedProject
+							// Action = c =>
+						};
+					});
+
+					var subTotal = TimeSpan.FromSeconds(selectedProjectGroup.seconds);
+					subResults.Add(new Result
+					{
+						Title = $"{subTotal.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} tracked {spanConfiguration.Interpolation} ({(int)subTotal.TotalHours}:{subTotal.ToString(@"mm\:ss")})",
+						IcoPath = "view.png",
+						Score = (int)subTotal.TotalSeconds,
+					});
 
 					string subNameQuery = Main.ExtractFromQuery(query, ArgumentIndices.SubGroupingName);
 					return (string.IsNullOrWhiteSpace(subNameQuery))
-						? results
-						: results.FindAll(result =>
+						? subResults
+						: subResults.FindAll(result =>
 						{
 							return this._context.API.FuzzySearch(subNameQuery, result.Title).Score > 0;
 						});

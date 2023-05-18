@@ -156,10 +156,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				
 				var summary = await this._client.GetSummaryTimeEntries(workspaceId, userId, reportGrouping, start, end);
 
-				#pragma warning disable CS8604 // Possible null reference argument
 				this._cache.Set(cacheKey, summary, DateTimeOffset.Now.AddSeconds(30));
-				#pragma warning restore CS8604 // Possible null reference argument
-
 				this._summaryTimeEntriesCacheKeys.Add(cacheKey);
 
 				return summary;

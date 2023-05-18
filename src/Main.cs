@@ -1,5 +1,6 @@
 using System.Windows.Controls;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Flow.Launcher.Plugin.TogglTrack.ViewModels;
@@ -17,6 +18,14 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		private Settings? _settings;
 
 		internal TogglTrack? _togglTrack;
+
+		public static string ExtractFromQuery(Query query, int index)
+		{
+			return (index == 1)
+				// Expect slight performance improvement by using query.SecondToEndSearch directly
+				? query.SecondToEndSearch
+				: string.Join(" ", query.SearchTerms.Skip(index));
+		}
 
 		/// <summary>
 		/// Runs on plugin initialisation.
@@ -72,13 +81,14 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				return await this._togglTrack.GetDefaultHotKeys();
 			}
 
-			return query.FirstSearch.ToLower() switch
+			return (query.FirstSearch.ToLower()) switch
 			{
 				Settings.StartCommand => await this._togglTrack.RequestStartEntry(token, query),
 				Settings.EditCommand => await this._togglTrack.RequestEditEntry(token, query),
 				Settings.StopCommand => await this._togglTrack.RequestStopEntry(token, query),
 				Settings.DeleteCommand => await this._togglTrack.RequestDeleteEntry(token),
 				Settings.ContinueCommand => await this._togglTrack.RequestContinueEntry(token, query),
+				Settings.ReportsCommand => await this._togglTrack.RequestViewReports(token, query),
 				_ => (await this._togglTrack.GetDefaultHotKeys())
 					.FindAll(result =>
 					{

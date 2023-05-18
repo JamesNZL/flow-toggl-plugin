@@ -21,6 +21,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		private (bool IsValid, string Token) _lastToken = (false, string.Empty);
 
 		private MemoryCache _cache = MemoryCache.Default;
+		private List<string> _summaryTimeEntriesCacheKeys = new List<string>();
 
 		private long? _selectedProjectId = -1;
 		private long? _selectedClientId = -1;
@@ -125,7 +126,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 		}
 
-		// TODO: need way to invalidate all caches
 		private async ValueTask<SummaryTimeEntry?> _GetSummaryTimeEntries(long workspaceId, long userId, Settings.ViewGroupingKeys reportGrouping, DateTimeOffset start, DateTimeOffset? end, bool force = false)
 		{
 			string cacheKey = $"SummaryTimeEntries{workspaceId}{userId}{(int)reportGrouping}{start.ToString("yyyy-MM-dd")}{end?.ToString("yyyy-MM-dd")}";
@@ -145,6 +145,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				this._cache.Set(cacheKey, summary, DateTimeOffset.Now.AddSeconds(30));
 				#pragma warning restore CS8604 // Possible null reference argument
 
+				this._summaryTimeEntriesCacheKeys.Add(cacheKey);
+
 				return summary;
 			}
 			catch (Exception exception)
@@ -154,14 +156,21 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 		}
 
-		internal void RefreshCache()
+		private void _ClearSummaryTimeEntriesCache()
+		{
+			this._summaryTimeEntriesCacheKeys.ForEach(key => this._cache.Remove(key));
+			this._summaryTimeEntriesCacheKeys.Clear();
+		}
+
+		internal void RefreshCache(bool refreshMe = false)
 		{
 			_ = Task.Run(() =>
 			{
 				// This is the main one that needs to be run
-				_ = this._GetMe(true);
+				_ = this._GetMe(refreshMe);
 				_ = this._GetRunningTimeEntry(true);
 				_ = this._GetTimeEntries(true);
+				this._ClearSummaryTimeEntriesCache();
 			});
 		}
 
@@ -171,6 +180,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			{
 				return false;
 			}
+
+			// TODO: this equal does not work
 
 			if (this._settings.ApiToken.Equals(this._lastToken.Token))
 			{
@@ -185,9 +196,14 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 
 			this._client.UpdateToken(this._settings.ApiToken);
-			// TODO: refresh all caches
 
-			return this._lastToken.IsValid = (await this._GetMe(true))?.api_token?.Equals(this._settings.ApiToken) ?? false;
+			this._lastToken.IsValid = (await this._GetMe(true))?.api_token?.Equals(this._settings.ApiToken) ?? false;
+			if (this._lastToken.IsValid)
+			{
+				this.RefreshCache(true);
+			}
+
+			return this._lastToken.IsValid;
 		}
 
 		internal List<Result> NotifyMissingToken()
@@ -329,7 +345,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					Score = -100,
 					Action = c =>
 					{
-						this.RefreshCache();
+						this.RefreshCache(true);
 						return true;
 					},
 				},
@@ -511,11 +527,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								this._context.API.ShowMsg($"Started {createdTimeEntry.description}", projectName, "start.png");
 
 								// Update cached running time entry state
-								_ = Task.Run(() =>
-								{
-									_ = this._GetRunningTimeEntry(true);
-									_ = this._GetTimeEntries(true);
-								});
+								this.RefreshCache();
 							}
 							catch (Exception exception)
 							{
@@ -595,11 +607,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									this._context.API.ShowMsg($"Started {createdTimeEntry.description}{((string.IsNullOrEmpty(sanitisedDescription) ? string.Empty : " "))}{startTime.Humanize()}", projectName, "start.png");
 
 									// Update cached running time entry state
-									_ = Task.Run(() =>
-									{
-										_ = this._GetRunningTimeEntry(true);
-										_ = this._GetTimeEntries(true);
-									});
+									this.RefreshCache();
 								}
 								catch (Exception exception)
 								{
@@ -682,11 +690,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							this._context.API.ShowMsg($"Started {createdTimeEntry.description}{((string.IsNullOrEmpty(description) ? string.Empty : " "))}at previous stop time", projectName, "start.png");
 
 							// Update cached running time entry state
-							_ = Task.Run(() =>
-							{
-								_ = this._GetRunningTimeEntry(true);
-								_ = this._GetTimeEntries(true);
-							});
+							this.RefreshCache();
 						}
 						catch (Exception exception)
 						{
@@ -873,11 +877,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								this._context.API.ShowMsg($"Edited {editedTimeEntry.description}", $"{projectName} | {(int)elapsed.TotalHours}:{elapsed.ToString(@"mm\:ss")}", "edit.png");
 
 								// Update cached running time entry state
-								_ = Task.Run(() =>
-								{
-									_ = this._GetRunningTimeEntry(true);
-									_ = this._GetTimeEntries(true);
-								});
+								this.RefreshCache();
 							}
 							catch (Exception exception)
 							{
@@ -967,11 +967,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									this._context.API.ShowMsg($"Edited {editedTimeEntry.description}", $"{projectName} | {(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")}", "edit.png");
 
 									// Update cached running time entry state
-									_ = Task.Run(() =>
-									{
-										_ = this._GetRunningTimeEntry(true);
-										_ = this._GetTimeEntries(true);
-									});
+									this.RefreshCache();
 								}
 								catch (Exception exception)
 								{
@@ -1103,11 +1099,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								this._context.API.ShowMsg($"Stopped {stoppedTimeEntry.description}", $"{(int)elapsed.TotalHours}:{elapsed.ToString(@"mm\:ss")} elapsed", "stop.png");
 
 								// Update cached running time entry state
-								_ = Task.Run(() =>
-								{
-									_ = this._GetRunningTimeEntry(true);
-									_ = this._GetTimeEntries(true);
-								});
+								this.RefreshCache();
 							}
 							catch (Exception exception)
 							{
@@ -1187,11 +1179,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								this._context.API.ShowMsg($"Stopped {stoppedTimeEntry.description}", $"{(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")} elapsed", "stop.png");
 
 								// Update cached running time entry state
-								_ = Task.Run(() =>
-								{
-									_ = this._GetRunningTimeEntry(true);
-									_ = this._GetTimeEntries(true);
-								});
+								this.RefreshCache();
 							}
 							catch (Exception exception)
 							{
@@ -1295,11 +1283,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								this._context.API.ShowMsg($"Deleted {runningTimeEntry.description}", $"{(int)elapsed.TotalHours}:{elapsed.ToString(@"mm\:ss")} elapsed", "delete.png");
 
 								// Update cached running time entry state
-								_ = Task.Run(() =>
-								{
-									_ = this._GetRunningTimeEntry(true);
-									_ = this._GetTimeEntries(true);
-								});
+								this.RefreshCache();
 							}
 							catch (Exception exception)
 							{
@@ -1653,6 +1637,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							IcoPath = (project?.color is not null)
 									? new ColourIcon(this._context, project.color, "view.png").GetColourIcon()
 									: "view.png",
+							//	TODO: project name
 							AutoCompleteText = $"{query.ActionKeyword} {Settings.ViewCommand} {spanConfiguration.Argument} {groupingConfiguration.Argument} {((string.IsNullOrEmpty(subGroup.title)) ? "(no description)" : subGroup.title)}",
 							Score = (int)elapsed.TotalSeconds,
 							Action = c =>
@@ -1760,6 +1745,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									IcoPath = (highestProject?.color is not null)
 										? new ColourIcon(this._context, highestProject.color, "view.png").GetColourIcon()
 										: "view.png",
+									// TODO: client name
 									AutoCompleteText = $"{query.ActionKeyword} {Settings.ViewCommand} {spanConfiguration.Argument} {groupingConfiguration.Argument} ",
 									Score = (int)group.seconds,
 									Action = c =>

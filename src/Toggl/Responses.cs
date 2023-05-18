@@ -3,12 +3,12 @@ using System.Linq;
 
 namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 {
-	public class Me
+	public class MeResponse
 	{
 		public string? api_token { get; set; }
 		// public string? at { get; set; }
 		// public long? beginning_of_week { get; set; }
-		public List<Client>? clients { get; set; }
+		public List<ClientResponse>? clients { get; set; }
 		// public long? country_id { get; set; }
 		// public string? created_at { get; set; }
 		public long default_workspace_id { get; set; }
@@ -21,7 +21,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 		// public List<string>? oath_providers { get; set; }
 		// public string? openid_email { get; set; }
 		// public bool? openid_enabled { get; set; }
-		public List<Project>? projects { get; set; }
+		public List<ProjectResponse>? projects { get; set; }
 		// public List<Tasks>? tasks { get; set; }
 		// public List<Tag>? tags { get; set; }
 		// public List<TimeEntry>? time_entries { get; set; }
@@ -30,36 +30,36 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 		// public List<Workspace>? workspaces { get; set; }
 	}
 
-	public class Workspace
-	{
-		// public bool? admin { get; set; }
-		// public string? api_token { get; set; }
-		// public string? at { get; set; }
-		// public bool? business_ws { get; set; }
-		// public string? default_currency { get; set; }
-		// public float? default_hourly_rate { get; set; }
-		// public bool? ical_enabled { get; set; }
-		// public string? ical_url { get; set; }
-		// public long? id { get; set; }
-		// public string? logo_url { get; set; }
-		// public string? name { get; set; }
-		// public bool? only_admins_may_create_projects { get; set; }
-		// public bool? only_admins_may_create_tags { get; set; }
-		// public bool? only_admins_see_billable_rates { get; set; }
-		// public bool? only_admins_see_team_dashboard { get; set; }
-		// public long? organization_id { get; set; }
-		// public bool? premium { get; set; }
-		// public long? profile { get; set; }
-		// public bool? projects_billable_by_default { get; set; }
-		// public string? rate_last_updated { get; set; }
-		// public bool? reports_collapse { get; set; }
-		// public long? rounding { get; set; }
-		// public long? rounding_minutes { get; set; }
-		// public string? server_deleted_at { get; set; }
-		// public string? suspended_at { get; set; }
-	}
+	// public class WorkspaceResponse
+	// {
+	// 	// public bool? admin { get; set; }
+	// 	// public string? api_token { get; set; }
+	// 	// public string? at { get; set; }
+	// 	// public bool? business_ws { get; set; }
+	// 	// public string? default_currency { get; set; }
+	// 	// public float? default_hourly_rate { get; set; }
+	// 	// public bool? ical_enabled { get; set; }
+	// 	// public string? ical_url { get; set; }
+	// 	// public long? id { get; set; }
+	// 	// public string? logo_url { get; set; }
+	// 	// public string? name { get; set; }
+	// 	// public bool? only_admins_may_create_projects { get; set; }
+	// 	// public bool? only_admins_may_create_tags { get; set; }
+	// 	// public bool? only_admins_see_billable_rates { get; set; }
+	// 	// public bool? only_admins_see_team_dashboard { get; set; }
+	// 	// public long? organization_id { get; set; }
+	// 	// public bool? premium { get; set; }
+	// 	// public long? profile { get; set; }
+	// 	// public bool? projects_billable_by_default { get; set; }
+	// 	// public string? rate_last_updated { get; set; }
+	// 	// public bool? reports_collapse { get; set; }
+	// 	// public long? rounding { get; set; }
+	// 	// public long? rounding_minutes { get; set; }
+	// 	// public string? server_deleted_at { get; set; }
+	// 	// public string? suspended_at { get; set; }
+	// }
 
-	public class Client
+	public class ClientResponse
 	{
 		// public bool? archived { get; set; }
 		// public string? at { get; set; }
@@ -69,7 +69,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 		// public long? wid { get; set; }
 	}
 
-	public class Project
+	public class ProjectResponse
 	{
 		public bool? active { get; set; }
 		public int? actual_hours { get; set; }
@@ -98,31 +98,31 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 		public long? workspace_id { get; set; }
 	}
 
-	public class Tasks
-	{
-		// public bool? active { get; set; }
-		// public string? at { get; set; }
-		// public long? estimated_seconds { get; set; }
-		// public long? id { get; set; }
-		// public string? name { get; set; }
-		// public long? project_id { get; set; }
-		// public bool? recurring { get; set; }
-		// public string? server_deleted_at { get; set; }
-		// public long? tracked_seconds { get; set; }
-		// public long? user_id { get; set; }
-		// public long? workspace_id { get; set; }
-	}
+	// public class TasksResponse
+	// {
+	// 	// public bool? active { get; set; }
+	// 	// public string? at { get; set; }
+	// 	// public long? estimated_seconds { get; set; }
+	// 	// public long? id { get; set; }
+	// 	// public string? name { get; set; }
+	// 	// public long? project_id { get; set; }
+	// 	// public bool? recurring { get; set; }
+	// 	// public string? server_deleted_at { get; set; }
+	// 	// public long? tracked_seconds { get; set; }
+	// 	// public long? user_id { get; set; }
+	// 	// public long? workspace_id { get; set; }
+	// }
 
-	public class Tag
-	{
-		// public string? at { get; set; }
-		// public string? deleted_at { get; set; }
-		// public long? id { get; set; }
-		// public string? name { get; set; }
-		// public long? workspace_id { get; set; }
-	}
+	// public class TagResponse
+	// {
+	// 	// public string? at { get; set; }
+	// 	// public string? deleted_at { get; set; }
+	// 	// public long? id { get; set; }
+	// 	// public string? name { get; set; }
+	// 	// public long? workspace_id { get; set; }
+	// }
 
-	public class TimeEntry
+	public class TimeEntryResponse
 	{
 		// public string? at { get; set; }
 		public bool? billable { get; set; }
@@ -145,22 +145,22 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 		public long workspace_id { get; set; }
 	}
 
-	public class SummaryTimeEntry
+	public class SummaryTimeEntryResponse
 	{
-		public List<SummaryTimeEntryGroup>? groups { get; set; }
+		public List<SummaryTimeEntryGroupResponse>? groups { get; set; }
 	}
 
-	public class SummaryTimeEntryGroup
+	public class SummaryTimeEntryGroupResponse
 	{
 		public long? id { get; set; }
-		public List<SummaryTimeEntrySubGroup>? sub_groups { get; set; }
+		public List<SummaryTimeEntrySubGroupResponse>? sub_groups { get; set; }
 		public long seconds
 		{
 			get => this?.sub_groups?.Sum(subGroup => subGroup.seconds) ?? 0;
 		}
 	}
 
-	public class SummaryTimeEntrySubGroup
+	public class SummaryTimeEntrySubGroupResponse
 	{
 		public long? id { get; set; }
 		public string? title { get; set; }

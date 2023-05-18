@@ -42,7 +42,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			this._client = new TogglClient(this._settings.ApiToken);
 		}
 
-		private async ValueTask<Me?> _GetMe(bool force = false)
+		private async ValueTask<MeResponse?> _GetMe(bool force = false)
 		{
 			const string cacheKey = "Me";
 
@@ -52,7 +52,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			if ((!force || hasWaited) && this._cache.Contains(cacheKey))
 			{
 				this._semaphores.Me.Release();
-				return (Me?)this._cache.Get(cacheKey);
+				return (MeResponse?)this._cache.Get(cacheKey);
 			}
 
 			try
@@ -75,7 +75,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 		}
 
-		private async ValueTask<TimeEntry?> _GetRunningTimeEntry(bool force = false)
+		private async ValueTask<TimeEntryResponse?> _GetRunningTimeEntry(bool force = false)
 		{
 			const string cacheKey = "RunningTimeEntry";
 
@@ -85,7 +85,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			if ((!force || hasWaited) && this._cache.Contains(cacheKey))
 			{
 				this._semaphores.RunningTimeEntries.Release();
-				return (TimeEntry?)this._cache.Get(cacheKey);
+				return (TimeEntryResponse?)this._cache.Get(cacheKey);
 			}
 
 			try
@@ -108,7 +108,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 		}
 
-		private async ValueTask<List<TimeEntry>?> _GetTimeEntries(bool force = false)
+		private async ValueTask<List<TimeEntryResponse>?> _GetTimeEntries(bool force = false)
 		{
 			const string cacheKey = "TimeEntries";
 
@@ -118,7 +118,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			if ((!force || hasWaited) && this._cache.Contains(cacheKey))
 			{
 				this._semaphores.TimeEntries.Release();
-				return (List<TimeEntry>?)this._cache.Get(cacheKey);
+				return (List<TimeEntryResponse>?)this._cache.Get(cacheKey);
 			}
 
 			try
@@ -141,13 +141,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 		}
 
-		private async ValueTask<SummaryTimeEntry?> _GetSummaryTimeEntries(long workspaceId, long userId, Settings.ReportsGroupingKeys reportGrouping, DateTimeOffset start, DateTimeOffset? end, bool force = false)
+		private async ValueTask<SummaryTimeEntryResponse?> _GetSummaryTimeEntries(long workspaceId, long userId, Settings.ReportsGroupingKeys reportGrouping, DateTimeOffset start, DateTimeOffset? end, bool force = false)
 		{
 			string cacheKey = $"SummaryTimeEntries{workspaceId}{userId}{(int)reportGrouping}{start.ToString("yyyy-MM-dd")}{end?.ToString("yyyy-MM-dd")}";
 
 			if (!force && this._cache.Contains(cacheKey))
 			{
-				return (SummaryTimeEntry?)this._cache.Get(cacheKey);
+				return (SummaryTimeEntryResponse?)this._cache.Get(cacheKey);
 			}
 
 			try
@@ -1601,8 +1601,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					if (runningTimeEntry is not null)
 					{
 						// Perform deep copy of summary so the cache is not mutated
-						var serialisedSummary = JsonSerializer.Serialize<SummaryTimeEntry>(summary);
-						summary = JsonSerializer.Deserialize<SummaryTimeEntry>(serialisedSummary);
+						var serialisedSummary = JsonSerializer.Serialize<SummaryTimeEntryResponse>(summary);
+						summary = JsonSerializer.Deserialize<SummaryTimeEntryResponse>(serialisedSummary);
 						if ((summary is null) || (summary.groups is null))
 						{
 							return results;
@@ -1617,7 +1617,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						}
 						else if (projectGroup?.sub_groups is not null)
 						{
-							projectGroup.sub_groups.Add(new SummaryTimeEntrySubGroup
+							projectGroup.sub_groups.Add(new SummaryTimeEntrySubGroupResponse
 							{
 								title = runningTimeEntry.description,
 								seconds = (int)runningElapsed.TotalSeconds,
@@ -1625,9 +1625,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						}
 						else if (projectGroup is not null)
 						{
-							projectGroup.sub_groups = new List<SummaryTimeEntrySubGroup>
+							projectGroup.sub_groups = new List<SummaryTimeEntrySubGroupResponse>
 							{
-								new SummaryTimeEntrySubGroup
+								new SummaryTimeEntrySubGroupResponse
 								{
 									title = runningTimeEntry.description,
 									seconds = (int)runningElapsed.TotalSeconds,
@@ -1636,12 +1636,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						}
 						else
 						{
-							summary.groups.Add(new SummaryTimeEntryGroup
+							summary.groups.Add(new SummaryTimeEntryGroupResponse
 							{
 								id = runningTimeEntry.project_id,
-								sub_groups = new List<SummaryTimeEntrySubGroup>
+								sub_groups = new List<SummaryTimeEntrySubGroupResponse>
 								{
-									new SummaryTimeEntrySubGroup
+									new SummaryTimeEntrySubGroupResponse
 									{
 										title = runningTimeEntry.description,
 										seconds = (int)runningElapsed.TotalSeconds,
@@ -1742,14 +1742,14 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					if (runningTimeEntry is not null)
 					{
 						// Perform deep copy of summary so the cache is not mutated
-						var serialisedSummary = JsonSerializer.Serialize<SummaryTimeEntry>(summary);
-						summary = JsonSerializer.Deserialize<SummaryTimeEntry>(serialisedSummary);
+						var serialisedSummary = JsonSerializer.Serialize<SummaryTimeEntryResponse>(summary);
+						summary = JsonSerializer.Deserialize<SummaryTimeEntryResponse>(serialisedSummary);
 						if ((summary is null) || (summary.groups is null))
 						{
 							return results;
 						}
 
-						Project? runningProject = me.projects?.Find(project => project.id == runningTimeEntry.project_id);
+						ProjectResponse? runningProject = me.projects?.Find(project => project.id == runningTimeEntry.project_id);
 
 						if (runningProject?.client_id is not null)
 						{
@@ -1762,7 +1762,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							}
 							else if (clientGroup?.sub_groups is not null)
 							{
-								clientGroup.sub_groups.Add(new SummaryTimeEntrySubGroup
+								clientGroup.sub_groups.Add(new SummaryTimeEntrySubGroupResponse
 								{
 									title = runningTimeEntry.description,
 									seconds = (int)runningElapsed.TotalSeconds,
@@ -1770,9 +1770,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							}
 							else if (clientGroup is not null)
 							{
-								clientGroup.sub_groups = new List<SummaryTimeEntrySubGroup>
+								clientGroup.sub_groups = new List<SummaryTimeEntrySubGroupResponse>
 								{
-									new SummaryTimeEntrySubGroup
+									new SummaryTimeEntrySubGroupResponse
 									{
 										title = runningTimeEntry.description,
 										seconds = (int)runningElapsed.TotalSeconds,
@@ -1781,12 +1781,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							}
 							else
 							{
-								summary.groups.Add(new SummaryTimeEntryGroup
+								summary.groups.Add(new SummaryTimeEntryGroupResponse
 								{
 									id = runningTimeEntry.project_id,
-									sub_groups = new List<SummaryTimeEntrySubGroup>
+									sub_groups = new List<SummaryTimeEntrySubGroupResponse>
 									{
-										new SummaryTimeEntrySubGroup
+										new SummaryTimeEntrySubGroupResponse
 										{
 											title = runningTimeEntry.description,
 											seconds = (int)runningElapsed.TotalSeconds,
@@ -1891,8 +1891,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					if (runningTimeEntry is not null)
 					{
 						// Perform deep copy of summary so the cache is not mutated
-						var serialisedSummary = JsonSerializer.Serialize<SummaryTimeEntry>(summary);
-						summary = JsonSerializer.Deserialize<SummaryTimeEntry>(serialisedSummary);
+						var serialisedSummary = JsonSerializer.Serialize<SummaryTimeEntryResponse>(summary);
+						summary = JsonSerializer.Deserialize<SummaryTimeEntryResponse>(serialisedSummary);
 						if ((summary is null) || (summary.groups is null))
 						{
 							return results;
@@ -1907,7 +1907,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						}
 						else if (projectGroup?.sub_groups is not null)
 						{
-							projectGroup.sub_groups.Add(new SummaryTimeEntrySubGroup
+							projectGroup.sub_groups.Add(new SummaryTimeEntrySubGroupResponse
 							{
 								title = runningTimeEntry.description,
 								seconds = (int)runningElapsed.TotalSeconds,
@@ -1915,9 +1915,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						}
 						else if (projectGroup is not null)
 						{
-							projectGroup.sub_groups = new List<SummaryTimeEntrySubGroup>
+							projectGroup.sub_groups = new List<SummaryTimeEntrySubGroupResponse>
 							{
-								new SummaryTimeEntrySubGroup
+								new SummaryTimeEntrySubGroupResponse
 								{
 									title = runningTimeEntry.description,
 									seconds = (int)runningElapsed.TotalSeconds,
@@ -1926,12 +1926,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						}
 						else
 						{
-							summary.groups.Add(new SummaryTimeEntryGroup
+							summary.groups.Add(new SummaryTimeEntryGroupResponse
 							{
 								id = runningTimeEntry.project_id,
-								sub_groups = new List<SummaryTimeEntrySubGroup>
+								sub_groups = new List<SummaryTimeEntrySubGroupResponse>
 								{
-									new SummaryTimeEntrySubGroup
+									new SummaryTimeEntrySubGroupResponse
 									{
 										title = runningTimeEntry.description,
 										seconds = (int)runningElapsed.TotalSeconds,

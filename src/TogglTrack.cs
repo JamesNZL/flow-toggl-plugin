@@ -1671,8 +1671,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									Action = c =>
 									{
 										this._selectedProjectId = project?.id;
-										// TODO: bug-fix
-										this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} {project?.name?.Kebaberize() ?? "No Project"} ", true);
+										this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} {project?.name?.Kebaberize() ?? "no-project"} ", true);
 										return false;
 									}
 								};
@@ -1821,7 +1820,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									Action = c =>
 									{
 										this._selectedClientId = client?.id;
-										this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} {client?.name?.Kebaberize() ?? "No Client"} ", true);
+										this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} {client?.name?.Kebaberize() ?? "no-client"} ", true);
 										return false;
 									}
 								};
@@ -1851,7 +1850,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							IcoPath = (project?.color is not null)
 								? new ColourIcon(this._context, project.color, "reports.png").GetColourIcon()
 								: "reports.png",
-							AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} {client?.name?.Kebaberize() ?? "No Client"} ",
+							AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} {client?.name?.Kebaberize() ?? "no-client"} ",
 							Score = (int)subGroup.seconds,
 							Action = c =>
 							{
@@ -1863,7 +1862,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									throw new Exception("Invalid ViewGroupingCommandArgument configuration: Missing 'SubArgument' field.");
 								}
 
-								this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingConfiguration.SubArgument} {project?.name?.Kebaberize() ?? "No Project"} ", true);
+								this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingConfiguration.SubArgument} {project?.name?.Kebaberize() ?? "no-project"} ", true);
 								return false;
 							}
 						};

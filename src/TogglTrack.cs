@@ -804,7 +804,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				new Result
 				{
 					Title = (string.IsNullOrEmpty(description)) ? ((string.IsNullOrEmpty(runningTimeEntry.description)) ? "(no description)" : runningTimeEntry.description) : description,
-					SubTitle = $"{projectName} | {elapsed.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)elapsed.TotalHours}:{elapsed.ToString(@"mm\:ss")})",
+					SubTitle = $"{projectName} | {elapsed.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)elapsed.TotalHours}:{elapsed.ToString(@"mm\:ss")})",
 					IcoPath = (project?.color is not null)
 						? new ColourIcon(this._context, project.color, "edit.png").GetColourIcon()
 						: "edit.png",
@@ -893,7 +893,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					results.Add(new Result
 					{
 						Title = (string.IsNullOrEmpty(sanitisedDescription)) ? ((string.IsNullOrEmpty(runningTimeEntry.description)) ? "(no description)" : runningTimeEntry.description) : sanitisedDescription,
-						SubTitle = $"{projectName} | {newElapsed.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")})",
+						SubTitle = $"{projectName} | {newElapsed.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")})",
 						IcoPath = (project?.color is not null)
 							? new ColourIcon(this._context, project.color, "edit.png").GetColourIcon()
 							: "edit.png",
@@ -1029,7 +1029,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				new Result
 				{
 					Title = $"Stop {((string.IsNullOrEmpty(runningTimeEntry.description)) ? "(no description)" : runningTimeEntry.description)} now",
-					SubTitle = $"{projectName} | {elapsed.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)elapsed.TotalHours}:{elapsed.ToString(@"mm\:ss")})",
+					SubTitle = $"{projectName} | {elapsed.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)elapsed.TotalHours}:{elapsed.ToString(@"mm\:ss")})",
 					IcoPath = (project?.color is not null)
 						? new ColourIcon(this._context, project.color, "stop.png").GetColourIcon()
 						: "stop.png",
@@ -1113,7 +1113,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				results.Add(new Result
 				{
 					Title = $"Stop {((string.IsNullOrEmpty(runningTimeEntry.description)) ? "(no description)" : runningTimeEntry.description)} {stopTime.Humanize()}",
-					SubTitle = $"{projectName} | {newElapsed.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")})",
+					SubTitle = $"{projectName} | {newElapsed.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")})",
 					IcoPath = (project?.color is not null)
 							? new ColourIcon(this._context, project.color, "stop.png").GetColourIcon()
 							: "stop.png",
@@ -1222,7 +1222,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				new Result
 				{
 					Title = $"Delete {((string.IsNullOrEmpty(runningTimeEntry.description)) ? "(no description)" : runningTimeEntry.description)}",
-					SubTitle = $"{projectName} | {elapsed.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)elapsed.TotalHours}:{elapsed.ToString(@"mm\:ss")})",
+					SubTitle = $"{projectName} | {elapsed.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)elapsed.TotalHours}:{elapsed.ToString(@"mm\:ss")})",
 					IcoPath = (project?.color is not null)
 						? new ColourIcon(this._context, project.color, "delete.png").GetColourIcon()
 						: "delete.png",
@@ -1314,7 +1314,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				return new Result
 				{
 					Title = (string.IsNullOrEmpty(timeEntry.description)) ? "(no description)" : timeEntry.description,
-					SubTitle = $"{projectName} | {elapsed.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({DateTime.Parse(timeEntry.start!).Humanize(false)})",
+					SubTitle = $"{projectName} | {elapsed.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({DateTime.Parse(timeEntry.start!).Humanize(false)})",
 					IcoPath = (project?.color is not null)
 							? new ColourIcon(this._context, project.color, "continue.png").GetColourIcon()
 							: "continue.png",

@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Runtime.Caching;
 using Humanizer;
 using TimeSpanParserUtil;
 using Flow.Launcher.Plugin.TogglTrack.TogglApi;
@@ -21,7 +20,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		private (bool IsValid, string Token) _lastToken = (false, string.Empty);
 
 		private readonly (SemaphoreSlim Token, SemaphoreSlim Me, SemaphoreSlim RunningTimeEntries, SemaphoreSlim TimeEntries) _semaphores = (new SemaphoreSlim(1, 1), new SemaphoreSlim(1, 1), new SemaphoreSlim(1, 1), new SemaphoreSlim(1, 1));
-		private MemoryCache _cache = MemoryCache.Default;
+		private NullableCache _cache = new NullableCache();
 		private List<string> _summaryTimeEntriesCacheKeys = new List<string>();
 
 		private long? _selectedProjectId = -1;
@@ -47,9 +46,10 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		{
 			const string cacheKey = "Me";
 
+			bool hasWaited = (this._semaphores.Me.CurrentCount == 0);
 			await this._semaphores.Me.WaitAsync();
 
-			if ((!force || this._semaphores.Me.CurrentCount == 0) && this._cache.Contains(cacheKey))
+			if ((!force || hasWaited) && this._cache.Contains(cacheKey))
 			{
 				this._semaphores.Me.Release();
 				return (Me?)this._cache.Get(cacheKey);
@@ -61,9 +61,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				
 				var me = await this._client.GetMe();
 
-				#pragma warning disable CS8604 // Possible null reference argument
 				this._cache.Set(cacheKey, me, DateTimeOffset.Now.AddDays(3));
-				#pragma warning restore CS8604 // Possible null reference argument
 
 				this._semaphores.Me.Release();
 				return me;
@@ -81,9 +79,10 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		{
 			const string cacheKey = "RunningTimeEntry";
 
+			bool hasWaited = (this._semaphores.RunningTimeEntries.CurrentCount == 0);
 			await this._semaphores.RunningTimeEntries.WaitAsync();
 
-			if ((!force || this._semaphores.RunningTimeEntries.CurrentCount == 0) && this._cache.Contains(cacheKey))
+			if ((!force || hasWaited) && this._cache.Contains(cacheKey))
 			{
 				this._semaphores.RunningTimeEntries.Release();
 				return (TimeEntry?)this._cache.Get(cacheKey);
@@ -95,9 +94,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 				var runningTimeEntry = await this._client.GetRunningTimeEntry();
 
-				#pragma warning disable CS8604 // Possible null reference argument
 				this._cache.Set(cacheKey, runningTimeEntry, DateTimeOffset.Now.AddSeconds(30));
-				#pragma warning restore CS8604 // Possible null reference argument
 
 				this._semaphores.RunningTimeEntries.Release();
 				return runningTimeEntry;
@@ -115,9 +112,10 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		{
 			const string cacheKey = "TimeEntries";
 
+			bool hasWaited = (this._semaphores.TimeEntries.CurrentCount == 0);
 			await this._semaphores.TimeEntries.WaitAsync();
 
-			if (!force && this._cache.Contains(cacheKey))
+			if ((!force || hasWaited) && this._cache.Contains(cacheKey))
 			{
 				this._semaphores.TimeEntries.Release();
 				return (List<TimeEntry>?)this._cache.Get(cacheKey);
@@ -129,9 +127,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				
 				var timeEntries = await this._client.GetTimeEntries();
 
-				#pragma warning disable CS8604 // Possible null reference argument
 				this._cache.Set(cacheKey, timeEntries, DateTimeOffset.Now.AddSeconds(30));
-				#pragma warning restore CS8604 // Possible null reference argument
 
 				this._semaphores.TimeEntries.Release();
 				return timeEntries;
@@ -215,7 +211,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 
 			this._client.UpdateToken(this._settings.ApiToken);
-
 
 			this._lastToken.IsValid = (await this._GetMe(true))?.api_token?.Equals(this._settings.ApiToken) ?? false;
 			this._lastToken.Token = this._settings.ApiToken;

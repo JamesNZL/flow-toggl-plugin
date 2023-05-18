@@ -1,4 +1,5 @@
 using System;
+using System.Text.RegularExpressions;
 using System.Collections.Generic;
 
 namespace Flow.Launcher.Plugin.TogglTrack
@@ -27,46 +28,115 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			Month,
 			Year,
 		}
+		internal static readonly Regex ReportsSpanOffsetRegex = new Regex(@"-(\d+)");
 		internal static readonly List<ReportsSpanCommandArgument> ReportsSpanArguments = new List<ReportsSpanCommandArgument>
 		{
 			new ReportsSpanCommandArgument
 			{
 				Argument = "day",
-				Interpolation = "today",
+				Interpolation = offset => 
+				{
+					switch (offset)
+					{
+						case (0):
+						{
+							return "today";
+						}
+						case (1):
+						{
+							return "yesterday";
+						}
+						default:
+						{
+							return $"{offset} days ago";
+						}
+					}
+				},
 				Score = 400,
-				// Today
-				Start = now => now,
-				End = now => now,
+				// Offsetted day
+				Start = (referenceDate, offset) => referenceDate.AddDays(-offset),
+				End = (referenceDate, offset) => referenceDate.AddDays(-offset),
 			},
 			new ReportsSpanCommandArgument
 			{
 				Argument = "week",
-				Interpolation = "this week",
+				Interpolation = offset => 
+				{
+					switch (offset)
+					{
+						case (0):
+						{
+							return "this week";
+						}
+						case (1):
+						{
+							return "last week";
+						}
+						default:
+						{
+							return $"{offset} weeks ago";
+						}
+					}
+				},
 				Score = 300,
-				// Monday of the current week
-				Start = now => now.AddDays(-(int)now.DayOfWeek + 1),
-				// Sunday of the current week
-				End = now => now.AddDays(-(int)now.DayOfWeek + 7),
+				// Monday of the offsetted week
+				Start = (referenceDate, offset) => referenceDate.AddDays((-(int)referenceDate.DayOfWeek + 1) - (7 * offset)),
+				// Sunday of the offsetted week
+				End = (referenceDate, offset) => referenceDate.AddDays((-(int)referenceDate.DayOfWeek + 7) - (7 * offset)),
 			},
 			new ReportsSpanCommandArgument
 			{
 				Argument = "month",
-				Interpolation = "this month",
+				Interpolation = offset => 
+				{
+					switch (offset)
+					{
+						case (0):
+						{
+							return "this month";
+						}
+						case (1):
+						{
+							return "last month";
+						}
+						default:
+						{
+							return $"{offset} months ago";
+						}
+					}
+				},
 				Score = 200,
-				// First day of the current month
-				Start = now => new DateTimeOffset(now.Year, now.Month, 1, 0, 0, 0, now.Offset),
-				// Last day of the current month
-				End = now => new DateTimeOffset(now.Year, now.Month, DateTime.DaysInMonth(now.Year, now.Month), 0, 0, 0, now.Offset),
+				// First day of the offsetted month
+				Start = (referenceDate, offset) => new DateTimeOffset(referenceDate.Year, referenceDate.Month, 1, 0, 0, 0, referenceDate.Offset).AddMonths(-offset),
+				// Last day of the offsetted month
+				End = (referenceDate, offset) => new DateTimeOffset(referenceDate.Year, referenceDate.Month, DateTime.DaysInMonth(referenceDate.Year, referenceDate.Month), 0, 0, 0, referenceDate.Offset).AddMonths(-offset),
 			},
 			new ReportsSpanCommandArgument
 			{
 				Argument = "year",
-				Interpolation = "this year",
+				Interpolation = offset => 
+				{
+					switch (offset)
+					{
+						case (0):
+						{
+							return "this year";
+						}
+						case (1):
+						{
+							return "last year";
+						}
+						default:
+						{
+							return $"{offset} years ago";
+						}
+					}
+				},
 				Score = 100,
-				// First day of the current year
-				Start = now => new DateTimeOffset(now.Year, 1, 1, 0, 0, 0, now.Offset),
-				// Last day of the current year
-				End = now => new DateTimeOffset(now.Year, 12, 31, 0, 0, 0, now.Offset),
+				// First day of the offsetted year
+				Start = (referenceDate, offset) => new DateTimeOffset(referenceDate.Year - offset, 1, 1, 0, 0, 0, referenceDate.Offset),
+				// Last day of the offsetted year
+				End = (referenceDate, offset) => new DateTimeOffset(referenceDate.Year - offset, 1, 1, 0, 0, 0, referenceDate.Offset),
 			},
 		};
 
@@ -125,8 +195,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 	public class ReportsSpanCommandArgument : CommandArgument
 	{
 		#nullable disable
-		public Func<DateTimeOffset, DateTimeOffset> Start { get; init; }
-		public Func<DateTimeOffset, DateTimeOffset> End { get; init; }
+		public new Func<int, string> Interpolation { get; init; }
+		public Func<DateTimeOffset, int, DateTimeOffset> Start { get; init; }
+		public Func<DateTimeOffset, int, DateTimeOffset> End { get; init; }
 		#nullable enable
 	}
 

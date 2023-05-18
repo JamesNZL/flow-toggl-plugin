@@ -13,23 +13,23 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		internal const string StopCommand = "stop";
 		internal const string DeleteCommand = "delete";
 		internal const string ContinueCommand = "continue";
-		internal const string ViewCommand = "view";
+		internal const string ReportsCommand = "reports";
 		internal const string BrowserCommand = "browser";
 		internal const string RefreshCommand = "refresh";
 
 		internal const string EditProjectFlag = "-p";
 		internal const string TimeSpanFlag = "-t";
 
-		internal enum ViewSpanKeys
+		internal enum ReportsSpanKeys
 		{
 			Day,
 			Week,
 			Month,
 			Year,
 		}
-		internal static readonly List<ViewSpanCommandArgument> ViewSpanArguments = new List<ViewSpanCommandArgument>
+		internal static readonly List<ReportsSpanCommandArgument> ReportsSpanArguments = new List<ReportsSpanCommandArgument>
 		{
-			new ViewSpanCommandArgument
+			new ReportsSpanCommandArgument
 			{
 				Argument = "day",
 				Interpolation = "today",
@@ -38,7 +38,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				Start = now => now,
 				End = now => now,
 			},
-			new ViewSpanCommandArgument
+			new ReportsSpanCommandArgument
 			{
 				Argument = "week",
 				Interpolation = "this week",
@@ -48,7 +48,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				// Sunday of the current week
 				End = now => now.AddDays(-(int)now.DayOfWeek + 7),
 			},
-			new ViewSpanCommandArgument
+			new ReportsSpanCommandArgument
 			{
 				Argument = "month",
 				Interpolation = "this month",
@@ -58,7 +58,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				// Last day of the current month
 				End = now => new DateTimeOffset(now.Year, now.Month, DateTime.DaysInMonth(now.Year, now.Month), 0, 0, 0, now.Offset),
 			},
-			new ViewSpanCommandArgument
+			new ReportsSpanCommandArgument
 			{
 				Argument = "year",
 				Interpolation = "this year",
@@ -70,39 +70,39 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			},
 		};
 
-		public enum ViewGroupingKeys
+		public enum ReportsGroupingKeys
 		{
 			Projects,
 			Clients,
 			Entries,
 		}
-		private const string ViewGroupingProjectsArgument = "projects";
-		private const string ViewGroupingClientsArgument = "clients";
-		private const string ViewGroupingEntriesArgument = "entries";
-		internal static readonly List<ViewGroupingCommandArgument> ViewGroupingArguments = new List<ViewGroupingCommandArgument>
+		private const string ReportsGroupingProjectsArgument = "projects";
+		private const string ReportsGroupingClientsArgument = "clients";
+		private const string ReportsGroupingEntriesArgument = "entries";
+		internal static readonly List<ReportsGroupingCommandArgument> ReportsGroupingArguments = new List<ReportsGroupingCommandArgument>
 		{
-			new ViewGroupingCommandArgument
+			new ReportsGroupingCommandArgument
 			{
-				Argument = Settings.ViewGroupingProjectsArgument,
+				Argument = Settings.ReportsGroupingProjectsArgument,
 				Interpolation = "View tracked time grouped by project",
 				Score = 300,
-				Grouping = Settings.ViewGroupingKeys.Projects,
+				Grouping = Settings.ReportsGroupingKeys.Projects,
 				SubArgument = null,
 			},
-			new ViewGroupingCommandArgument
+			new ReportsGroupingCommandArgument
 			{
-				Argument = Settings.ViewGroupingClientsArgument,
+				Argument = Settings.ReportsGroupingClientsArgument,
 				Interpolation = "View tracked time grouped by client",
 				Score = 200,
-				Grouping = Settings.ViewGroupingKeys.Clients,
-				SubArgument = Settings.ViewGroupingProjectsArgument,
+				Grouping = Settings.ReportsGroupingKeys.Clients,
+				SubArgument = Settings.ReportsGroupingProjectsArgument,
 			},
-			new ViewGroupingCommandArgument
+			new ReportsGroupingCommandArgument
 			{
-				Argument = Settings.ViewGroupingEntriesArgument,
+				Argument = Settings.ReportsGroupingEntriesArgument,
 				Interpolation = "View tracked time entries",
 				Score = 100,
-				Grouping = Settings.ViewGroupingKeys.Entries,
+				Grouping = Settings.ReportsGroupingKeys.Entries,
 				SubArgument = null,
 			},
 		};
@@ -122,7 +122,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		#nullable enable
 	}
 
-	public class ViewSpanCommandArgument : CommandArgument
+	public class ReportsSpanCommandArgument : CommandArgument
 	{
 		#nullable disable
 		public Func<DateTimeOffset, DateTimeOffset> Start { get; init; }
@@ -130,10 +130,10 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		#nullable enable
 	}
 
-	public class ViewGroupingCommandArgument : CommandArgument
+	public class ReportsGroupingCommandArgument : CommandArgument
 	{
 		#nullable disable
-		public Settings.ViewGroupingKeys Grouping { get; init; }
+		public Settings.ReportsGroupingKeys Grouping { get; init; }
 		public string SubArgument { get; init; }
 		#nullable enable
 	}

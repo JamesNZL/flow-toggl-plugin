@@ -145,7 +145,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 		}
 
-		private async ValueTask<SummaryTimeEntry?> _GetSummaryTimeEntries(long workspaceId, long userId, Settings.ViewGroupingKeys reportGrouping, DateTimeOffset start, DateTimeOffset? end, bool force = false)
+		private async ValueTask<SummaryTimeEntry?> _GetSummaryTimeEntries(long workspaceId, long userId, Settings.ReportsGroupingKeys reportGrouping, DateTimeOffset start, DateTimeOffset? end, bool force = false)
 		{
 			string cacheKey = $"SummaryTimeEntries{workspaceId}{userId}{(int)reportGrouping}{start.ToString("yyyy-MM-dd")}{end?.ToString("yyyy-MM-dd")}";
 
@@ -336,14 +336,14 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				},
 				new Result
 				{
-					Title = Settings.ViewCommand,
+					Title = Settings.ReportsCommand,
 					SubTitle = "View tracked time reports",
-					IcoPath = "view.png",
-					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.ViewCommand} ",
+					IcoPath = "reports.png",
+					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.ReportsCommand} ",
 					Score = 5,
 					Action = c =>
 					{
-						this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.ViewCommand} ");
+						this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.ReportsCommand} ");
 						return false;
 					},
 				},
@@ -1446,20 +1446,20 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			 * Report span selection --- tgl view [day | week | month | year]
 			 */
 
-			if (query.SearchTerms.Length == ArgumentIndices.Span || !Settings.ViewSpanArguments.Exists(span => span.Argument == query.SearchTerms[ArgumentIndices.Span]))
+			if (query.SearchTerms.Length == ArgumentIndices.Span || !Settings.ReportsSpanArguments.Exists(span => span.Argument == query.SearchTerms[ArgumentIndices.Span]))
 			{
-				var spans = Settings.ViewSpanArguments.ConvertAll(span =>
+				var spans = Settings.ReportsSpanArguments.ConvertAll(span =>
 				{
 					return new Result
 					{
 						Title = span.Argument,
 						SubTitle = $"View tracked time report for {span.Interpolation}",
-						IcoPath = "view.png",
-						AutoCompleteText = $"{query.ActionKeyword} {Settings.ViewCommand} {span.Argument} ",
+						IcoPath = "reports.png",
+						AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {span.Argument} ",
 						Score = span.Score,
 						Action = c =>
 						{
-							this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.ViewCommand} {span.Argument} ", true);
+							this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.ReportsCommand} {span.Argument} ", true);
 							return false;
 						},
 					};
@@ -1477,20 +1477,20 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			/* 
 			 * Report groupinging selection --- tgl view [duration] [projects | clients | entries]
 			 */
-			if (query.SearchTerms.Length == ArgumentIndices.Grouping || !Settings.ViewGroupingArguments.Exists(grouping => grouping.Argument == query.SearchTerms[ArgumentIndices.Grouping]))
+			if (query.SearchTerms.Length == ArgumentIndices.Grouping || !Settings.ReportsGroupingArguments.Exists(grouping => grouping.Argument == query.SearchTerms[ArgumentIndices.Grouping]))
 			{
-				var groupings = Settings.ViewGroupingArguments.ConvertAll(grouping =>
+				var groupings = Settings.ReportsGroupingArguments.ConvertAll(grouping =>
 				{
 					return new Result
 					{
 						Title = grouping.Argument,
 						SubTitle = grouping.Interpolation,
-						IcoPath = "view.png",
-						AutoCompleteText = $"{query.ActionKeyword} {Settings.ViewCommand} {query.SearchTerms[1]} {grouping.Argument} ",
+						IcoPath = "reports.png",
+						AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {query.SearchTerms[1]} {grouping.Argument} ",
 						Score = grouping.Score,
 						Action = c =>
 						{
-							this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.ViewCommand} {query.SearchTerms[1]} {grouping.Argument} ", true);
+							this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.ReportsCommand} {query.SearchTerms[1]} {grouping.Argument} ", true);
 							return false;
 						},
 					};
@@ -1508,8 +1508,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			string spanArgument = query.SearchTerms[ArgumentIndices.Span];
 			string groupingArgument = query.SearchTerms[ArgumentIndices.Grouping];
 
-			var spanConfiguration = Settings.ViewSpanArguments.Find(span => span.Argument == spanArgument);
-			var groupingConfiguration = Settings.ViewGroupingArguments.Find(grouping => grouping.Argument == groupingArgument);
+			var spanConfiguration = Settings.ReportsSpanArguments.Find(span => span.Argument == spanArgument);
+			var groupingConfiguration = Settings.ReportsGroupingArguments.Find(grouping => grouping.Argument == groupingArgument);
 
 			if ((spanConfiguration is null) || (groupingConfiguration is null))
 			{
@@ -1536,7 +1536,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				new Result
 				{
 					Title = $"{total.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} tracked {spanConfiguration.Interpolation} ({(int)total.TotalHours}:{total.ToString(@"mm\:ss")})",
-					IcoPath = "view.png",
+					IcoPath = "reports.png",
 					AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
 					Score = (int)total.TotalSeconds + 1000,
 				},
@@ -1549,7 +1549,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			switch (groupingConfiguration.Grouping)
 			{
-				case (Settings.ViewGroupingKeys.Projects):
+				case (Settings.ReportsGroupingKeys.Projects):
 				{
 					if (runningTimeEntry is not null)
 					{
@@ -1617,14 +1617,14 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									Title = project?.name ?? "No Project",
 									SubTitle = $"{((project?.client_id is not null) ? $"{me.clients?.Find(client => client.id == project.client_id)?.name} | " : string.Empty)}{elapsed.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)elapsed.TotalHours}:{elapsed.ToString(@"mm\:ss")})",
 									IcoPath = (project?.color is not null)
-										? new ColourIcon(this._context, project.color, "view.png").GetColourIcon()
-										: "view.png",
-									AutoCompleteText = $"{query.ActionKeyword} {Settings.ViewCommand} {spanConfiguration.Argument} {groupingConfiguration.Argument} ",
+										? new ColourIcon(this._context, project.color, "reports.png").GetColourIcon()
+										: "reports.png",
+									AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanConfiguration.Argument} {groupingConfiguration.Argument} ",
 									Score = (int)group.seconds,
 									Action = c =>
 									{
 										this._selectedProjectId = project?.id;
-										this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.ViewCommand} {spanConfiguration.Argument} {groupingConfiguration.Argument} {project?.name?.Kebaberize() ?? "No Project"} ", true);
+										this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.ReportsCommand} {spanConfiguration.Argument} {groupingConfiguration.Argument} {project?.name?.Kebaberize() ?? "No Project"} ", true);
 										return false;
 									}
 								};
@@ -1659,9 +1659,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							Title = (string.IsNullOrEmpty(subGroup.title)) ? "(no description)" : subGroup.title,
 							SubTitle = $"{elapsed.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)elapsed.TotalHours}:{elapsed.ToString(@"mm\:ss")})",
 							IcoPath = (project?.color is not null)
-									? new ColourIcon(this._context, project.color, "view.png").GetColourIcon()
-									: "view.png",
-							AutoCompleteText = $"{query.ActionKeyword} {Settings.ViewCommand} {spanConfiguration.Argument} {groupingConfiguration.Argument} {project?.name?.Kebaberize() ?? "no-project"} {((string.IsNullOrEmpty(subGroup.title)) ? "(no description)" : subGroup.title)}",
+									? new ColourIcon(this._context, project.color, "reports.png").GetColourIcon()
+									: "reports.png",
+							AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanConfiguration.Argument} {groupingConfiguration.Argument} {project?.name?.Kebaberize() ?? "no-project"} {((string.IsNullOrEmpty(subGroup.title)) ? "(no description)" : subGroup.title)}",
 							Score = (int)elapsed.TotalSeconds,
 							Action = c =>
 							{
@@ -1677,7 +1677,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					{
 						Title = $"{subTotal.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} tracked {spanConfiguration.Interpolation} ({(int)subTotal.TotalHours}:{subTotal.ToString(@"mm\:ss")})",
 						SubTitle = projectName,
-						IcoPath = "view.png",
+						IcoPath = "reports.png",
 						AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
 						Score = (int)subTotal.TotalSeconds + 1000,
 					});
@@ -1690,7 +1690,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							return this._context.API.FuzzySearch(subNameQuery, result.Title).Score > 0;
 						});
 				}
-				case (Settings.ViewGroupingKeys.Clients):
+				case (Settings.ReportsGroupingKeys.Clients):
 				{
 					if (runningTimeEntry is not null)
 					{
@@ -1766,14 +1766,14 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									Title = client?.name ?? "No Client",
 									SubTitle = $"{elapsed.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)elapsed.TotalHours}:{elapsed.ToString(@"mm\:ss")})",
 									IcoPath = (highestProject?.color is not null)
-										? new ColourIcon(this._context, highestProject.color, "view.png").GetColourIcon()
-										: "view.png",
-									AutoCompleteText = $"{query.ActionKeyword} {Settings.ViewCommand} {spanConfiguration.Argument} {groupingConfiguration.Argument} ",
+										? new ColourIcon(this._context, highestProject.color, "reports.png").GetColourIcon()
+										: "reports.png",
+									AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanConfiguration.Argument} {groupingConfiguration.Argument} ",
 									Score = (int)group.seconds,
 									Action = c =>
 									{
 										this._selectedClientId = client?.id;
-										this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.ViewCommand} {spanConfiguration.Argument} {groupingConfiguration.Argument} {client?.name?.Kebaberize() ?? "No Client"} ", true);
+										this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.ReportsCommand} {spanConfiguration.Argument} {groupingConfiguration.Argument} {client?.name?.Kebaberize() ?? "No Client"} ", true);
 										return false;
 									}
 								};
@@ -1801,9 +1801,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							Title = project?.name ?? "No Project",
 							SubTitle = $"{((client?.id is not null) ? $"{client?.name} | " : string.Empty)}{elapsed.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)elapsed.TotalHours}:{elapsed.ToString(@"mm\:ss")})",
 							IcoPath = (project?.color is not null)
-								? new ColourIcon(this._context, project.color, "view.png").GetColourIcon()
-								: "view.png",
-							AutoCompleteText = $"{query.ActionKeyword} {Settings.ViewCommand} {spanConfiguration.Argument} {groupingConfiguration.Argument} {client?.name?.Kebaberize() ?? "No Client"} ",
+								? new ColourIcon(this._context, project.color, "reports.png").GetColourIcon()
+								: "reports.png",
+							AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanConfiguration.Argument} {groupingConfiguration.Argument} {client?.name?.Kebaberize() ?? "No Client"} ",
 							Score = (int)subGroup.seconds,
 							Action = c =>
 							{
@@ -1815,7 +1815,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									throw new Exception("Invalid ViewGroupingCommandArgument configuration: Missing 'SubArgument' field.");
 								}
 
-								this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.ViewCommand} {spanConfiguration.Argument} {groupingConfiguration.SubArgument} {project?.name?.Kebaberize() ?? "No Project"} ", true);
+								this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.ReportsCommand} {spanConfiguration.Argument} {groupingConfiguration.SubArgument} {project?.name?.Kebaberize() ?? "No Project"} ", true);
 								return false;
 							}
 						};
@@ -1826,7 +1826,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					{
 						Title = $"{subTotal.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} tracked {spanConfiguration.Interpolation} ({(int)subTotal.TotalHours}:{subTotal.ToString(@"mm\:ss")})",
 						SubTitle = client?.name ?? "No Client",
-						IcoPath = "view.png",
+						IcoPath = "reports.png",
 						AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
 						Score = (int)subTotal.TotalSeconds + 1000,
 					});
@@ -1839,7 +1839,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							return this._context.API.FuzzySearch(subNameQuery, result.Title).Score > 0;
 						});
 				}
-				case (Settings.ViewGroupingKeys.Entries):
+				case (Settings.ReportsGroupingKeys.Entries):
 				{
 					if (runningTimeEntry is not null)
 					{
@@ -1921,9 +1921,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									Title = (string.IsNullOrEmpty(subGroup.title)) ? "(no description)" : subGroup.title,
 									SubTitle = $"{projectName} | {elapsed.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)elapsed.TotalHours}:{elapsed.ToString(@"mm\:ss")})",
 									IcoPath = (project?.color is not null)
-											? new ColourIcon(this._context, project.color, "view.png").GetColourIcon()
-											: "view.png",
-									AutoCompleteText = $"{query.ActionKeyword} {Settings.ViewCommand} {spanConfiguration.Argument} {groupingConfiguration.Argument} {((string.IsNullOrEmpty(subGroup.title)) ? "(no description)" : subGroup.title)}",
+											? new ColourIcon(this._context, project.color, "reports.png").GetColourIcon()
+											: "reports.png",
+									AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanConfiguration.Argument} {groupingConfiguration.Argument} {((string.IsNullOrEmpty(subGroup.title)) ? "(no description)" : subGroup.title)}",
 									Score = (int)elapsed.TotalSeconds,
 									Action = c =>
 									{

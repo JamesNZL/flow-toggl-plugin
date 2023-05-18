@@ -130,7 +130,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				var timeEntries = await this._client.GetTimeEntries();
 
 				#pragma warning disable CS8604 // Possible null reference argument
-				// TODO: value cannot be null
 				this._cache.Set(cacheKey, timeEntries, DateTimeOffset.Now.AddSeconds(30));
 				#pragma warning restore CS8604 // Possible null reference argument
 
@@ -1662,8 +1661,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							IcoPath = (project?.color is not null)
 									? new ColourIcon(this._context, project.color, "view.png").GetColourIcon()
 									: "view.png",
-							//	TODO: project name
-							AutoCompleteText = $"{query.ActionKeyword} {Settings.ViewCommand} {spanConfiguration.Argument} {groupingConfiguration.Argument} {((string.IsNullOrEmpty(subGroup.title)) ? "(no description)" : subGroup.title)}",
+							AutoCompleteText = $"{query.ActionKeyword} {Settings.ViewCommand} {spanConfiguration.Argument} {groupingConfiguration.Argument} {project?.name?.Kebaberize() ?? "no-project"} {((string.IsNullOrEmpty(subGroup.title)) ? "(no description)" : subGroup.title)}",
 							Score = (int)elapsed.TotalSeconds,
 							Action = c =>
 							{
@@ -1770,7 +1768,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									IcoPath = (highestProject?.color is not null)
 										? new ColourIcon(this._context, highestProject.color, "view.png").GetColourIcon()
 										: "view.png",
-									// TODO: client name
 									AutoCompleteText = $"{query.ActionKeyword} {Settings.ViewCommand} {spanConfiguration.Argument} {groupingConfiguration.Argument} ",
 									Score = (int)group.seconds,
 									Action = c =>
@@ -1806,7 +1803,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							IcoPath = (project?.color is not null)
 								? new ColourIcon(this._context, project.color, "view.png").GetColourIcon()
 								: "view.png",
-							AutoCompleteText = $"{query.ActionKeyword} {Settings.ViewCommand} {spanConfiguration.Argument} {groupingConfiguration.Argument} ",
+							AutoCompleteText = $"{query.ActionKeyword} {Settings.ViewCommand} {spanConfiguration.Argument} {groupingConfiguration.Argument} {client?.name?.Kebaberize() ?? "No Client"} ",
 							Score = (int)subGroup.seconds,
 							Action = c =>
 							{

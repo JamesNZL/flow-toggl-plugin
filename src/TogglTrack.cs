@@ -17,7 +17,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		private Settings _settings { get; set; }
 
 		private TogglClient _client;
-		private (bool IsValid, string Token) _lastToken = (false, string.Empty);
+		private (bool IsValid, string Token, SemaphoreSlim Semaphore) _lastToken = (false, string.Empty, new SemaphoreSlim(1, 1));
 
 		private MemoryCache _cache = MemoryCache.Default;
 
@@ -111,6 +111,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				var timeEntries = await this._client.GetTimeEntries();
 
 				#pragma warning disable CS8604 // Possible null reference argument
+				// TODO: value cannot be null
 				this._cache.Set(cacheKey, timeEntries, DateTimeOffset.Now.AddSeconds(30));
 				#pragma warning restore CS8604 // Possible null reference argument
 
@@ -141,21 +142,28 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				return false;
 			}
 
+			await this._lastToken.Semaphore.WaitAsync();
+
 			if (this._settings.ApiToken.Equals(this._lastToken.Token))
 			{
+				this._lastToken.Semaphore.Release();
 				return this._lastToken.IsValid;
 			}
 
-			this._lastToken.Token = this._settings.ApiToken;
-
 			if (string.IsNullOrWhiteSpace(this._settings.ApiToken))
 			{
+				this._lastToken.Semaphore.Release();
 				return this._lastToken.IsValid = false;
 			}
 
 			this._client.UpdateToken(this._settings.ApiToken);
 
-			return this._lastToken.IsValid = (await this._GetMe(true))?.api_token?.Equals(this._settings.ApiToken) ?? false;
+
+			this._lastToken.IsValid = (await this._GetMe(true))?.api_token?.Equals(this._settings.ApiToken) ?? false;
+			this._lastToken.Token = this._settings.ApiToken;
+			
+			this._lastToken.Semaphore.Release();
+			return this._lastToken.IsValid;
 		}
 
 		internal List<Result> NotifyMissingToken()

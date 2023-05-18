@@ -1475,8 +1475,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				? int.Parse(spanArgumentOffsetMatch.Groups[1].Value)
 				: 0;
 
-			var start = spanConfiguration.Start(DateTimeOffset.Now, spanArgumentOffset);
-			var end = spanConfiguration.End(DateTimeOffset.Now, spanArgumentOffset);
+			var start = spanConfiguration.Start(DateTimeOffset.UtcNow, spanArgumentOffset);
+			var end = spanConfiguration.End(DateTimeOffset.UtcNow, spanArgumentOffset);
 			
 			this._context.API.LogInfo("TogglTrack", $"{spanArgument}, {groupingArgument}, {start}, {end}", "RequestViewReports");
 
@@ -1484,8 +1484,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			// Use cached time entry here to improve responsiveness
 			var runningTimeEntry = (await this._GetRunningTimeEntry())?.ToTimeEntry(me);
+			if ((runningTimeEntry is not null) && ((runningTimeEntry.StartDate.Date >= start.Date) && ((runningTimeEntry.StopDate ?? DateTimeOffset.UtcNow).Date <= end.Date)))
+			{
+				summary = summary?.InsertRunningTimeEntry(runningTimeEntry, groupingConfiguration.Grouping);
+			}
 
-			var total = (summary?.Elapsed ?? TimeSpan.Zero) + (runningTimeEntry?.Elapsed ?? TimeSpan.Zero);
+			var total = summary?.Elapsed ?? TimeSpan.Zero;
 
 			var results = new List<Result>
 			{
@@ -1507,15 +1511,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			{
 				case (Settings.ReportsGroupingKeys.Projects):
 				{
-					if (runningTimeEntry is not null)
-					{
-						summary = summary.InsertRunningTimeEntry(runningTimeEntry, groupingConfiguration.Grouping);
-						if (summary is null)
-						{
-							return results;
-						}
-					}
-
 					if (this._selectedProjectId == -1)
 					{
 						results.AddRange(
@@ -1580,15 +1575,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				}
 				case (Settings.ReportsGroupingKeys.Clients):
 				{
-					if (runningTimeEntry is not null)
-					{
-						summary = summary.InsertRunningTimeEntry(runningTimeEntry, groupingConfiguration.Grouping);
-						if (summary is null)
-						{
-							return results;
-						}
-					}
-
 					if (this._selectedClientId == -1)
 					{	
 						results.AddRange(
@@ -1670,15 +1656,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				}
 				case (Settings.ReportsGroupingKeys.Entries):
 				{
-					if (runningTimeEntry is not null)
-					{
-						summary = summary.InsertRunningTimeEntry(runningTimeEntry, groupingConfiguration.Grouping);
-						if (summary is null)
-						{
-							return results;
-						}
-					}
-
 					summary.Groups.ForEach(group =>
 					{
 						if (group.SubGroups is null)

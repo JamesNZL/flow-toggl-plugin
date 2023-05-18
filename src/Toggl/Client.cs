@@ -142,8 +142,8 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 			return await this._reportsApi.Post<SummaryTimeEntryResponse>($"workspace/{workspaceId}/summary/time_entries", new
 			{
 				user_ids = new long[] { userId },
-				start_date = start.ToString("yyyy-MM-dd"),
-				end_date = end?.ToString("yyyy-MM-dd"),
+				start_date = start.ToLocalTime().ToString("yyyy-MM-dd"),
+				end_date = end?.ToLocalTime().ToString("yyyy-MM-dd"),
 				grouping,
 				sub_grouping,
 			});

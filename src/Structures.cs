@@ -159,9 +159,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			get => DateTime.Parse(this.Start).Humanize(false);
 		}
 
-		public DateTimeOffset StopDate
+		public DateTimeOffset? StopDate
 		{
-			get => DateTimeOffset.Parse(this.Stop ?? string.Empty);
+			get => (this.Stop is not null)
+				? DateTimeOffset.Parse(this.Stop)
+				: null;
 		}
 
 		public TimeSpan Elapsed
@@ -210,7 +212,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return this.Clone();
 		}
 
-		// TODO: need to check start time is within range
 		public SummaryTimeEntry? InsertRunningTimeEntry(TimeEntry timeEntry, Settings.ReportsGroupingKeys reportGrouping)
 		{
 			const string PROJECTS_KEY = "projects";

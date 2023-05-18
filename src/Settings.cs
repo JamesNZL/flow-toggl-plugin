@@ -136,7 +136,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				// First day of the offsetted year
 				Start = (referenceDate, offset) => new DateTimeOffset(referenceDate.Year - offset, 1, 1, 0, 0, 0, referenceDate.Offset),
 				// Last day of the offsetted year
-				End = (referenceDate, offset) => new DateTimeOffset(referenceDate.Year - offset, 1, 1, 0, 0, 0, referenceDate.Offset),
+				End = (referenceDate, offset) => new DateTimeOffset(referenceDate.Year - offset, 12, 31, 0, 0, 0, referenceDate.Offset),
 			},
 		};
 

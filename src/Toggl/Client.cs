@@ -33,11 +33,6 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 			return await this._api.Get<MeResponse>("me?with_related_data=true");
 		}
 
-		public async Task<List<WorkspaceResponse>?> GetWorkspaces()
-		{
-			return await this._api.Get<List<WorkspaceResponse>>("workspaces");
-		}
-
 		public async Task<List<ProjectResponse>?> GetWorkspaceProjects(long workspaceId)
 		{
 			return await this._api.Get<List<ProjectResponse>>($"workspaces/{workspaceId}/projects?per_page=500");
@@ -96,11 +91,6 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 		public async Task<List<ClientResponse>?> GetWorkspaceClients(long workspaceId)
 		{
 			return await this._api.Get<List<ClientResponse>>($"workspaces/{workspaceId}/clients");
-		}
-
-		public async Task<List<TagResponse>?> GetWorkspaceTags(long workspaceId)
-		{
-			return await this._api.Get<List<TagResponse>>($"workspaces/{workspaceId}/tags");
 		}
 
 		public async Task<TimeEntryResponse?> StopTimeEntry(long id, long workspaceId)

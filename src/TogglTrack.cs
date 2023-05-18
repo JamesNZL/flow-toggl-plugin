@@ -93,7 +93,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 				var runningTimeEntry = await this._client.GetRunningTimeEntry();
 
-				this._cache.Set(cacheKey, runningTimeEntry, DateTimeOffset.Now.AddSeconds(30));
+				this._cache.Set(cacheKey, runningTimeEntry, DateTimeOffset.Now.AddSeconds(60));
 
 				this._semaphores.RunningTimeEntries.Release();
 				return runningTimeEntry;
@@ -126,7 +126,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				
 				var timeEntries = await this._client.GetTimeEntries();
 
-				this._cache.Set(cacheKey, timeEntries, DateTimeOffset.Now.AddSeconds(30));
+				this._cache.Set(cacheKey, timeEntries, DateTimeOffset.Now.AddSeconds(60));
 
 				this._semaphores.TimeEntries.Release();
 				return timeEntries;
@@ -155,7 +155,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				
 				var summary = await this._client.GetSummaryTimeEntries(workspaceId, userId, reportGrouping, start, end);
 
-				this._cache.Set(cacheKey, summary, DateTimeOffset.Now.AddSeconds(30));
+				this._cache.Set(cacheKey, summary, DateTimeOffset.Now.AddSeconds(60));
 				this._summaryTimeEntriesCacheKeys.Add(cacheKey);
 
 				return summary;

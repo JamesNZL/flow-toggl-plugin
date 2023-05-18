@@ -1527,7 +1527,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			{
 				new Result
 				{
-					Title = $"{total.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} tracked {spanConfiguration.Interpolation} ({(int)total.TotalHours}:{total.ToString(@"mm\:ss")})",
+					Title = $"{total.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour)} tracked {spanConfiguration.Interpolation} ({(int)total.TotalHours}:{total.ToString(@"mm\:ss")})",
 					IcoPath = "reports.png",
 					AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
 					Score = (int)total.TotalSeconds + 1000,
@@ -1607,7 +1607,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								return new Result
 								{
 									Title = project?.name ?? "No Project",
-									SubTitle = $"{((project?.client_id is not null) ? $"{me.clients?.Find(client => client.id == project.client_id)?.name} | " : string.Empty)}{elapsed.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)elapsed.TotalHours}:{elapsed.ToString(@"mm\:ss")})",
+									SubTitle = $"{((project?.client_id is not null) ? $"{me.clients?.Find(client => client.id == project.client_id)?.name} | " : string.Empty)}{elapsed.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)elapsed.TotalHours}:{elapsed.ToString(@"mm\:ss")})",
 									IcoPath = (project?.color is not null)
 										? new ColourIcon(this._context, project.color, "reports.png").GetColourIcon()
 										: "reports.png",
@@ -1649,7 +1649,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						return new Result
 						{
 							Title = (string.IsNullOrEmpty(subGroup.title)) ? "(no description)" : subGroup.title,
-							SubTitle = $"{elapsed.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)elapsed.TotalHours}:{elapsed.ToString(@"mm\:ss")})",
+							SubTitle = $"{elapsed.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)elapsed.TotalHours}:{elapsed.ToString(@"mm\:ss")})",
 							IcoPath = (project?.color is not null)
 									? new ColourIcon(this._context, project.color, "reports.png").GetColourIcon()
 									: "reports.png",
@@ -1667,7 +1667,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					var subTotal = TimeSpan.FromSeconds(selectedProjectGroup.seconds);
 					subResults.Add(new Result
 					{
-						Title = $"{subTotal.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} tracked {spanConfiguration.Interpolation} ({(int)subTotal.TotalHours}:{subTotal.ToString(@"mm\:ss")})",
+						Title = $"{subTotal.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour)} tracked {spanConfiguration.Interpolation} ({(int)subTotal.TotalHours}:{subTotal.ToString(@"mm\:ss")})",
 						SubTitle = projectName,
 						IcoPath = "reports.png",
 						AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
@@ -1756,7 +1756,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								return new Result
 								{
 									Title = client?.name ?? "No Client",
-									SubTitle = $"{elapsed.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)elapsed.TotalHours}:{elapsed.ToString(@"mm\:ss")})",
+									SubTitle = $"{elapsed.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)elapsed.TotalHours}:{elapsed.ToString(@"mm\:ss")})",
 									IcoPath = (highestProject?.color is not null)
 										? new ColourIcon(this._context, highestProject.color, "reports.png").GetColourIcon()
 										: "reports.png",
@@ -1791,7 +1791,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						return new Result
 						{
 							Title = project?.name ?? "No Project",
-							SubTitle = $"{((client?.id is not null) ? $"{client?.name} | " : string.Empty)}{elapsed.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)elapsed.TotalHours}:{elapsed.ToString(@"mm\:ss")})",
+							SubTitle = $"{((client?.id is not null) ? $"{client?.name} | " : string.Empty)}{elapsed.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)elapsed.TotalHours}:{elapsed.ToString(@"mm\:ss")})",
 							IcoPath = (project?.color is not null)
 								? new ColourIcon(this._context, project.color, "reports.png").GetColourIcon()
 								: "reports.png",
@@ -1816,7 +1816,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					var subTotal = TimeSpan.FromSeconds(selectedClientGroup.seconds);
 					subResults.Add(new Result
 					{
-						Title = $"{subTotal.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} tracked {spanConfiguration.Interpolation} ({(int)subTotal.TotalHours}:{subTotal.ToString(@"mm\:ss")})",
+						Title = $"{subTotal.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour)} tracked {spanConfiguration.Interpolation} ({(int)subTotal.TotalHours}:{subTotal.ToString(@"mm\:ss")})",
 						SubTitle = client?.name ?? "No Client",
 						IcoPath = "reports.png",
 						AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
@@ -1911,7 +1911,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								return new Result
 								{
 									Title = (string.IsNullOrEmpty(subGroup.title)) ? "(no description)" : subGroup.title,
-									SubTitle = $"{projectName} | {elapsed.Humanize(maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)elapsed.TotalHours}:{elapsed.ToString(@"mm\:ss")})",
+									SubTitle = $"{projectName} | {elapsed.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)elapsed.TotalHours}:{elapsed.ToString(@"mm\:ss")})",
 									IcoPath = (project?.color is not null)
 											? new ColourIcon(this._context, project.color, "reports.png").GetColourIcon()
 											: "reports.png",

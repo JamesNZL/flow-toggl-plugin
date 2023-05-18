@@ -1446,7 +1446,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			 * Report span selection --- tgl view [day | week | month | year]
 			 */
 
-			if (query.SearchTerms.Length == ArgumentIndices.Span || !Settings.ReportsSpanArguments.Exists(span => span.Argument == query.SearchTerms[ArgumentIndices.Span]))
+			if ((query.SearchTerms.Length == ArgumentIndices.Span) || !Settings.ReportsSpanArguments.Exists(span => span.Argument == query.SearchTerms[ArgumentIndices.Span]))
 			{
 				var spans = Settings.ReportsSpanArguments.ConvertAll(span =>
 				{
@@ -1477,7 +1477,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			/* 
 			 * Report groupinging selection --- tgl view [duration] [projects | clients | entries]
 			 */
-			if (query.SearchTerms.Length == ArgumentIndices.Grouping || !Settings.ReportsGroupingArguments.Exists(grouping => grouping.Argument == query.SearchTerms[ArgumentIndices.Grouping]))
+			if ((query.SearchTerms.Length == ArgumentIndices.Grouping) || !Settings.ReportsGroupingArguments.Exists(grouping => grouping.Argument == query.SearchTerms[ArgumentIndices.Grouping]))
 			{
 				var groupings = Settings.ReportsGroupingArguments.ConvertAll(grouping =>
 				{

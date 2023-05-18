@@ -17,8 +17,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		private Settings _settings { get; set; }
 
 		private TogglClient _client;
-		private (bool IsValid, string Token, SemaphoreSlim Semaphore) _lastToken = (false, string.Empty, new SemaphoreSlim(1, 1));
+		private (bool IsValid, string Token) _lastToken = (false, string.Empty);
 
+		private readonly (SemaphoreSlim Token, SemaphoreSlim Me, SemaphoreSlim RunningTimeEntries, SemaphoreSlim TimeEntries) _semaphores = (new SemaphoreSlim(1, 1), new SemaphoreSlim(1, 1), new SemaphoreSlim(1, 1), new SemaphoreSlim(1, 1));
 		private MemoryCache _cache = MemoryCache.Default;
 
 		private long? _selectedProjectId = -1;
@@ -43,8 +44,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		{
 			const string cacheKey = "Me";
 
-			if (!force && this._cache.Contains(cacheKey))
+			bool hasWaited = (this._semaphores.Me.CurrentCount == 0);
+			await this._semaphores.Me.WaitAsync();
+
+			if ((!force || hasWaited) && this._cache.Contains(cacheKey))
 			{
+				this._semaphores.Me.Release();
 				return (Me?)this._cache.Get(cacheKey);
 			}
 
@@ -58,11 +63,14 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				this._cache.Set(cacheKey, me, DateTimeOffset.Now.AddDays(3));
 				#pragma warning restore CS8604 // Possible null reference argument
 
+				this._semaphores.Me.Release();
 				return me;
 			}
 			catch (Exception exception)
 			{
 				this._context.API.LogException("TogglTrack", "Failed to fetch me", exception, "_GetMe");
+
+				this._semaphores.Me.Release();
 				return null;
 			}
 		}
@@ -71,26 +79,33 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		{
 			const string cacheKey = "RunningTimeEntry";
 
-			if (!force && this._cache.Contains(cacheKey))
+			bool hasWaited = (this._semaphores.RunningTimeEntries.CurrentCount == 0);
+			await this._semaphores.RunningTimeEntries.WaitAsync();
+
+			if ((!force || hasWaited) && this._cache.Contains(cacheKey))
 			{
+				this._semaphores.RunningTimeEntries.Release();
 				return (TimeEntry?)this._cache.Get(cacheKey);
 			}
 
 			try
 			{
 				this._context.API.LogInfo("TogglTrack", "Fetching running time entry", "_GetRunningTimeEntry");
-				
+
 				var runningTimeEntry = await this._client.GetRunningTimeEntry();
 
 				#pragma warning disable CS8604 // Possible null reference argument
 				this._cache.Set(cacheKey, runningTimeEntry, DateTimeOffset.Now.AddSeconds(30));
 				#pragma warning restore CS8604 // Possible null reference argument
 
+				this._semaphores.RunningTimeEntries.Release();
 				return runningTimeEntry;
 			}
 			catch (Exception exception)
 			{
 				this._context.API.LogException("TogglTrack", "Failed to fetch running time entry", exception, "_GetRunningTimeEntry");
+
+				this._semaphores.RunningTimeEntries.Release();
 				return null;
 			}
 		}
@@ -99,8 +114,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		{
 			const string cacheKey = "TimeEntries";
 
-			if (!force && this._cache.Contains(cacheKey))
+			bool hasWaited = (this._semaphores.TimeEntries.CurrentCount == 0);
+			await this._semaphores.TimeEntries.WaitAsync();
+
+			if ((!force || hasWaited) && this._cache.Contains(cacheKey))
 			{
+				this._semaphores.TimeEntries.Release();
 				return (List<TimeEntry>?)this._cache.Get(cacheKey);
 			}
 
@@ -115,11 +134,14 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				this._cache.Set(cacheKey, timeEntries, DateTimeOffset.Now.AddSeconds(30));
 				#pragma warning restore CS8604 // Possible null reference argument
 
+				this._semaphores.TimeEntries.Release();
 				return timeEntries;
 			}
 			catch (Exception exception)
 			{
 				this._context.API.LogException("TogglTrack", "Failed to fetch time entries", exception, "_GetTimeEntries");
+				
+				this._semaphores.TimeEntries.Release();
 				return null;
 			}
 		}
@@ -142,27 +164,26 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				return false;
 			}
 
-			await this._lastToken.Semaphore.WaitAsync();
+			await this._semaphores.Token.WaitAsync();
 
 			if (this._settings.ApiToken.Equals(this._lastToken.Token))
 			{
-				this._lastToken.Semaphore.Release();
+				this._semaphores.Token.Release();
 				return this._lastToken.IsValid;
 			}
 
 			if (string.IsNullOrWhiteSpace(this._settings.ApiToken))
 			{
-				this._lastToken.Semaphore.Release();
+				this._semaphores.Token.Release();
 				return this._lastToken.IsValid = false;
 			}
 
 			this._client.UpdateToken(this._settings.ApiToken);
 
-
 			this._lastToken.IsValid = (await this._GetMe(true))?.api_token?.Equals(this._settings.ApiToken) ?? false;
 			this._lastToken.Token = this._settings.ApiToken;
 			
-			this._lastToken.Semaphore.Release();
+			this._semaphores.Token.Release();
 			return this._lastToken.IsValid;
 		}
 

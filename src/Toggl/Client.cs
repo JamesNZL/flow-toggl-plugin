@@ -38,7 +38,14 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 			return await this._api.Get<List<ProjectResponse>>($"workspaces/{workspaceId}/projects?per_page=500");
 		}
 
-		public async Task<TimeEntryResponse?> CreateTimeEntry(long? projectId, long workspaceId, string? description, DateTimeOffset? start, List<string>? tags, bool? billable)
+		public async Task<TimeEntryResponse?> CreateTimeEntry(
+			long? projectId,
+			long workspaceId,
+			string? description,
+			DateTimeOffset? start,
+			List<string>? tags,
+			bool? billable
+		)
 		{
 			var dateTimeOffset = (start is not null)
 				? (DateTimeOffset)start
@@ -57,9 +64,18 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 			});
 		}
 		
-		public async Task<TimeEntryResponse?> EditTimeEntry(TimeEntryResponse timeEntry, long? projectId, string? description, DateTimeOffset? start, DateTimeOffset? stop)
+		public async Task<TimeEntryResponse?> EditTimeEntry(
+			long id,
+			long workspaceId,
+			long? projectId,
+			string? description,
+			DateTimeOffset? start,
+			DateTimeOffset? stop,
+			long? duration,
+			List<string>? tags,
+			bool? billable
+		)
 		{
-			long? duration = timeEntry.duration;
 			if (start is not null)
 			{
 				duration = -1 * ((DateTimeOffset)start).ToUnixTimeSeconds();
@@ -69,28 +85,23 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 				duration = default(long?);
 			}
 
-			return await this._api.Put<TimeEntryResponse>($"workspaces/{timeEntry.workspace_id}/time_entries/{timeEntry.id}", new
+			return await this._api.Put<TimeEntryResponse>($"workspaces/{workspaceId}/time_entries/{id}", new
 			{
-				timeEntry.billable,
+				billable,
 				created_with = "flow-toggl-plugin",
 				description,
 				duration,
 				project_id = projectId,
 				start = start?.ToString("yyyy-MM-ddTHH:mm:ssZ"),
 				stop = stop?.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-				timeEntry.tags,
-				timeEntry.workspace_id,
+				tags,
+				workspace_id = workspaceId,
 			});
 		}
 
 		public async Task<TimeEntryResponse?> GetRunningTimeEntry()
 		{
 			return await this._api.Get<TimeEntryResponse>("me/time_entries/current");
-		}
-
-		public async Task<List<ClientResponse>?> GetWorkspaceClients(long workspaceId)
-		{
-			return await this._api.Get<List<ClientResponse>>($"workspaces/{workspaceId}/clients");
 		}
 
 		public async Task<TimeEntryResponse?> StopTimeEntry(long id, long workspaceId)
@@ -112,7 +123,13 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 		 * Reports API
 		 */
 
-		public async Task<SummaryTimeEntryResponse?> GetSummaryTimeEntries(long workspaceId, long userId, Settings.ReportsGroupingKeys reportGrouping, DateTimeOffset start, DateTimeOffset? end)
+		public async Task<SummaryTimeEntryResponse?> GetSummaryTimeEntries(
+			long workspaceId,
+			long userId,
+			Settings.ReportsGroupingKeys reportGrouping,
+			DateTimeOffset start,
+			DateTimeOffset? end
+		)
 		{
 			(string grouping, string sub_grouping) = (reportGrouping) switch
 			{

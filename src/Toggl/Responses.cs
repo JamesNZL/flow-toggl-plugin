@@ -28,6 +28,11 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 		// public string? timezone { get; set; }
 		// public string? updated_at { get; set; }
 		// public List<Workspace>? workspaces { get; set; }
+
+		public Me ToMe()
+		{
+			return new Me(this);
+		}
 	}
 
 	// public class WorkspaceResponse
@@ -63,10 +68,15 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 	{
 		// public bool? archived { get; set; }
 		// public string? at { get; set; }
-		public long? id { get; set; }
+		public long id { get; set; }
 		public string? name { get; set; }
 		// public string? server_deleted_at { get; set; }
 		// public long? wid { get; set; }
+
+		public Client ToClient(Me me)
+		{
+			return new Client(this, me);
+		}
 	}
 
 	public class ProjectResponse
@@ -85,7 +95,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 		// public long? estimated_hours { get; set; }
 		// public string? first_time_entry { get; set; }
 		// public float? fixed_fee { get; set; }
-		public long? id { get; set; }
+		public long id { get; set; }
 		// public bool? is_private { get; set; }
 		public string? name { get; set; }
 		// public float? rate { get; set; }
@@ -95,7 +105,12 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 		// public string? start_date { get; set; }
 		// public bool? template { get; set; }
 		// public long? wid { get; set; }
-		public long? workspace_id { get; set; }
+		public long workspace_id { get; set; }
+
+		public Project ToProject(Me me)
+		{
+			return new Project(this, me);
+		}
 	}
 
 	// public class TasksResponse
@@ -143,20 +158,31 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 		// public long? user_id { get; set; }
 		// public long? wid { get; set; }
 		public long workspace_id { get; set; }
+
+		public TimeEntry ToTimeEntry(Me me)
+		{
+			return new TimeEntry(this, me);
+		}
 	}
 
 	public class SummaryTimeEntryResponse
 	{
 		public List<SummaryTimeEntryGroupResponse>? groups { get; set; }
+
+		public SummaryTimeEntry ToSummaryTimeEntry(Me me)
+		{
+			return new SummaryTimeEntry(this, me);
+		}
 	}
 
 	public class SummaryTimeEntryGroupResponse
 	{
 		public long? id { get; set; }
 		public List<SummaryTimeEntrySubGroupResponse>? sub_groups { get; set; }
-		public long seconds
+
+		public SummaryTimeEntryGroup ToSummaryTimeEntryGroup(Me me)
 		{
-			get => this?.sub_groups?.Sum(subGroup => subGroup.seconds) ?? 0;
+			return new SummaryTimeEntryGroup(this, me);
 		}
 	}
 
@@ -165,5 +191,10 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 		public long? id { get; set; }
 		public string? title { get; set; }
 		public long seconds { get; set; }
+
+		public SummaryTimeEntrySubGroup ToSummaryTimeEntrySubGroup()
+		{
+			return new SummaryTimeEntrySubGroup(this);
+		}
 	}
 }

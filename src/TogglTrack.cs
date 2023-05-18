@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Runtime.Caching;
 using Humanizer;
 using TimeSpanParserUtil;
 using Flow.Launcher.Plugin.TogglTrack.TogglApi;
@@ -20,7 +19,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		private (bool IsValid, string Token) _lastToken = (false, string.Empty);
 
 		private readonly (SemaphoreSlim Token, SemaphoreSlim Me, SemaphoreSlim RunningTimeEntries, SemaphoreSlim TimeEntries) _semaphores = (new SemaphoreSlim(1, 1), new SemaphoreSlim(1, 1), new SemaphoreSlim(1, 1), new SemaphoreSlim(1, 1));
-		private MemoryCache _cache = MemoryCache.Default;
+		private NullableCache _cache = new NullableCache();
 
 		private long? _selectedProjectId = -1;
 		
@@ -59,9 +58,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				
 				var me = await this._client.GetMe();
 
-				#pragma warning disable CS8604 // Possible null reference argument
 				this._cache.Set(cacheKey, me, DateTimeOffset.Now.AddDays(3));
-				#pragma warning restore CS8604 // Possible null reference argument
 
 				this._semaphores.Me.Release();
 				return me;
@@ -94,9 +91,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 				var runningTimeEntry = await this._client.GetRunningTimeEntry();
 
-				#pragma warning disable CS8604 // Possible null reference argument
 				this._cache.Set(cacheKey, runningTimeEntry, DateTimeOffset.Now.AddSeconds(30));
-				#pragma warning restore CS8604 // Possible null reference argument
 
 				this._semaphores.RunningTimeEntries.Release();
 				return runningTimeEntry;
@@ -129,10 +124,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				
 				var timeEntries = await this._client.GetTimeEntries();
 
-				#pragma warning disable CS8604 // Possible null reference argument
-				// TODO: value cannot be null
 				this._cache.Set(cacheKey, timeEntries, DateTimeOffset.Now.AddSeconds(30));
-				#pragma warning restore CS8604 // Possible null reference argument
 
 				this._semaphores.TimeEntries.Release();
 				return timeEntries;

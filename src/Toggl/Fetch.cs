@@ -3,15 +3,74 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 {
+	/// <summary>
+    /// This is a custom JsonConverter that ensures that certain fields are never ignored, even if they are null.
+    /// 
+    /// This is necessary as certain fields (ie project_id) still carry meaning when they are null, rather than being necessarily 'optional'.
+    /// </summary>
+	public class NullPropertyConverter : JsonConverter<object>
+	{
+		private readonly string[] _neverIgnore;
+
+		public NullPropertyConverter(string[] neverIgnore)
+		{
+			this._neverIgnore = neverIgnore;
+		}
+
+		public override object? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+		{
+			throw new NotImplementedException();
+		}
+
+		public override void Write(Utf8JsonWriter writer, object value, JsonSerializerOptions options)
+		{
+			var type = value?.GetType();
+			var properties = type?.GetProperties();
+
+			if (properties is null)
+			{
+				return;
+			}
+			
+			writer.WriteStartObject();
+
+			foreach (var property in properties)
+			{
+				if (!property.CanRead)
+				{
+					continue;
+				}
+
+				var propertyValue = property.GetValue(value);
+
+				if ((propertyValue is null) && (!this._neverIgnore.Contains(property.Name)))
+				{
+					continue;
+				}
+
+				writer.WritePropertyName(property.Name);
+				JsonSerializer.Serialize(writer, propertyValue);
+			}
+
+			writer.WriteEndObject();
+		}
+	}
+
 	public class AuthenticatedFetch
 	{
 		private readonly static JsonSerializerOptions _serializerOptions = new JsonSerializerOptions
 		{
-			DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
+			Converters = {
+				new NullPropertyConverter(neverIgnore: new string[] {
+					"project_id",
+				}),
+			}
 		};
 
 		private string _token;

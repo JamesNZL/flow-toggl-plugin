@@ -1136,7 +1136,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							{
 								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.Id}, {runningTimeEntry.WorkspaceId}, {runningTimeEntry.StartDate}, {(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")}, {stopTime}, time span flag", "RequestStopEntry");
 
-								var stoppedTimeEntry = (await this._client.EditTimeEntry(runningTimeEntry.Id, runningTimeEntry.WorkspaceId, null, null, null, stopTime, runningTimeEntry.Duration, runningTimeEntry.Tags, runningTimeEntry.Billable))?.ToTimeEntry(me);
+								var stoppedTimeEntry = (await this._client.EditTimeEntry(runningTimeEntry.Id, runningTimeEntry.WorkspaceId, runningTimeEntry.ProjectId, null, null, stopTime, runningTimeEntry.Duration, runningTimeEntry.Tags, runningTimeEntry.Billable))?.ToTimeEntry(me);
 								if (stoppedTimeEntry?.Id is null)
 								{
 									throw new Exception("An API error was encountered.");

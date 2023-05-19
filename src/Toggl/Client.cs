@@ -33,11 +33,6 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 			return await this._api.Get<MeResponse>("me?with_related_data=true");
 		}
 
-		public async Task<List<ProjectResponse>?> GetWorkspaceProjects(long workspaceId)
-		{
-			return await this._api.Get<List<ProjectResponse>>($"workspaces/{workspaceId}/projects?per_page=500");
-		}
-
 		public async Task<TimeEntryResponse?> CreateTimeEntry(
 			long? projectId,
 			long workspaceId,

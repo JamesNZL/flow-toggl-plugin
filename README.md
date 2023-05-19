@@ -50,6 +50,14 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 - Open source
 - Private and secure—all data is stored locally!
 
+# Demos
+
+## `tgl`
+![Plugin demo](./assets/demos/tgl.gif)
+
+## `tgl reports`
+![View tracked time reports](./assets/demos/reports.gif)
+
 # Screenshots
 
 ## `tgl`

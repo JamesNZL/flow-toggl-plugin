@@ -6,7 +6,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 	internal class NullableCache
 	{
 		private readonly static object NullObject = new object();
-		private readonly MemoryCache _cache = MemoryCache.Default;
+		private MemoryCache _cache = new MemoryCache("TogglTrack");
 
 		internal bool Contains(string key)
 		{
@@ -34,6 +34,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		internal object Remove(string key)
 		{
 			return this._cache.Remove(key);
+		}
+
+		internal void Clear()
+		{
+			this._cache.Dispose();
+			this._cache = new MemoryCache("TogglTrack");
 		}
 	}
 }

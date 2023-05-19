@@ -200,6 +200,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				return this._lastToken.IsValid;
 			}
 
+			// Clear the cache if the token has changed (#15)
+			this._cache.Clear();
+
 			if (string.IsNullOrWhiteSpace(this._settings.ApiToken))
 			{
 				this._semaphores.Token.Release();

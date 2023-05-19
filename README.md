@@ -31,15 +31,19 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 - [Screenshots](#screenshots)
 - [Setup Instructions](#setup-instructions)
 
+# Commands
+
+- `Start` new time entries
+- `Edit` currently running time entries
+- `Stop` currently running time entries
+- `Delete` currently running time entries
+- `Continue` a previously tracked time entry
+- `Reports` of tracked time by projects, clients, and entries
+- `Browser` quick-launch shortcut
+
 # Features
 
 - Simple, user-friendly interface
-- Start new time entries
-- Edit currently running time entries
-- Stop currently running time entries
-- Delete currently running time entries
-- Continue a previously tracked time entry
-- Open in browser shortcut
 - Support for projects, clients, and workspaces
 - Coloured icons for projects
 - Human-friendly date and time display
@@ -69,6 +73,23 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 
 ## `tgl continue`
 ![Continue previous time entry](./assets/screenshots/continue.jpg)
+
+## `tgl reports`
+![View tracked time reports](./assets/screenshots/reports.jpg)
+
+![View tracked time report from yesterday](./assets/screenshots/reports-yesterday.jpg)
+
+![Tracked time report grouping options](./assets/screenshots/reports-groupings.jpg)
+
+![View tracked time report by project](./assets/screenshots/reports-projects.jpg)
+
+![View tracked time report by project entries](./assets/screenshots/reports-projects-entries.jpg)
+
+![View tracked time report by client](./assets/screenshots/reports-clients.jpg)
+
+![View tracked time report by client projects](./assets/screenshots/reports-clients-projects.jpg)
+
+![View tracked time report by entries](./assets/screenshots/reports-entries.jpg)
 
 # Setup Instructions
 

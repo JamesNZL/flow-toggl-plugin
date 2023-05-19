@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.2.0](https://github.com/JamesNZL/flow-toggl-plugin/compare/v2.1.6...v2.2.0) (2023-05-19)
+
+
+### Features
+
+* **ux:** ✨ implement reports command ([#2](https://github.com/JamesNZL/flow-toggl-plugin/issues/2)) ([#13](https://github.com/JamesNZL/flow-toggl-plugin/issues/13)) ([2203495](https://github.com/JamesNZL/flow-toggl-plugin/commit/22034956b02ed2b4d6294587b1b4b37f3dc17b0e)), closes [#11](https://github.com/JamesNZL/flow-toggl-plugin/issues/11) [#10](https://github.com/JamesNZL/flow-toggl-plugin/issues/10)
+
+
+### Bug Fixes
+
+* :bug: allow caching `null` values ([bd14f00](https://github.com/JamesNZL/flow-toggl-plugin/commit/bd14f000d0bb378ebc2a457c34bd02da2ed5f1ac))
+* **reports:** :bug: do not include current timer if out of report span ([#14](https://github.com/JamesNZL/flow-toggl-plugin/issues/14)) ([4ecab3d](https://github.com/JamesNZL/flow-toggl-plugin/commit/4ecab3d2ad7167de12ac2e78cd5c74eaf0ed8226))
+* **reports:** :bug: fix year span end date calculation ([ee56dbc](https://github.com/JamesNZL/flow-toggl-plugin/commit/ee56dbcc90f83863939f4c7a1b2635090d5e711b))
+* **ux:** :bug: clear cache when token changes ([#15](https://github.com/JamesNZL/flow-toggl-plugin/issues/15)) ([324cbb5](https://github.com/JamesNZL/flow-toggl-plugin/commit/324cbb528ef6dd311def801d49b8ad0d1afaa94a))
+* **ux:** :bug: fix `tgl edit no-project` not clearing the project ([#5](https://github.com/JamesNZL/flow-toggl-plugin/issues/5)) ([e96cac8](https://github.com/JamesNZL/flow-toggl-plugin/commit/e96cac8ce22a7ac5a83b9ef7eadd2e029b6ff7e2))
+* **ux:** :bug: fix buggy token validation ([#8](https://github.com/JamesNZL/flow-toggl-plugin/issues/8)) ([3235ac9](https://github.com/JamesNZL/flow-toggl-plugin/commit/3235ac9785bfe6b476ef7ea0f06444c8a53ccf84))
+* **ux:** :speech_balloon: fix incorrect time strings when 0 ([#11](https://github.com/JamesNZL/flow-toggl-plugin/issues/11)) ([45a10c3](https://github.com/JamesNZL/flow-toggl-plugin/commit/45a10c351bdd4a881647caaf9a9969a9bd2dd006))
+* **ux:** :zap: fix background fetch for past time entries on `start` ([3b0b391](https://github.com/JamesNZL/flow-toggl-plugin/commit/3b0b3916288784674ceececba60a09448b47f116))
+
 ### [2.1.6](https://github.com/JamesNZL/flow-toggl-plugin/compare/v2.1.5...v2.1.6) (2023-05-16)
 
 

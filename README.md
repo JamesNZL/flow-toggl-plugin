@@ -27,6 +27,7 @@
 
 A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launcher](https://flowlauncher.com/) to bring time tracking right to your fingertips.
 
+- [Commands](#commands)
 - [Features](#features)
 - [Screenshots](#screenshots)
 - [Setup Instructions](#setup-instructions)

@@ -523,6 +523,16 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							{
 								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {workspaceId}, {description}", "RequestStartEntry");
 								
+								var runningTimeEntry = (await this._GetRunningTimeEntry(true))?.ToTimeEntry(me);
+								if (runningTimeEntry is not null)
+								{
+									var stoppedTimeEntry = (await this._client.StopTimeEntry(runningTimeEntry.Id, runningTimeEntry.WorkspaceId))?.ToTimeEntry(me);
+									if (stoppedTimeEntry?.Id is null)
+									{
+										throw new Exception("An API error was encountered.");
+									}
+								}
+								
 								var createdTimeEntry = (await this._client.CreateTimeEntry(this._selectedProjectId, workspaceId, description, null, null, null))?.ToTimeEntry(me);
 								if (createdTimeEntry?.Id is null)
 								{
@@ -600,6 +610,16 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								{
 									this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {workspaceId}, {sanitisedDescription}, {startTimeSpan.ToString()}, time span flag", "RequestStartEntry");
 									
+									var runningTimeEntry = (await this._GetRunningTimeEntry(true))?.ToTimeEntry(me);
+									if (runningTimeEntry is not null)
+									{
+										var stoppedTimeEntry = (await this._client.EditTimeEntry(runningTimeEntry.Id, runningTimeEntry.WorkspaceId, runningTimeEntry.ProjectId, null, null, startTime, runningTimeEntry.Duration, runningTimeEntry.Tags, runningTimeEntry.Billable))?.ToTimeEntry(me);
+										if (stoppedTimeEntry?.Id is null)
+										{
+											throw new Exception("An API error was encountered.");
+										}
+									}
+
 									var createdTimeEntry = (await this._client.CreateTimeEntry(this._selectedProjectId, workspaceId, sanitisedDescription, startTime, null, null))?.ToTimeEntry(me);
 									if (createdTimeEntry?.Id is null)
 									{

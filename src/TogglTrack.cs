@@ -1521,8 +1521,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				: 0;
 
 			// ! WARNING: These dates are in **local** time, NOT UTC time! (#17)
-			var start = spanConfiguration.Start(DateTimeOffset.Now, spanArgumentOffset);
-			var end = spanConfiguration.End(DateTimeOffset.Now, spanArgumentOffset);
+			var now = DateTimeOffset.Now;
+			var start = spanConfiguration.Start(now, spanArgumentOffset);
+			var end = spanConfiguration.End(now, spanArgumentOffset);
 
 			this._context.API.LogInfo("TogglTrack", $"{spanArgument}, {groupingArgument}, {start.ToString("yyyy-MM-dd")}, {end.ToString("yyyy-MM-dd")}", "RequestViewReports");
 
@@ -1530,7 +1531,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			// Use cached time entry here to improve responsiveness
 			var runningTimeEntry = (await this._GetRunningTimeEntry())?.ToTimeEntry(me);
-			if ((runningTimeEntry is not null) && ((runningTimeEntry.StartDate.Date >= start.Date) && ((runningTimeEntry.StopDate ?? DateTimeOffset.Now).Date <= end.Date)))
+			if ((runningTimeEntry is not null) && ((runningTimeEntry.StartDate.Date >= start.Date) && ((runningTimeEntry.StopDate ?? now).Date <= end.Date)))
 			{
 				summary = summary?.InsertRunningTimeEntry(runningTimeEntry, groupingConfiguration.Grouping);
 			}

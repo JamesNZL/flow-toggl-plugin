@@ -239,6 +239,17 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						return true;
 					},
 				},
+				new Result
+				{
+					Title = "Open Toggl Track profile settings",
+					SubTitle = "Retrieve your API token from your Toggl Track profile settings.",
+					IcoPath = this._context.CurrentPluginMetadata.IcoPath,
+					Action = c =>
+					{
+						this._context.API.OpenUrl(new Uri(@"https://track.toggl.com/profile#api-token"));
+						return true;
+					},
+				},
 			};
 		}
 
@@ -273,7 +284,18 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						this._context.API.OpenSettingDialog();
 						return true;
 					},
-				}
+				},
+				new Result
+				{
+					Title = "Open Toggl Track profile settings",
+					SubTitle = "Retrieve your API token from your Toggl Track profile settings.",
+					IcoPath = this._context.CurrentPluginMetadata.IcoPath,
+					Action = c =>
+					{
+						this._context.API.OpenUrl(new Uri(@"https://track.toggl.com/profile#api-token"));
+						return true;
+					},
+				},
 			};
 		}
 
@@ -290,7 +312,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					{
 						return true;
 					},
-				}
+				},
 			};
 		}
 

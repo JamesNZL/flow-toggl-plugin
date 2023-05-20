@@ -1116,7 +1116,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				// An exception will be thrown if a time span was not able to be parsed
 				// If we get here, there will have been a valid time span
 				var stopTime = DateTimeOffset.UtcNow + stopTimeSpan;
-				if (stopTime.CompareTo(runningTimeEntry.StartDate) < 0)
+				if (stopTime < runningTimeEntry.StartDate)
 				{
 					// Ensure stop is not before start
 					stopTime = runningTimeEntry.StartDate;
@@ -1478,16 +1478,17 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				? int.Parse(spanArgumentOffsetMatch.Groups[1].Value)
 				: 0;
 
-			var start = spanConfiguration.Start(DateTimeOffset.UtcNow, spanArgumentOffset);
-			var end = spanConfiguration.End(DateTimeOffset.UtcNow, spanArgumentOffset);
-			
-			this._context.API.LogInfo("TogglTrack", $"{spanArgument}, {groupingArgument}, {start}, {end}", "RequestViewReports");
+			// ! WARNING: These dates are in **local** time, NOT UTC time! (#17)
+			var start = spanConfiguration.Start(DateTimeOffset.Now, spanArgumentOffset);
+			var end = spanConfiguration.End(DateTimeOffset.Now, spanArgumentOffset);
+
+			this._context.API.LogInfo("TogglTrack", $"{spanArgument}, {groupingArgument}, {start.ToString("yyyy-MM-dd")}, {end.ToString("yyyy-MM-dd")}", "RequestViewReports");
 
 			var summary = (await this._GetSummaryTimeEntries(me.DefaultWorkspaceId, me.Id, groupingConfiguration.Grouping, start, end))?.ToSummaryTimeEntry(me);
 
 			// Use cached time entry here to improve responsiveness
 			var runningTimeEntry = (await this._GetRunningTimeEntry())?.ToTimeEntry(me);
-			if ((runningTimeEntry is not null) && ((runningTimeEntry.StartDate.Date >= start.Date) && ((runningTimeEntry.StopDate ?? DateTimeOffset.UtcNow).Date <= end.Date)))
+			if ((runningTimeEntry is not null) && ((runningTimeEntry.StartDate.Date >= start.Date) && ((runningTimeEntry.StopDate ?? DateTimeOffset.Now).Date <= end.Date)))
 			{
 				summary = summary?.InsertRunningTimeEntry(runningTimeEntry, groupingConfiguration.Grouping);
 			}

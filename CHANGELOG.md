@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.3.0](https://github.com/JamesNZL/flow-toggl-plugin/compare/v2.2.0...v2.3.0) (2023-05-20)
+
+
+### Features
+
+* **ux:** :children_crossing: add quick-launch to profile settings if bad api key ([#18](https://github.com/JamesNZL/flow-toggl-plugin/issues/18)) ([67a09a7](https://github.com/JamesNZL/flow-toggl-plugin/commit/67a09a77cb9e21065d2446be6ccc7b11303d2938))
+
+
+### Bug Fixes
+
+* **reports:** :bug: fix incorrect report window ([#17](https://github.com/JamesNZL/flow-toggl-plugin/issues/17)) ([d34733b](https://github.com/JamesNZL/flow-toggl-plugin/commit/d34733befddedd18858ce36f307db59d4892cca8))
+* **ux:** :children_crossing: fix posssility of overlapping time entries when using `-t` ([#16](https://github.com/JamesNZL/flow-toggl-plugin/issues/16)) ([8a46005](https://github.com/JamesNZL/flow-toggl-plugin/commit/8a46005cda090ea964138826d753ad8fc240d15c))
+
 ## [2.2.0](https://github.com/JamesNZL/flow-toggl-plugin/compare/v2.1.6...v2.2.0) (2023-05-19)
 
 

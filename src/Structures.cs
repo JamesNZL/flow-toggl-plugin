@@ -9,32 +9,42 @@ namespace Flow.Launcher.Plugin.TogglTrack
 	public class Me
 	{
 		public readonly string? ApiToken;
-		public readonly List<Client>? Clients;
+		public readonly Dictionary<long, Client>? Clients;
 		public readonly long DefaultWorkspaceId;
 		public readonly long Id;
-		public readonly List<Project>? Projects;
+		public readonly Dictionary<long, Project>? Projects;
 
 		public readonly List<Project>? ActiveProjects;
 
 		public Me(MeResponse response)
 		{
 			this.ApiToken = response.api_token;
-			this.Clients = response.clients?.ConvertAll(client => client.ToClient(this));
+			this.Clients = response.clients?.ToDictionary(keySelector: clientResponse => clientResponse.id, elementSelector: clientResponse => clientResponse.ToClient(this));
 			this.DefaultWorkspaceId = response.default_workspace_id;
 			this.Id = response.id;
-			this.Projects = response.projects?.ConvertAll(project => project.ToProject(this));
+			this.Projects = response.projects?.ToDictionary(keySelector: projectResponse => projectResponse.id, elementSelector: projectResponse => projectResponse.ToProject(this));
 
-			this.ActiveProjects = this.Projects?.FindAll(project => project.Active ?? false);
+			this.ActiveProjects = this.Projects?.Where(pair => pair.Value.Active ?? false).Select(pair => pair.Value).ToList();
 		}
 
-		public Project? FindProject(long? id)
+		public Project? GetProject(long? id)
 		{
-			return this.Projects?.Find(project => project.Id == id);
+			if ((id is null) || (this.Projects is null))
+			{
+				return null;
+			}
+
+			return this.Projects.GetValueOrDefault((long)id);
 		}
 
-		public Client? FindClient(long? id)
+		public Client? GetClient(long? id)
 		{
-			return this.Clients?.Find(client => client.Id == id);
+			if ((id is null) || (this.Clients is null))
+			{
+				return null;
+			}
+
+			return this.Clients.GetValueOrDefault((long)id);
 		}
 	}
 
@@ -81,7 +91,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			this.Name = response.name ?? "(no name)";
 			this.WorkspaceId = response.workspace_id;
 
-			this.Client = this._me.FindClient(this.ClientId);
+			this.Client = this._me.GetClient(this.ClientId);
 		}
 
 		public string GetColourIcon(PluginInitContext context, string fallbackIcon)
@@ -141,7 +151,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			this.Tags = response.tags;
 			this.WorkspaceId = response.workspace_id;
 
-			this.Project = this._me.FindProject(this.ProjectId);
+			this.Project = this._me.GetProject(this.ProjectId);
 		}
 
 		public string Description
@@ -188,19 +198,25 @@ namespace Flow.Launcher.Plugin.TogglTrack
 	{
 		private readonly Me _me;
 
-		public List<SummaryTimeEntryGroup> Groups;
+		// Key as -1 for 'No Project' or 'No Client' cases
+		public Dictionary<long, SummaryTimeEntryGroup> Groups;
 
 		public SummaryTimeEntry(SummaryTimeEntryResponse response, Me me)
 		{
 			this._me = me;
 
-			this.Groups = response.groups?.ConvertAll(group => group.ToSummaryTimeEntryGroup(me)) ?? new List<SummaryTimeEntryGroup>();
+			this.Groups = response.groups?.ToDictionary(keySelector: groupResponse => SummaryTimeEntry.GetGroupKey(groupResponse.id), elementSelector: groupResponse => groupResponse.ToSummaryTimeEntryGroup(me)) ?? new Dictionary<long, SummaryTimeEntryGroup>();
 		}
 		public SummaryTimeEntry(SummaryTimeEntry summary)
 		{
 			this._me = summary._me;
 
-			this.Groups = summary.Groups.ConvertAll<SummaryTimeEntryGroup>(group => group.Clone());
+			this.Groups = summary.Groups.ToDictionary(keySelector: pair => pair.Key, elementSelector: pair => pair.Value.Clone());
+		}
+
+		internal static long GetGroupKey(long? id)
+		{
+			return id ?? -1;
 		}
 
 		public SummaryTimeEntry Clone()
@@ -241,14 +257,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				_ => timeEntry.ProjectId,
 			};
 
-			var group = clonedSummary.FindGroup(groupId);
-			var subGroup = (subGrouping) switch
-			{
-				ENTRIES_KEY => group?.FindSubGroup(timeEntry.RawDescription),
-				PROJECTS_KEY => group?.FindSubGroup(timeEntry.ProjectId),
-				// Default sub-grouping of entries
-				_ => group?.FindSubGroup(timeEntry.RawDescription),
-			};
+			var group = clonedSummary.GetGroup(groupId);
+			var subGroup = group?.GetSubGroup(timeEntry.Id, timeEntry.RawDescription);
 
 			if (subGroup is not null)
 			{
@@ -278,37 +288,42 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			if (group?.SubGroups is not null)
 			{
-				group.SubGroups.Add(new SummaryTimeEntrySubGroup(newSubGroup));
+				group.SubGroups.Add(group.GetSubGroupKey(newSubGroup.id, newSubGroup.title), new SummaryTimeEntrySubGroup(newSubGroup));
 				return clonedSummary;
 			}
 
 			if (group is not null)
 			{
-				group.SubGroups = new List<SummaryTimeEntrySubGroup>
+				group.SubGroups = new Dictionary<string, SummaryTimeEntrySubGroup>
 				{
-					new SummaryTimeEntrySubGroup(newSubGroup),
+					{
+						group.GetSubGroupKey(newSubGroup.id, newSubGroup.title), new SummaryTimeEntrySubGroup(newSubGroup)
+					}
 				};
 				return clonedSummary;
 			}
 
-			clonedSummary.Groups.Add(new SummaryTimeEntryGroup(
-				new SummaryTimeEntryGroupResponse
-				{
-					id = groupId,
-					sub_groups = new List<SummaryTimeEntrySubGroupResponse>
+			clonedSummary.Groups.Add(
+				SummaryTimeEntry.GetGroupKey(groupId),
+				new SummaryTimeEntryGroup(
+					new SummaryTimeEntryGroupResponse
 					{
-						newSubGroup,
+						id = groupId,
+						sub_groups = new List<SummaryTimeEntrySubGroupResponse>
+						{
+							newSubGroup,
+						},
 					},
-				},
-				this._me
-			));
+					this._me
+				)
+			);
 
 			return clonedSummary;
 		}
 
 		public long Seconds
 		{
-			get => this.Groups.Sum(group => group.Seconds);
+			get => this.Groups.Values.Sum(group => group.Seconds);
 		}
 
 		public TimeSpan Elapsed
@@ -326,9 +341,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			get => $"{(int)this.Elapsed.TotalHours}:{this.Elapsed.ToString(@"mm\:ss")}";
 		}
 
-		public SummaryTimeEntryGroup? FindGroup(long? id)
+		public SummaryTimeEntryGroup? GetGroup(long? id)
 		{
-			return this.Groups.Find(group => group.Id == id);
+			return this.Groups.GetValueOrDefault(SummaryTimeEntry.GetGroupKey(id));
 		}
 	}
 
@@ -337,7 +352,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		private readonly Me _me;
 
 		public long? Id;
-		public List<SummaryTimeEntrySubGroup>? SubGroups;
+		public Dictionary<string, SummaryTimeEntrySubGroup>? SubGroups;
 
 		public Project? Project;
 		public Client? Client;
@@ -347,20 +362,25 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			this._me = me;
 
 			this.Id = response.id;
-			this.SubGroups = response.sub_groups?.ConvertAll(subGroup => subGroup.ToSummaryTimeEntrySubGroup());
+			this.SubGroups = response.sub_groups?.ToDictionary(keySelector: subGroupResponse => this.GetSubGroupKey(subGroupResponse.id, subGroupResponse.title), elementSelector: subGroupResponse => subGroupResponse.ToSummaryTimeEntrySubGroup());
 
-			this.Project = me.FindProject(this.Id);
-			this.Client = me.FindClient(this.Id);
+			this.Project = me.GetProject(this.Id);
+			this.Client = me.GetClient(this.Id);
 		}
 		public SummaryTimeEntryGroup(SummaryTimeEntryGroup group)
 		{
 			this._me = group._me;
 
 			this.Id = group.Id;
-			this.SubGroups = group.SubGroups?.ConvertAll<SummaryTimeEntrySubGroup>(subGroup => subGroup.Clone());
+			this.SubGroups = group.SubGroups?.ToDictionary(keySelector: pair => pair.Key, elementSelector: pair => pair.Value.Clone());
 
 			this.Project = group.Project;
 			this.Client = group.Client;
+		}
+
+		internal string GetSubGroupKey(long? id, string? title)
+		{
+			return $"{this.Id?.ToString("X") ?? "-1"}-{id?.ToString("X") ?? title}";
 		}
 		
 		public SummaryTimeEntryGroup Clone()
@@ -374,7 +394,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 		public long Seconds
 		{
-			get => this?.SubGroups?.Sum(subGroup => subGroup.Seconds) ?? 0;
+			get => this?.SubGroups?.Values.Sum(subGroup => subGroup.Seconds) ?? 0;
 		}
 
 		public TimeSpan Elapsed
@@ -394,16 +414,17 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 		public SummaryTimeEntrySubGroup? LongestSubGroup
 		{
-			get => this.SubGroups?.MaxBy(subGroup => subGroup.Seconds);
+			get => this.SubGroups?.Values.MaxBy(subGroup => subGroup.Seconds);
 		}
 
-		public SummaryTimeEntrySubGroup? FindSubGroup(long? id)
+		public SummaryTimeEntrySubGroup? GetSubGroup(long? id, string? title)
 		{
-			return this.SubGroups?.Find(subGroup => subGroup.Id == id);
-		}
-		public SummaryTimeEntrySubGroup? FindSubGroup(string? title)
-		{
-			return this.SubGroups?.Find(subGroup => subGroup.RawTitle == title);
+			if (this.SubGroups is null)
+			{
+				return null;
+			}
+
+			return this.SubGroups.GetValueOrDefault(this.GetSubGroupKey(id, title));
 		}
 	}
 

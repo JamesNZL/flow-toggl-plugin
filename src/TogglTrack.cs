@@ -522,7 +522,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					});
 			}
 
-			var project = me.FindProject(this._selectedProjectId);
+			var project = me.GetProject(this._selectedProjectId);
 			long workspaceId = project?.WorkspaceId ?? me.DefaultWorkspaceId;
 
 			string projectName = project?.WithClientName ?? "No Project";
@@ -867,7 +867,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					});
 			}
 
-			var project = me.FindProject(this._selectedProjectId);
+			var project = me.GetProject(this._selectedProjectId);
 
 			string projectName = project?.WithClientName ?? "No Project";
 			string description = Main.ExtractFromQuery(
@@ -1561,7 +1561,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					if (this._selectedProjectId == -1)
 					{
 						results.AddRange(
-							summary.Groups.ConvertAll(group => new Result
+							summary.Groups.Values.Select(group => new Result
 							{
 								Title = group.Project?.Name ?? "No Project",
 								SubTitle = $"{((group.Project?.ClientId is not null) ? $"{group.Project.Client!.Name} | " : string.Empty)}{group.HumanisedElapsed} ({group.DetailedElapsed})",
@@ -1579,16 +1579,16 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						break;
 					}
 
-					var selectedProjectGroup = summary.FindGroup(this._selectedProjectId);
+					var selectedProjectGroup = summary.GetGroup(this._selectedProjectId);
 
 					if (selectedProjectGroup?.SubGroups is null)
 					{
 						break;
 					}
 					
-					var project = me.FindProject(selectedProjectGroup.Id);
+					var project = me.GetProject(selectedProjectGroup.Id);
 
-					var subResults = selectedProjectGroup.SubGroups.ConvertAll(subGroup => new Result
+					var subResults = selectedProjectGroup.SubGroups.Values.Select(subGroup => new Result
 					{
 						Title = subGroup.Title,
 						SubTitle = $"{subGroup.HumanisedElapsed} ({subGroup.DetailedElapsed})",
@@ -1603,7 +1603,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						},
 					});
 
-					subResults.Add(new Result
+					subResults.Append(new Result
 					{
 						Title = $"{selectedProjectGroup.HumanisedElapsed} tracked {spanConfiguration.Interpolation(spanArgumentOffset)} ({selectedProjectGroup.DetailedElapsed})",
 						SubTitle = project?.WithClientName ?? "No Project",
@@ -1613,21 +1613,19 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					});
 
 					string subNameQuery = Main.ExtractFromQuery(query, ArgumentIndices.SubGroupingName);
-					return (string.IsNullOrWhiteSpace(subNameQuery))
+					return ((string.IsNullOrWhiteSpace(subNameQuery))
 						? subResults
-						: subResults.FindAll(result =>
-						{
-							return this._context.API.FuzzySearch(subNameQuery, result.Title).Score > 0;
-						});
+						: subResults.Where(result => this._context.API.FuzzySearch(subNameQuery, result.Title).Score > 0)
+					).ToList();
 				}
 				case (Settings.ReportsGroupingKeys.Clients):
 				{
 					if (this._selectedClientId == -1)
 					{	
 						results.AddRange(
-							summary.Groups.ConvertAll(group =>
+							summary.Groups.Values.Select(group =>
 							{
-								var longestProject = me.FindProject(group.LongestSubGroup?.Id);
+								var longestProject = me.GetProject(group.LongestSubGroup?.Id);
 
 								return new Result
 								{
@@ -1648,18 +1646,18 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						break;
 					}
 
-					var selectedClientGroup = summary.FindGroup(this._selectedClientId);
+					var selectedClientGroup = summary.GetGroup(this._selectedClientId);
 
 					if (selectedClientGroup?.SubGroups is null)
 					{
 						break;
 					}
 					
-					var client = me.FindClient(selectedClientGroup.Id);
+					var client = me.GetClient(selectedClientGroup.Id);
 
-					var subResults = selectedClientGroup.SubGroups.ConvertAll(subGroup =>
+					var subResults = selectedClientGroup.SubGroups.Values.Select(subGroup =>
 					{
-						var project = me.FindProject(subGroup.Id);
+						var project = me.GetProject(subGroup.Id);
 
 						return new Result
 						{
@@ -1684,7 +1682,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						};
 					});
 
-					subResults.Add(new Result
+					subResults.Append(new Result
 					{
 						Title = $"{selectedClientGroup.HumanisedElapsed} tracked {spanConfiguration.Interpolation(spanArgumentOffset)} ({selectedClientGroup.DetailedElapsed})",
 						SubTitle = client?.Name ?? "No Client",
@@ -1694,24 +1692,22 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					});
 
 					string subNameQuery = Main.ExtractFromQuery(query, ArgumentIndices.SubGroupingName);
-					return (string.IsNullOrWhiteSpace(subNameQuery))
+					return ((string.IsNullOrWhiteSpace(subNameQuery))
 						? subResults
-						: subResults.FindAll(result =>
-						{
-							return this._context.API.FuzzySearch(subNameQuery, result.Title).Score > 0;
-						});
+						: subResults.Where(result => this._context.API.FuzzySearch(subNameQuery, result.Title).Score > 0)
+					).ToList();
 				}
 				case (Settings.ReportsGroupingKeys.Entries):
 				{
-					summary.Groups.ForEach(group =>
-					{
-						if (group.SubGroups is null)
+					results.AddRange(
+						summary.Groups.Values.SelectMany(group =>
 						{
-							return;
-						}
-						
-						results.AddRange(
-							group.SubGroups.ConvertAll(subGroup => new Result
+							if (group.SubGroups is null)
+							{
+								return Enumerable.Empty<Result>();
+							}
+
+							return group.SubGroups.Values.Select(subGroup => new Result
 							{
 								Title = subGroup.Title,
 								SubTitle = $"{group.Project?.WithClientName ?? "No Project"} | {subGroup.HumanisedElapsed} ({subGroup.DetailedElapsed})",
@@ -1724,10 +1720,10 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {group.Project?.KebabName ?? "no-project"} {subGroup.RawTitle}");
 									return false;
 								},
-							})
-						);
-					});
-
+							});
+						})
+					);
+					
 					break;
 				}
 			}

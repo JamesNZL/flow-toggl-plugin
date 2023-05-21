@@ -269,15 +269,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				_ => timeEntry.ProjectId,
 			};
 
-			var group = clonedSummary.GetGroup(groupId);
-			var subGroup = group?.GetSubGroup(timeEntry.Id, timeEntry.RawDescription);
-
-			if (subGroup is not null)
-			{
-				subGroup.Seconds += (int)timeEntry.Elapsed.TotalSeconds;
-				return clonedSummary;
-			}
-
 			var newSubGroup = (subGrouping) switch
 			{
 				ENTRIES_KEY => new SummaryTimeEntrySubGroupResponse
@@ -297,6 +288,15 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					seconds = (int)timeEntry.Elapsed.TotalSeconds,
 				},
 			};
+
+			var group = clonedSummary.GetGroup(groupId);
+			var subGroup = group?.GetSubGroup(newSubGroup.id, newSubGroup.title);
+
+			if (subGroup is not null)
+			{
+				subGroup.Seconds += (int)timeEntry.Elapsed.TotalSeconds;
+				return clonedSummary;
+			}
 
 			if (group?.SubGroups is not null)
 			{

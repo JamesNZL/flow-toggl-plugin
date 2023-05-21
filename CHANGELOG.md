@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.3.1](https://github.com/JamesNZL/flow-toggl-plugin/compare/v2.3.0...v2.3.1) (2023-05-21)
+
+
+### Bug Fixes
+
+* **reports:** :bug: fix running time entry not appearing in report if spanning multiple days ([#19](https://github.com/JamesNZL/flow-toggl-plugin/issues/19)) ([20ee5a3](https://github.com/JamesNZL/flow-toggl-plugin/commit/20ee5a3435c5471c6d3327733ef2998eaefe8b01))
+* **reports:** :bug: respect user's configured timezone and first day of the week ([#20](https://github.com/JamesNZL/flow-toggl-plugin/issues/20)) ([afd8b9c](https://github.com/JamesNZL/flow-toggl-plugin/commit/afd8b9c69d5309f50d197f7711e80da30d0d1a53))
+* **reports:** :bug: use same single reference for `Now` ([d0b6ded](https://github.com/JamesNZL/flow-toggl-plugin/commit/d0b6ded211b291fe7e820d6e72717a119a04551f))
+* **structures:** :bug: fix incorrect subgroup key ([#21](https://github.com/JamesNZL/flow-toggl-plugin/issues/21)) ([346ed9b](https://github.com/JamesNZL/flow-toggl-plugin/commit/346ed9bc1821266825a28fcf7843993aaf6b7c5b))
+
 ## [2.3.0](https://github.com/JamesNZL/flow-toggl-plugin/compare/v2.2.0...v2.3.0) (2023-05-20)
 
 

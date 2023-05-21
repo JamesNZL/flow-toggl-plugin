@@ -9,9 +9,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 	public class Me
 	{
 		public readonly string? ApiToken;
-
 		public readonly long Id;
+
 		public readonly long DefaultWorkspaceId;
+
+		public readonly DayOfWeek BeginningOfWeek;
+		public readonly string ReportsTimeZoneId;
 
 		public readonly Dictionary<long, Client>? Clients;
 		public readonly Dictionary<long, Project>? Projects;
@@ -21,10 +24,21 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		public Me(MeResponse response)
 		{
 			this.ApiToken = response.api_token;
+			this.Id = response.id;
 
 			this.DefaultWorkspaceId = response.default_workspace_id;
-			this.Id = response.id;
-			
+
+			try
+			{
+				this.BeginningOfWeek = Enum.Parse<DayOfWeek>(response.beginning_of_week.ToString());
+			}
+			catch
+			{
+				this.BeginningOfWeek = DayOfWeek.Monday;
+			}
+
+			this.ReportsTimeZoneId = response.timezone ?? TimeZoneInfo.Local.Id;
+
 			this.Clients = response.clients?.ToDictionary(keySelector: clientResponse => clientResponse.id, elementSelector: clientResponse => clientResponse.ToClient(this));
 			this.Projects = response.projects?.ToDictionary(keySelector: projectResponse => projectResponse.id, elementSelector: projectResponse => projectResponse.ToProject(this));
 
@@ -138,7 +152,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 		public readonly long WorkspaceId;
 		public readonly long? ProjectId;
-		
+
 		public readonly bool? Billable;
 		public readonly long Duration;
 		public readonly string Start;

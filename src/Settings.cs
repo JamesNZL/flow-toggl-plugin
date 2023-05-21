@@ -54,8 +54,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				},
 				Score = 400,
 				// Offsetted day
-				Start = (referenceDate, offset) => referenceDate.AddDays(-offset),
-				End = (referenceDate, offset) => referenceDate.AddDays(-offset),
+				Start = (referenceDate, _, offset) => referenceDate.AddDays(-offset),
+				End = (referenceDate, _, offset) => referenceDate.AddDays(-offset),
 			},
 			new ReportsSpanCommandArgument
 			{
@@ -79,10 +79,10 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					}
 				},
 				Score = 300,
-				// Monday of the offsetted week
-				Start = (referenceDate, offset) => referenceDate.AddDays((-(int)referenceDate.DayOfWeek + 1) - (7 * offset)),
-				// Sunday of the offsetted week
-				End = (referenceDate, offset) => referenceDate.AddDays((-(int)referenceDate.DayOfWeek + 7) - (7 * offset)),
+				// Start of the offsetted week
+				Start = (referenceDate, beginningOfWeek, offset) => referenceDate.AddDays(-((7 + ((int)referenceDate.DayOfWeek - (int)beginningOfWeek)) % 7) - (offset * 7)),
+				// End of the offsetted week
+				End = (referenceDate, beginningOfWeek, offset) => referenceDate.AddDays(((6 + ((int)beginningOfWeek - (int)referenceDate.DayOfWeek)) % 7) - (offset * 7))
 			},
 			new ReportsSpanCommandArgument
 			{
@@ -107,9 +107,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				},
 				Score = 200,
 				// First day of the offsetted month
-				Start = (referenceDate, offset) => new DateTimeOffset(referenceDate.Year, referenceDate.Month, 1, 0, 0, 0, referenceDate.Offset).AddMonths(-offset),
+				Start = (referenceDate, _, offset) => new DateTimeOffset(referenceDate.Year, referenceDate.Month, 1, 0, 0, 0, referenceDate.Offset).AddMonths(-offset),
 				// Last day of the offsetted month
-				End = (referenceDate, offset) => new DateTimeOffset(referenceDate.Year, referenceDate.Month, DateTime.DaysInMonth(referenceDate.Year, referenceDate.Month), 0, 0, 0, referenceDate.Offset).AddMonths(-offset),
+				End = (referenceDate, _, offset) => new DateTimeOffset(referenceDate.Year, referenceDate.Month, DateTime.DaysInMonth(referenceDate.Year, referenceDate.Month), 0, 0, 0, referenceDate.Offset).AddMonths(-offset),
 			},
 			new ReportsSpanCommandArgument
 			{
@@ -134,9 +134,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				},
 				Score = 100,
 				// First day of the offsetted year
-				Start = (referenceDate, offset) => new DateTimeOffset(referenceDate.Year - offset, 1, 1, 0, 0, 0, referenceDate.Offset),
+				Start = (referenceDate, _, offset) => new DateTimeOffset(referenceDate.Year - offset, 1, 1, 0, 0, 0, referenceDate.Offset),
 				// Last day of the offsetted year
-				End = (referenceDate, offset) => new DateTimeOffset(referenceDate.Year - offset, 12, 31, 0, 0, 0, referenceDate.Offset),
+				End = (referenceDate, _, offset) => new DateTimeOffset(referenceDate.Year - offset, 12, 31, 0, 0, 0, referenceDate.Offset),
 			},
 		};
 
@@ -196,8 +196,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 	{
 		#nullable disable
 		public new Func<int, string> Interpolation { get; init; }
-		public Func<DateTimeOffset, int, DateTimeOffset> Start { get; init; }
-		public Func<DateTimeOffset, int, DateTimeOffset> End { get; init; }
+		public Func<DateTimeOffset, DayOfWeek, int, DateTimeOffset> Start { get; init; }
+		public Func<DateTimeOffset, DayOfWeek, int, DateTimeOffset> End { get; init; }
 		#nullable enable
 	}
 

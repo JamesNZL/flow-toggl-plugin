@@ -6,7 +6,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 	{
 		public string? api_token { get; set; }
 		// public string? at { get; set; }
-		// public long? beginning_of_week { get; set; }
+		public int beginning_of_week { get; set; }
 		public List<ClientResponse>? clients { get; set; }
 		// public long? country_id { get; set; }
 		// public string? created_at { get; set; }
@@ -24,7 +24,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 		// public List<Tasks>? tasks { get; set; }
 		// public List<Tag>? tags { get; set; }
 		// public List<TimeEntry>? time_entries { get; set; }
-		// public string? timezone { get; set; }
+		public string? timezone { get; set; }
 		// public string? updated_at { get; set; }
 		// public List<Workspace>? workspaces { get; set; }
 

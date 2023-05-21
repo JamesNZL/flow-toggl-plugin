@@ -1610,10 +1610,20 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				? int.Parse(spanArgumentOffsetMatch.Groups[1].Value)
 				: 0;
 
-			// ! WARNING: These dates are in **local** time, NOT UTC time! (#17)
-			var now = DateTimeOffset.Now;
-			var start = spanConfiguration.Start(now, spanArgumentOffset);
-			var end = spanConfiguration.End(now, spanArgumentOffset);
+			DateTimeOffset reportsNow;
+			try
+			{
+				reportsNow = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTimeOffset.UtcNow, me.ReportsTimeZoneId);
+			}
+			catch (Exception exception)
+			{
+				this._context.API.LogException("TogglTrack", $"Failed to convert time to reports time zone '{me.ReportsTimeZoneId}'", exception);
+				// Use local time instead
+				reportsNow = DateTimeOffset.Now;
+			}
+
+			var start = spanConfiguration.Start(reportsNow, me.BeginningOfWeek, spanArgumentOffset);
+			var end = spanConfiguration.End(reportsNow, me.BeginningOfWeek, spanArgumentOffset);
 
 			this._context.API.LogInfo("TogglTrack", $"{spanArgument}, {groupingArgument}, {start.ToString("yyyy-MM-dd")}, {end.ToString("yyyy-MM-dd")}");
 
@@ -1627,7 +1637,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			// Use cached time entry here to improve responsiveness
 			var runningTimeEntry = (await this._GetRunningTimeEntry())?.ToTimeEntry(me);
-			if ((runningTimeEntry is not null) && ((runningTimeEntry.StartDate.Date >= start.Date) && ((runningTimeEntry.StopDate ?? now).Date <= end.Date)))
+			if ((runningTimeEntry is not null) && ((runningTimeEntry.StartDate.Date >= start.Date) && ((runningTimeEntry.StopDate ?? reportsNow).Date <= end.Date)))
 			{
 				summary = summary?.InsertRunningTimeEntry(runningTimeEntry, groupingConfiguration.Grouping);
 			}

@@ -34,41 +34,37 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 		}
 
 		public async Task<TimeEntryResponse?> CreateTimeEntry(
-			long? projectId,
 			long workspaceId,
+			long? projectId,
 			string? description,
-			DateTimeOffset? start,
-			List<string>? tags,
-			bool? billable
+			DateTimeOffset start,
+			List<string>? tags = null,
+			bool? billable = null
 		)
 		{
-			var dateTimeOffset = (start is not null)
-				? (DateTimeOffset)start
-				: DateTimeOffset.UtcNow;
-
 			return await this._api.Post<TimeEntryResponse>($"workspaces/{workspaceId}/time_entries", new
 			{
 				billable,
 				created_with = "flow-toggl-plugin",
 				description,
-				duration = -1 * dateTimeOffset.ToUnixTimeSeconds(),
+				duration = -1 * start.ToUnixTimeSeconds(),
 				project_id = projectId ?? default(long?),
-				start = dateTimeOffset.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+				start = start.ToString("yyyy-MM-ddTHH:mm:ssZ"),
 				tags,
 				workspace_id = workspaceId,
 			});
 		}
 		
 		public async Task<TimeEntryResponse?> EditTimeEntry(
-			long id,
 			long workspaceId,
 			long? projectId,
-			string? description,
-			DateTimeOffset? start,
-			DateTimeOffset? stop,
-			long? duration,
-			List<string>? tags,
-			bool? billable
+			long id,
+			string? description = null,
+			DateTimeOffset? start = null,
+			DateTimeOffset? stop = null,
+			long? duration = null,
+			List<string>? tags = null,
+			bool? billable = null
 		)
 		{
 			if (start is not null)
@@ -99,12 +95,12 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 			return await this._api.Get<TimeEntryResponse>("me/time_entries/current");
 		}
 
-		public async Task<TimeEntryResponse?> StopTimeEntry(long id, long workspaceId)
+		public async Task<TimeEntryResponse?> StopTimeEntry(long workspaceId, long id)
 		{
 			return await this._api.Patch<TimeEntryResponse>($"workspaces/{workspaceId}/time_entries/{id}/stop", new { });
 		}
 
-		public async Task<HttpStatusCode?> DeleteTimeEntry(long id, long workspaceId)
+		public async Task<HttpStatusCode?> DeleteTimeEntry(long workspaceId, long id)
 		{
 			return await this._api.Delete<HttpStatusCode>($"workspaces/{workspaceId}/time_entries/{id}");
 		}

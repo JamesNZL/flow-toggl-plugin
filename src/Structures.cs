@@ -116,13 +116,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			this.Client = this._me.GetClient(this.ClientId);
 		}
 
-		public string GetColourIcon(PluginInitContext context, string fallbackIcon)
-		{
-			return (this.Colour is not null)
-				? new ColourIcon(context, this.Colour, "start.png").GetColourIcon()
-				: fallbackIcon;
-		}
-
 		public string WithClientName
 		{
 			get => (this.Client is not null)

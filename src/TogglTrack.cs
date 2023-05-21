@@ -32,6 +32,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		private NullableCache _cache = new NullableCache();
 		private List<string> _summaryTimeEntriesCacheKeys = new List<string>();
 
+		internal ColourIconProvider _colourIconProvider;
+
 		private long? _selectedProjectId = -1;
 		private long? _selectedClientId = -1;
 		
@@ -49,6 +51,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			this._settings = settings;
 
 			this._client = new TogglClient(this._settings.ApiToken);
+			this._colourIconProvider = new ColourIconProvider(this._context);
 		}
 
 		private async ValueTask<MeResponse?> _GetMe(bool force = false)
@@ -523,7 +526,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						{
 							Title = project.Name,
 							SubTitle = $"{((project.ClientId is not null) ? $"{project.Client!.Name} | " : string.Empty)}{project.ElapsedString}",
-							IcoPath = project.GetColourIcon(this._context, "start.png"),
+							IcoPath = this._colourIconProvider.GetColourIcon(project.Colour, "start.png"),
 							AutoCompleteText = $"{query.ActionKeyword} {Settings.StartCommand} ",
 							Score = me.ActiveProjects.Count - me.ActiveProjects.IndexOf(project),
 							Action = c =>
@@ -557,7 +560,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					Title = $"Start {description}{((string.IsNullOrEmpty(description) ? string.Empty : " "))}now",
 					SubTitle = projectName,
-					IcoPath = project?.GetColourIcon(this._context, "start.png") ?? "start.png",
+					IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "start.png") ,
 					AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
 					Score = 10000,
 					Action = c =>
@@ -654,7 +657,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					{
 						Title = $"Start {sanitisedDescription}{((string.IsNullOrEmpty(sanitisedDescription) ? string.Empty : " "))}{startTime.Humanize()}",
 						SubTitle = projectName,
-						IcoPath = project?.GetColourIcon(this._context, "start.png") ?? "start.png",
+						IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "start.png") ,
 						AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
 						Score = 100000,
 						Action = c =>
@@ -747,7 +750,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			{
 				Title = $"Start {description}{((string.IsNullOrEmpty(description) ? string.Empty : " "))}at previous stop time",
 				SubTitle = projectName,
-				IcoPath = project?.GetColourIcon(this._context, "start.png") ?? "start.png",
+				IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "start.png") ,
 				AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
 				Score = 10000,
 				Action = c =>
@@ -898,7 +901,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						{
 							Title = project.Name,
 							SubTitle = $"{((project.ClientId is not null) ? $"{project.Client!.Name} | " : string.Empty)}{project.ElapsedString}",
-							IcoPath = project.GetColourIcon(this._context, "edit.png"),
+							IcoPath = this._colourIconProvider.GetColourIcon(project.Colour, "edit.png"),
 							AutoCompleteText = $"{query.ActionKeyword} {Settings.EditCommand} ",
 							Score = me.ActiveProjects.Count - me.ActiveProjects.IndexOf(project),
 							Action = c =>
@@ -937,7 +940,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					Title = (string.IsNullOrEmpty(description)) ? runningTimeEntry.Description : description,
 					SubTitle = $"{projectName} | {runningTimeEntry.HumanisedElapsed} ({runningTimeEntry.DetailedElapsed})",
-					IcoPath = project?.GetColourIcon(this._context, "edit.png") ?? "edit.png",
+					IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "edit.png") ,
 					AutoCompleteText = $"{query.ActionKeyword} {(string.IsNullOrEmpty(description) ? ($"{query.Search} {runningTimeEntry.Description}") : query.Search)}",
 					Score = 10000,
 					Action = c =>
@@ -1036,7 +1039,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							? runningTimeEntry.Description
 							: sanitisedDescription,
 						SubTitle = $"{projectName} | {newElapsed.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")})",
-						IcoPath = project?.GetColourIcon(this._context, "edit.png") ?? "edit.png",
+						IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "edit.png") ,
 						AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
 						Score = 100000,
 						Action = c =>
@@ -1165,7 +1168,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					Title = $"Stop {runningTimeEntry.Description} now",
 					SubTitle = $"{projectName} | {runningTimeEntry.HumanisedElapsed} ({runningTimeEntry.DetailedElapsed})",
-					IcoPath = runningTimeEntry.Project?.GetColourIcon(this._context, "stop.png") ?? "stop.png",
+					IcoPath = this._colourIconProvider.GetColourIcon(runningTimeEntry.Project?.Colour, "stop.png") ,
 					AutoCompleteText = $"{query.ActionKeyword} {Settings.StopCommand} {runningTimeEntry.Description}",
 					Score = 10000,
 					Action = c =>
@@ -1247,7 +1250,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					Title = $"Stop {runningTimeEntry.Description} {stopTime.Humanize()}",
 					SubTitle = $"{projectName} | {newElapsed.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")})",
-					IcoPath = runningTimeEntry.Project?.GetColourIcon(this._context, "stop.png") ?? "stop.png",
+					IcoPath = this._colourIconProvider.GetColourIcon(runningTimeEntry.Project?.Colour, "stop.png") ,
 					AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
 					Score = 100000,
 					Action = c =>
@@ -1346,7 +1349,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					Title = $"Delete {runningTimeEntry.Description}",
 					SubTitle = $"{runningTimeEntry.Project?.WithClientName ?? "No Project"} | {runningTimeEntry.HumanisedElapsed} ({runningTimeEntry.DetailedElapsed})",
-					IcoPath = runningTimeEntry.Project?.GetColourIcon(this._context, "delete.png") ?? "delete.png",
+					IcoPath = this._colourIconProvider.GetColourIcon(runningTimeEntry.Project?.Colour, "delete.png") ,
 					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.DeleteCommand} {runningTimeEntry.Description}",
 					Action = c =>
 					{
@@ -1425,7 +1428,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			{
 				Title = timeEntry.Description,
 				SubTitle = $"{timeEntry.Project?.WithClientName ?? "No Project"} | {timeEntry.HumanisedElapsed} ({timeEntry.HumanisedStart})",
-				IcoPath = timeEntry.Project?.GetColourIcon(this._context, "continue.png") ?? "continue.png",
+				IcoPath = this._colourIconProvider.GetColourIcon(timeEntry.Project?.Colour, "continue.png") ,
 				AutoCompleteText = $"{query.ActionKeyword} {Settings.ContinueCommand} {timeEntry.Description}",
 				Score = timeEntries.Count - timeEntries.IndexOf(timeEntry),
 				Action = c =>
@@ -1671,7 +1674,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							{
 								Title = group.Project?.Name ?? "No Project",
 								SubTitle = $"{((group.Project?.ClientId is not null) ? $"{group.Project.Client!.Name} | " : string.Empty)}{group.HumanisedElapsed} ({group.DetailedElapsed})",
-								IcoPath = group.Project?.GetColourIcon(this._context, "reports.png") ?? "reports.png",
+								IcoPath = this._colourIconProvider.GetColourIcon(group.Project?.Colour, "reports.png") ,
 								AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} ",
 								Score = (int)group.Seconds,
 								Action = c =>
@@ -1698,7 +1701,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					{
 						Title = subGroup.Title,
 						SubTitle = $"{subGroup.HumanisedElapsed} ({subGroup.DetailedElapsed})",
-						IcoPath = project?.GetColourIcon(this._context, "reports.png") ?? "reports.png",
+						IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "reports.png") ,
 						AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} {project?.KebabName ?? "no-project"} {subGroup.Title}",
 						Score = (int)subGroup.Elapsed.TotalSeconds,
 						Action = c =>
@@ -1737,7 +1740,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								{
 									Title = group.Client?.Name ?? "No Client",
 									SubTitle = $"{group.HumanisedElapsed} ({group.DetailedElapsed})",
-									IcoPath = longestProject?.GetColourIcon(this._context, "reports.png") ?? "reports.png",
+									IcoPath = this._colourIconProvider.GetColourIcon(longestProject?.Colour, "reports.png") ,
 									AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} ",
 									Score = (int)group.Seconds,
 									Action = c =>
@@ -1769,7 +1772,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						{
 							Title = project?.Name ?? "No Project",
 							SubTitle = $"{((client?.Id is not null) ? $"{client.Name} | " : string.Empty)}{subGroup.HumanisedElapsed} ({subGroup.DetailedElapsed})",
-							IcoPath = project?.GetColourIcon(this._context, "reports.png") ?? "reports.png",
+							IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "reports.png") ,
 							AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} {client?.KebabName ?? "no-client"} ",
 							Score = (int)subGroup.Seconds,
 							Action = c =>
@@ -1817,7 +1820,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							{
 								Title = subGroup.Title,
 								SubTitle = $"{group.Project?.WithClientName ?? "No Project"} | {subGroup.HumanisedElapsed} ({subGroup.DetailedElapsed})",
-								IcoPath = group.Project?.GetColourIcon(this._context, "reports.png") ?? "reports.png",
+								IcoPath = this._colourIconProvider.GetColourIcon(group.Project?.Colour, "reports.png") ,
 								AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} {subGroup.Title}",
 								Score = (int)subGroup.Elapsed.TotalSeconds,
 								Action = c =>

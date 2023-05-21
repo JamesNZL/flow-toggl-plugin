@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.3.2](https://github.com/JamesNZL/flow-toggl-plugin/compare/v2.3.1...v2.3.2) (2023-05-21)
+
+
+### Bug Fixes
+
+* :bug: fix missing sub total time report ([#26](https://github.com/JamesNZL/flow-toggl-plugin/issues/26)) ([c12a7b6](https://github.com/JamesNZL/flow-toggl-plugin/commit/c12a7b62955c744c33ac5d03ec76c5e093d2e270))
+
 ### [2.3.1](https://github.com/JamesNZL/flow-toggl-plugin/compare/v2.3.0...v2.3.1) (2023-05-21)
 
 

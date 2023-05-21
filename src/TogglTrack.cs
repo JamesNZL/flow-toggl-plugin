@@ -56,7 +56,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			try
 			{
-				this._context.API.LogInfo("TogglTrack", "Fetching me", "_GetMe");
+				this._context.API.LogInfo("TogglTrack", "Fetching me");
 				
 				var me = await this._client.GetMe();
 
@@ -67,7 +67,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 			catch (Exception exception)
 			{
-				this._context.API.LogException("TogglTrack", "Failed to fetch me", exception, "_GetMe");
+				this._context.API.LogException("TogglTrack", "Failed to fetch me", exception);
 
 				this._semaphores.Me.Release();
 				return null;
@@ -89,7 +89,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			try
 			{
-				this._context.API.LogInfo("TogglTrack", "Fetching running time entry", "_GetRunningTimeEntry");
+				this._context.API.LogInfo("TogglTrack", "Fetching running time entry");
 
 				var runningTimeEntry = await this._client.GetRunningTimeEntry();
 
@@ -100,7 +100,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 			catch (Exception exception)
 			{
-				this._context.API.LogException("TogglTrack", "Failed to fetch running time entry", exception, "_GetRunningTimeEntry");
+				this._context.API.LogException("TogglTrack", "Failed to fetch running time entry", exception);
 
 				this._semaphores.RunningTimeEntries.Release();
 				return null;
@@ -122,7 +122,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			try
 			{
-				this._context.API.LogInfo("TogglTrack", "Fetching time entries", "_GetTimeEntries");
+				this._context.API.LogInfo("TogglTrack", "Fetching time entries");
 				
 				var timeEntries = await this._client.GetTimeEntries();
 
@@ -133,7 +133,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 			catch (Exception exception)
 			{
-				this._context.API.LogException("TogglTrack", "Failed to fetch time entries", exception, "_GetTimeEntries");
+				this._context.API.LogException("TogglTrack", "Failed to fetch time entries", exception);
 				
 				this._semaphores.TimeEntries.Release();
 				return null;
@@ -151,7 +151,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			try
 			{
-				this._context.API.LogInfo("TogglTrack", "Fetching summary time entries for reports", "_GetSummaryTimeEntries");
+				this._context.API.LogInfo("TogglTrack", "Fetching summary time entries for reports");
 				
 				var summary = await this._client.GetSummaryTimeEntries(workspaceId, userId, reportGrouping, start, end);
 
@@ -162,7 +162,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 			catch (Exception exception)
 			{
-				this._context.API.LogException("TogglTrack", "Failed to fetch summary time entries for reports", exception, "_GetSummaryTimeEntries");
+				this._context.API.LogException("TogglTrack", "Failed to fetch summary time entries for reports", exception);
 				return null;
 			}
 		}
@@ -543,7 +543,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						{
 							try
 							{
-								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {workspaceId}, {description}", "RequestStartEntry");
+								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {workspaceId}, {description}");
 								
 								var runningTimeEntry = (await this._GetRunningTimeEntry(true))?.ToTimeEntry(me);
 								if (runningTimeEntry is not null)
@@ -568,7 +568,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							}
 							catch (Exception exception)
 							{
-								this._context.API.LogException("TogglTrack", "Failed to start time entry", exception, "RequestStartEntry");
+								this._context.API.LogException("TogglTrack", "Failed to start time entry", exception);
 								this._context.API.ShowMsgError("Failed to start time entry.", exception.Message);
 							}
 							finally
@@ -630,7 +630,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							{
 								try
 								{
-									this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {workspaceId}, {sanitisedDescription}, {startTimeSpan.ToString()}, time span flag", "RequestStartEntry");
+									this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {workspaceId}, {sanitisedDescription}, {startTimeSpan.ToString()}, time span flag");
 									
 									var runningTimeEntry = (await this._GetRunningTimeEntry(true))?.ToTimeEntry(me);
 									if (runningTimeEntry is not null)
@@ -655,7 +655,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								}
 								catch (Exception exception)
 								{
-									this._context.API.LogException("TogglTrack", "Failed to start time entry", exception, "RequestStartEntry");
+									this._context.API.LogException("TogglTrack", "Failed to start time entry", exception);
 									this._context.API.ShowMsgError("Failed to start time entry.", exception.Message);
 								}
 								finally
@@ -708,7 +708,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					{
 						try
 						{
-							this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {workspaceId}, {description}, at previous stop time", "RequestStartEntry");
+							this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {workspaceId}, {description}, at previous stop time");
 
 							// Force a new fetch to ensure correctness
 							// User input has ended at this point so no responsiveness concerns
@@ -735,7 +735,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						}
 						catch (Exception exception)
 						{
-							this._context.API.LogException("TogglTrack", "Failed to start time entry at previous stop time", exception, "RequestStartEntry");
+							this._context.API.LogException("TogglTrack", "Failed to start time entry at previous stop time", exception);
 							this._context.API.ShowMsgError("Failed to start time entry.", exception.Message);
 						}
 						finally
@@ -892,7 +892,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						{
 							try
 							{
-								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.Id}, {runningTimeEntry.Duration}, {runningTimeEntry.Start}, {this._selectedProjectId}, {runningTimeEntry.WorkspaceId}, {description}", "RequestEditEntry");
+								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.Id}, {runningTimeEntry.Duration}, {runningTimeEntry.Start}, {this._selectedProjectId}, {runningTimeEntry.WorkspaceId}, {description}");
 								
 								var editedTimeEntry = (await this._client.EditTimeEntry(runningTimeEntry.Id, runningTimeEntry.WorkspaceId, this._selectedProjectId, description, null, null, runningTimeEntry.Duration, runningTimeEntry.Tags, runningTimeEntry.Billable))?.ToTimeEntry(me);
 								if (editedTimeEntry?.Id is null)
@@ -907,7 +907,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							}
 							catch (Exception exception)
 							{
-								this._context.API.LogException("TogglTrack", "Failed to edit time entry", exception, "RequestEditEntry");
+								this._context.API.LogException("TogglTrack", "Failed to edit time entry", exception);
 								this._context.API.ShowMsgError("Failed to edit time entry.", exception.Message);
 							}
 							finally
@@ -982,7 +982,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							{
 								try
 								{
-									this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.Id}, {runningTimeEntry.Duration}, {runningTimeEntry.Start}, {this._selectedProjectId}, {runningTimeEntry.WorkspaceId}, {sanitisedDescription}, {startTime.ToString("yyyy-MM-ddTHH:mm:ssZ")}, {startTimeSpan.ToString()}, edit start time", "RequestEditEntry");
+									this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.Id}, {runningTimeEntry.Duration}, {runningTimeEntry.Start}, {this._selectedProjectId}, {runningTimeEntry.WorkspaceId}, {sanitisedDescription}, {startTime.ToString("yyyy-MM-ddTHH:mm:ssZ")}, {startTimeSpan.ToString()}, edit start time");
 									
 									var editedTimeEntry = (await this._client.EditTimeEntry(runningTimeEntry.Id, runningTimeEntry.WorkspaceId, this._selectedProjectId, sanitisedDescription, startTime, null, runningTimeEntry.Duration, runningTimeEntry.Tags, runningTimeEntry.Billable))?.ToTimeEntry(me);
 									if (editedTimeEntry?.Id is null)
@@ -997,7 +997,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								}
 								catch (Exception exception)
 								{
-									this._context.API.LogException("TogglTrack", "Failed to edit time entry", exception, "RequestEditEntry");
+									this._context.API.LogException("TogglTrack", "Failed to edit time entry", exception);
 									this._context.API.ShowMsgError("Failed to edit time entry.", exception.Message);
 								}
 								finally
@@ -1101,7 +1101,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						{
 							try
 							{
-								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.Id}, {runningTimeEntry.WorkspaceId}, {runningTimeEntry.StartDate}, {runningTimeEntry.DetailedElapsed}", "RequestStopEntry");
+								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.Id}, {runningTimeEntry.WorkspaceId}, {runningTimeEntry.StartDate}, {runningTimeEntry.DetailedElapsed}");
 								
 								var stoppedTimeEntry = (await this._client.StopTimeEntry(runningTimeEntry.Id, runningTimeEntry.WorkspaceId))?.ToTimeEntry(me);
 								if (stoppedTimeEntry?.Id is null)
@@ -1116,7 +1116,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							}
 							catch (Exception exception)
 							{
-								this._context.API.LogException("TogglTrack", "Failed to stop time entry", exception, "RequestStopEntry");
+								this._context.API.LogException("TogglTrack", "Failed to stop time entry", exception);
 								this._context.API.ShowMsgError("Failed to stop time entry.", exception.Message);
 							}
 						});
@@ -1179,7 +1179,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						{
 							try
 							{
-								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.Id}, {runningTimeEntry.WorkspaceId}, {runningTimeEntry.StartDate}, {(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")}, {stopTime}, time span flag", "RequestStopEntry");
+								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.Id}, {runningTimeEntry.WorkspaceId}, {runningTimeEntry.StartDate}, {(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")}, {stopTime}, time span flag");
 
 								var stoppedTimeEntry = (await this._client.EditTimeEntry(runningTimeEntry.Id, runningTimeEntry.WorkspaceId, runningTimeEntry.ProjectId, null, null, stopTime, runningTimeEntry.Duration, runningTimeEntry.Tags, runningTimeEntry.Billable))?.ToTimeEntry(me);
 								if (stoppedTimeEntry?.Id is null)
@@ -1194,7 +1194,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							}
 							catch (Exception exception)
 							{
-								this._context.API.LogException("TogglTrack", "Failed to stop time entry", exception, "RequestStopEntry");
+								this._context.API.LogException("TogglTrack", "Failed to stop time entry", exception);
 								this._context.API.ShowMsgError("Failed to stop time entry.", exception.Message);
 							}
 						});
@@ -1268,7 +1268,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						{
 							try
 							{
-								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.Id}, {runningTimeEntry.WorkspaceId}, {runningTimeEntry.StartDate}, {runningTimeEntry.DetailedElapsed}", "RequestDeleteEntry");
+								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.Id}, {runningTimeEntry.WorkspaceId}, {runningTimeEntry.StartDate}, {runningTimeEntry.DetailedElapsed}");
 								
 								var statusCode = await this._client.DeleteTimeEntry(runningTimeEntry.Id, runningTimeEntry.WorkspaceId);
 								if (statusCode is null)
@@ -1525,7 +1525,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			var start = spanConfiguration.Start(now, spanArgumentOffset);
 			var end = spanConfiguration.End(now, spanArgumentOffset);
 
-			this._context.API.LogInfo("TogglTrack", $"{spanArgument}, {groupingArgument}, {start.ToString("yyyy-MM-dd")}, {end.ToString("yyyy-MM-dd")}", "RequestViewReports");
+			this._context.API.LogInfo("TogglTrack", $"{spanArgument}, {groupingArgument}, {start.ToString("yyyy-MM-dd")}, {end.ToString("yyyy-MM-dd")}");
 
 			var summary = (await this._GetSummaryTimeEntries(me.DefaultWorkspaceId, me.Id, groupingConfiguration.Grouping, start, end))?.ToSummaryTimeEntry(me);
 

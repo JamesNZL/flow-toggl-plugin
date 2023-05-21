@@ -1712,7 +1712,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						},
 					});
 
-					subResults.Append(new Result
+					subResults = subResults.Append(new Result
 					{
 						Title = $"{selectedProjectGroup.HumanisedElapsed} tracked {spanConfiguration.Interpolation(spanArgumentOffset)} ({selectedProjectGroup.DetailedElapsed})",
 						SubTitle = project?.WithClientName ?? "No Project",
@@ -1791,7 +1791,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						};
 					});
 
-					subResults.Append(new Result
+					subResults = subResults.Append(new Result
 					{
 						Title = $"{selectedClientGroup.HumanisedElapsed} tracked {spanConfiguration.Interpolation(spanArgumentOffset)} ({selectedClientGroup.DetailedElapsed})",
 						SubTitle = client?.Name ?? "No Client",

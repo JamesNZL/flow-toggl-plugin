@@ -9,9 +9,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 	public class Me
 	{
 		public readonly string? ApiToken;
-		public readonly Dictionary<long, Client>? Clients;
-		public readonly long DefaultWorkspaceId;
+
 		public readonly long Id;
+		public readonly long DefaultWorkspaceId;
+
+		public readonly Dictionary<long, Client>? Clients;
 		public readonly Dictionary<long, Project>? Projects;
 
 		public readonly List<Project>? ActiveProjects;
@@ -19,9 +21,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		public Me(MeResponse response)
 		{
 			this.ApiToken = response.api_token;
-			this.Clients = response.clients?.ToDictionary(keySelector: clientResponse => clientResponse.id, elementSelector: clientResponse => clientResponse.ToClient(this));
+
 			this.DefaultWorkspaceId = response.default_workspace_id;
 			this.Id = response.id;
+			
+			this.Clients = response.clients?.ToDictionary(keySelector: clientResponse => clientResponse.id, elementSelector: clientResponse => clientResponse.ToClient(this));
 			this.Projects = response.projects?.ToDictionary(keySelector: projectResponse => projectResponse.id, elementSelector: projectResponse => projectResponse.ToProject(this));
 
 			this.ActiveProjects = this.Projects?.Where(pair => pair.Value.Active ?? false).Select(pair => pair.Value).ToList();
@@ -69,13 +73,15 @@ namespace Flow.Launcher.Plugin.TogglTrack
 	{
 		private readonly Me _me;
 
-		public readonly bool? Active;
-		public readonly int? ActualHours;
-		public readonly long? ClientId;
-		public readonly string? Colour;
 		public readonly long Id;
 		public readonly string Name;
+
 		public readonly long WorkspaceId;
+		public readonly long? ClientId;
+
+		public readonly bool? Active;
+		public readonly int? ActualHours;
+		public readonly string? Colour;
 
 		public readonly Client? Client;
 
@@ -83,13 +89,15 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		{
 			this._me = me;
 
-			this.Active = response.active;
-			this.ActualHours = response.actual_hours;
-			this.ClientId = response.client_id;
-			this.Colour = response.color;
 			this.Id = response.id;
 			this.Name = response.name ?? "(no name)";
+
+			this.ClientId = response.client_id;
 			this.WorkspaceId = response.workspace_id;
+			
+			this.Active = response.active;
+			this.ActualHours = response.actual_hours;
+			this.Colour = response.color;
 
 			this.Client = this._me.GetClient(this.ClientId);
 		}
@@ -125,15 +133,17 @@ namespace Flow.Launcher.Plugin.TogglTrack
 	{
 		private readonly Me _me;
 
-		public readonly bool? Billable;
-		public readonly string? RawDescription;
-		public readonly long Duration;
 		public readonly long Id;
+		public readonly string? RawDescription;
+
+		public readonly long WorkspaceId;
 		public readonly long? ProjectId;
+		
+		public readonly bool? Billable;
+		public readonly long Duration;
 		public readonly string Start;
 		public readonly string? Stop;
 		public readonly List<string>? Tags;
-		public readonly long WorkspaceId;
 
 		public readonly Project? Project;
 
@@ -141,15 +151,17 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		{
 			this._me = me;
 
-			this.Billable = response.billable;
-			this.RawDescription = response.description;
-			this.Duration = response.duration;
 			this.Id = response.id;
+			this.RawDescription = response.description;
+
+			this.WorkspaceId = response.workspace_id;
 			this.ProjectId = response.project_id;
+
+			this.Billable = response.billable;
+			this.Duration = response.duration;
 			this.Start = response.start ?? DateTimeOffset.UtcNow.ToString("yyyy-MM-ddTHH:mm:sszzz");
 			this.Stop = response.stop;
 			this.Tags = response.tags;
-			this.WorkspaceId = response.workspace_id;
 
 			this.Project = this._me.GetProject(this.ProjectId);
 		}

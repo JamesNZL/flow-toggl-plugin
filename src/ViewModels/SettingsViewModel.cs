@@ -30,5 +30,35 @@ namespace Flow.Launcher.Plugin.TogglTrack.ViewModels
 				this.OnPropertyChanged();
 			}
 		}
+		
+		public bool ShowUsageTips 
+		{
+			get => this.Settings.ShowUsageTips;
+			set
+			{
+				this.Settings.ShowUsageTips = value;
+				this.OnPropertyChanged();
+			}
+		}
+
+		public bool ShowUsageExamples 
+		{
+			get => this.Settings.ShowUsageExamples;
+			set
+			{
+				this.Settings.ShowUsageExamples = value;
+				this.OnPropertyChanged();
+			}
+		}
+
+		public bool ShowUsageWarnings 
+		{
+			get => this.Settings.ShowUsageWarnings;
+			set
+			{
+				this.Settings.ShowUsageWarnings = value;
+				this.OnPropertyChanged();
+			}
+		}
 	}
 }

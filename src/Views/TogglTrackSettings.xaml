@@ -12,33 +12,73 @@
     d:DesignWidth="800"
     mc:Ignorable="d">
 
-    <Grid Margin="70,14,0,14">
+    <Grid Margin="0">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="3*" />
-        </Grid.ColumnDefinitions>
 
-        <TextBlock
-            Grid.Row="0"
-            Grid.Column="0"
-            Margin="0,0,10,0"
-            VerticalAlignment="Center"
-            FontSize="14"
-            Text="Toggl Track API Token" />
         <StackPanel
             Grid.Row="0"
-            Grid.Column="1"
-            Margin="0,6,6,6"
-            Orientation="Horizontal">
-            <TextBox
-                Width="480"
-                HorizontalAlignment="Left"
-                VerticalAlignment="Center"
-                Text="{Binding ApiToken}"
-                TextWrapping="NoWrap" />
+            HorizontalAlignment="Stretch"
+            Orientation="Vertical">
+            <DockPanel
+                Margin="70,10,0,8"
+                HorizontalAlignment="Stretch"
+                LastChildFill="True">
+                <TextBlock
+                    Margin="0,5,0,0"
+                    Text="Toggl Track API Token" />
+                <StackPanel
+                    Margin="0,0,18,0"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    DockPanel.Dock="Right">
+                    <TextBox
+                        Width="360"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        Text="{Binding ApiToken}"
+                        TextWrapping="NoWrap" />
+                </StackPanel>
+            </DockPanel>
+            <Separator
+                Height="1"
+                BorderBrush="{DynamicResource Color03B}"
+                BorderThickness="1" />
         </StackPanel>
+
+        <DockPanel
+            Grid.Row="1"
+            Grid.RowSpan="1"
+            Margin="70,10,0,8"
+            HorizontalAlignment="Stretch"
+            LastChildFill="True">
+            <TextBlock
+                MinWidth="120"
+                Margin="0,5,10,0"
+                Text="Show Usage Results" />
+            <WrapPanel
+                Width="Auto"
+                Margin="0,0,14,0"
+                HorizontalAlignment="Right"
+                DockPanel.Dock="Right">
+                <CheckBox
+                    Margin="12,0,12,0"
+                    Content="Tips"
+                    IsChecked="{Binding ShowUsageTips}" />
+                <CheckBox
+                    Margin="12,0,12,0"
+                    Content="Examples"
+                    IsChecked="{Binding ShowUsageExamples}" />
+                <CheckBox
+                    Margin="12,0,12,0"
+                    Content="Warnings"
+                    IsChecked="{Binding ShowUsageWarnings}" />
+            </WrapPanel>
+        </DockPanel>
+
     </Grid>
 </UserControl>

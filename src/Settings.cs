@@ -181,6 +181,10 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		/// Toggl Track API Token.
 		/// </Summary>
 		public string ApiToken { get; set; } = string.Empty;
+
+		public bool ShowUsageTips { get; set; } = true;
+		public bool ShowUsageExamples { get; set; } = true;
+		public bool ShowUsageWarnings { get; set; } = true;
 	}
 
 	public class CommandArgument

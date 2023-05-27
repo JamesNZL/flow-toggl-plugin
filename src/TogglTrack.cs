@@ -618,7 +618,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				},
 			};
 			
-			if (string.IsNullOrEmpty(description)) 
+			if (this._settings.ShowUsageTips && string.IsNullOrEmpty(description)) 
 			{
 				results.Add(new Result
 				{
@@ -637,19 +637,22 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			if (!query.SearchTerms.Contains(Settings.TimeSpanFlag))
 			{
-				results.Add(new Result
+				if (this._settings.ShowUsageTips)
 				{
-					Title = "Usage Tip",
-					SubTitle = $"Use {Settings.TimeSpanFlag} after the description to specify the start time",
-					IcoPath = "tip.png",
-					AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ",
-					Score = 1,
-					Action = c =>
+					results.Add(new Result
 					{
-						this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ");
-						return false;
-					}
-				});
+						Title = "Usage Tip",
+						SubTitle = $"Use {Settings.TimeSpanFlag} after the description to specify the start time",
+						IcoPath = "tip.png",
+						AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ",
+						Score = 1,
+						Action = c =>
+						{
+							this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ");
+							return false;
+						}
+					});
+				}
 			}
 			else
 			{
@@ -738,21 +741,24 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				}
 				catch
 				{
-					var queryToFlag = string.Join(" ", query.SearchTerms.Take(Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag)));
-
-					results.Add(new Result
+					if (this._settings.ShowUsageExamples)
 					{
-						Title = "Usage Example",
-						SubTitle = $"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} -5 mins",
-						IcoPath = "tip.png",
-						AutoCompleteText = $"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} -5 mins",
-						Score = 100000,
-						Action = c =>
+						var queryToFlag = string.Join(" ", query.SearchTerms.Take(Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag)));
+
+						results.Add(new Result
 						{
-							this._context.API.ChangeQuery($"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} -5 mins");
-							return false;
-						}
-					});
+							Title = "Usage Example",
+							SubTitle = $"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} -5 mins",
+							IcoPath = "tip.png",
+							AutoCompleteText = $"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} -5 mins",
+							Score = 100000,
+							Action = c =>
+							{
+								this._context.API.ChangeQuery($"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} -5 mins");
+								return false;
+							}
+						});
+					}
 				}
 			}
 
@@ -1005,7 +1011,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				},
 			};
 			
-			if (string.IsNullOrEmpty(description) && !string.IsNullOrEmpty(runningTimeEntry.RawDescription))
+			if (this._settings.ShowUsageWarnings && string.IsNullOrEmpty(description) && !string.IsNullOrEmpty(runningTimeEntry.RawDescription))
 			{
 				results.Add(new Result
 				{
@@ -1024,19 +1030,22 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			if (!query.SearchTerms.Contains(Settings.TimeSpanFlag))
 			{
-				results.Add(new Result
+				if (this._settings.ShowUsageTips)
 				{
-					Title = "Usage Tip",
-					SubTitle = $"Use {Settings.TimeSpanFlag} after the description to edit the start time",
-					IcoPath = "tip.png",
-					AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ",
-					Score = 1,
-					Action = c =>
+					results.Add(new Result
 					{
-						this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ");
-						return false;
-					}
-				});
+						Title = "Usage Tip",
+						SubTitle = $"Use {Settings.TimeSpanFlag} after the description to edit the start time",
+						IcoPath = "tip.png",
+						AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ",
+						Score = 1,
+						Action = c =>
+						{
+							this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ");
+							return false;
+						}
+					});
+				}
 			}
 			else
 			{
@@ -1067,7 +1076,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							)
 					);
 					
-					if (string.IsNullOrEmpty(sanitisedDescription) && !string.IsNullOrEmpty(runningTimeEntry.RawDescription))
+					if (this._settings.ShowUsageWarnings && string.IsNullOrEmpty(sanitisedDescription) && !string.IsNullOrEmpty(runningTimeEntry.RawDescription))
 					{
 						results.Add(new Result
 						{
@@ -1140,25 +1149,33 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				}
 				catch
 				{
-					var queryToFlag = string.Join(" ", query.SearchTerms.Take(Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag)));
-
-					results.Add(new Result
+					if (this._settings.ShowUsageExamples)
 					{
-						Title = "Usage Example",
-						SubTitle = $"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} 5 mins",
-						IcoPath = "tip.png",
-						AutoCompleteText = $"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} 5 mins",
-						Score = 100000,
-						Action = c =>
+						var queryToFlag = string.Join(" ", query.SearchTerms.Take(Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag)));
+
+						results.Add(new Result
 						{
-							this._context.API.ChangeQuery($"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} 5 mins");
-							return false;
-						}
-					});
+							Title = "Usage Example",
+							SubTitle = $"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} 5 mins",
+							IcoPath = "tip.png",
+							AutoCompleteText = $"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} 5 mins",
+							Score = 100000,
+							Action = c =>
+							{
+								this._context.API.ChangeQuery($"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} 5 mins");
+								return false;
+							}
+						});
+					}
 				}
 			}
 
 			if (this._editProjectState != TogglTrack.EditProjectState.NoProjectChange)
+			{
+				return results;
+			}
+
+			if (!this._settings.ShowUsageTips)
 			{
 				return results;
 			}
@@ -1259,6 +1276,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			if (!query.SearchTerms.Contains(Settings.TimeSpanFlag))
 			{
+				if (!this._settings.ShowUsageTips)
+				{
+					return results;
+				}
+				
 				results.Add(new Result
 				{
 					Title = "Usage Tip",
@@ -1345,19 +1367,22 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 			catch
 			{
-				results.Add(new Result
+				if (this._settings.ShowUsageExamples)
 				{
-					Title = "Usage Example",
-					SubTitle = $"{query.ActionKeyword} {Settings.StopCommand} {Settings.TimeSpanFlag} -5 mins",
-					IcoPath = "tip.png",
-					AutoCompleteText = $"{query.ActionKeyword} {query.Search} -5 mins",
-					Score = 100000,
-					Action = c =>
+					results.Add(new Result
 					{
-						this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} -5 mins");
-						return false;
-					}
-				});
+						Title = "Usage Example",
+						SubTitle = $"{query.ActionKeyword} {Settings.StopCommand} {Settings.TimeSpanFlag} -5 mins",
+						IcoPath = "tip.png",
+						AutoCompleteText = $"{query.ActionKeyword} {query.Search} -5 mins",
+						Score = 100000,
+						Action = c =>
+						{
+							this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} -5 mins");
+							return false;
+						}
+					});
+				}
 			}
 
 			return results;
@@ -1574,12 +1599,14 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					};
 				});
 
-				if (!spanOffsetMatch.Success)
+				if ((this._settings.ShowUsageTips || this._settings.ShowUsageExamples) && !spanOffsetMatch.Success)
 				{
 					bool queryContainsDash = spanQuery.Contains("-");
 
-					spans.Add((queryContainsDash)
-						? new Result
+					Result? usageResult = null;
+					if (this._settings.ShowUsageExamples && queryContainsDash)
+					{
+						usageResult = new Result
 						{
 							Title = "Usage Example",
 							SubTitle = $"{query.ActionKeyword} {queryToSpan} -1",
@@ -1591,8 +1618,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								this._context.API.ChangeQuery($"{query.ActionKeyword} {queryToSpan} -1 ");
 								return false;
 							}
-						}
-						: new Result
+						};
+					}
+					else if (this._settings.ShowUsageTips && !queryContainsDash)
+					{
+						usageResult = new Result
 						{
 							Title = "Usage Tip",
 							SubTitle = $"Use -<number> to view past reports",
@@ -1604,8 +1634,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								this._context.API.ChangeQuery($"{query.ActionKeyword} {queryToSpan} -");
 								return false;
 							}
-						}
-					);
+						};
+					}
+
+					if (usageResult is not null)
+					{
+						spans.Add(usageResult);
+					}
 				}
 
 				string sanitisedSpanQuery = Settings.ReportsSpanOffsetRegex.Replace(spanQuery, string.Empty).Replace("-", string.Empty);

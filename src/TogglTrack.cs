@@ -655,7 +655,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 					results.Add(new Result
 					{
-						Title = $"Start {sanitisedDescription}{((string.IsNullOrEmpty(sanitisedDescription) ? string.Empty : " "))}{startTime.Humanize()}",
+						Title = $"Start {sanitisedDescription}{((string.IsNullOrEmpty(sanitisedDescription) ? string.Empty : " "))}{startTime.Humanize()} at {startTime.ToLocalTime().ToString("t")}",
 						SubTitle = projectName,
 						IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "start.png") ,
 						AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
@@ -1248,7 +1248,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 				results.Add(new Result
 				{
-					Title = $"Stop {runningTimeEntry.Description} {stopTime.Humanize()}",
+					Title = $"Stop {runningTimeEntry.Description} {stopTime.Humanize()} at {stopTime.ToLocalTime().ToString("t")}",
 					SubTitle = $"{projectName} | {newElapsed.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")})",
 					IcoPath = this._colourIconProvider.GetColourIcon(runningTimeEntry.Project?.Colour, "stop.png") ,
 					AutoCompleteText = $"{query.ActionKeyword} {query.Search}",

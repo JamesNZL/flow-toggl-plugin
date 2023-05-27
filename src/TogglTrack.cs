@@ -618,6 +618,23 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				},
 			};
 			
+			if (string.IsNullOrEmpty(description)) 
+			{
+				results.Add(new Result
+				{
+					Title = "Usage Tip",
+					SubTitle = $"Keep typing to specify the time entry description",
+					IcoPath = "tip.png",
+					AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
+					Score = 1000,
+					Action = c =>
+					{
+						this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} ");
+						return false;
+					}
+				});
+			}
+
 			if (!query.SearchTerms.Contains(Settings.TimeSpanFlag))
 			{
 				results.Add(new Result

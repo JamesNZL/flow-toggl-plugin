@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.4.0](https://github.com/JamesNZL/flow-toggl-plugin/compare/v2.3.2...v2.4.0) (2023-05-27)
+
+
+### Features
+
+* **ux:** :children_crossing: add usage tip for entering time entry description on `start` ([#27](https://github.com/JamesNZL/flow-toggl-plugin/issues/27)) ([16a5187](https://github.com/JamesNZL/flow-toggl-plugin/commit/16a5187d3568a87ade78fb3bd8c0ec4d7cef6b29))
+* **ux:** :children_crossing: warn if `tgl edit` will clear description ([#34](https://github.com/JamesNZL/flow-toggl-plugin/issues/34)) ([9e6ac38](https://github.com/JamesNZL/flow-toggl-plugin/commit/9e6ac3898960b3c1aeeb354905c32010a836c1f1))
+* **ux:** :sparkles: add settings to control notifications ([#31](https://github.com/JamesNZL/flow-toggl-plugin/issues/31)) ([c1ede11](https://github.com/JamesNZL/flow-toggl-plugin/commit/c1ede118609d2d13abbe3e961e662daaa80c13af))
+* **ux:** :sparkles: add settings to mute usage results ([#35](https://github.com/JamesNZL/flow-toggl-plugin/issues/35)) ([eecd08d](https://github.com/JamesNZL/flow-toggl-plugin/commit/eecd08d4d6004cc9923ea92ed75ebf2e9fd94a4e))
+* **ux:** :sparkles: display elapsed time when starting at previous stop time ([#33](https://github.com/JamesNZL/flow-toggl-plugin/issues/33)) ([7f0b3d3](https://github.com/JamesNZL/flow-toggl-plugin/commit/7f0b3d331e780728acf46a606c552aae0cf63a1f))
+* **ux:** :sparkles: display parsed time in `-t` result ([#32](https://github.com/JamesNZL/flow-toggl-plugin/issues/32)) ([2a50fc1](https://github.com/JamesNZL/flow-toggl-plugin/commit/2a50fc1e6ee7099f8be08c28563917d5a42e36e9))
+
+
+### Bug Fixes
+
+* **reports:** :bug: fix running timer included in wrong daily report ([#29](https://github.com/JamesNZL/flow-toggl-plugin/issues/29)) ([8942cb6](https://github.com/JamesNZL/flow-toggl-plugin/commit/8942cb6df796559ec37456a993bc38b2f3ee2bcd))
+
 ### [2.3.2](https://github.com/JamesNZL/flow-toggl-plugin/compare/v2.3.1...v2.3.2) (2023-05-21)
 
 

@@ -60,5 +60,25 @@ namespace Flow.Launcher.Plugin.TogglTrack.ViewModels
 				this.OnPropertyChanged();
 			}
 		}
+		
+		public bool AllowSuccessNotifications 
+		{
+			get => this.Settings.AllowSuccessNotifications;
+			set
+			{
+				this.Settings.AllowSuccessNotifications = value;
+				this.OnPropertyChanged();
+			}
+		}
+
+		public bool AllowErrorNotifications 
+		{
+			get => this.Settings.AllowErrorNotifications;
+			set
+			{
+				this.Settings.AllowErrorNotifications = value;
+				this.OnPropertyChanged();
+			}
+		}
 	}
 }

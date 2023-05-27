@@ -59,6 +59,38 @@
             <TextBlock
                 MinWidth="120"
                 Margin="0,5,10,0"
+                Text="Notification Settings" />
+            <WrapPanel
+                Width="Auto"
+                Margin="0,0,14,0"
+                HorizontalAlignment="Right"
+                DockPanel.Dock="Right">
+                <CheckBox
+                    Margin="12,0,12,0"
+                    Content="Success Notifications"
+                    IsChecked="{Binding AllowSuccessNotifications}" />
+                <CheckBox
+                    Margin="12,0,12,0"
+                    Content="Error Notifications"
+                    IsChecked="{Binding AllowErrorNotifications}" />
+            </WrapPanel>
+        </DockPanel>
+
+        <Separator
+            Grid.Row="2"
+            Height="1"
+            BorderBrush="{DynamicResource Color03B}"
+            BorderThickness="1" />
+
+        <DockPanel
+            Grid.Row="3"
+            Grid.RowSpan="1"
+            Margin="70,10,0,8"
+            HorizontalAlignment="Stretch"
+            LastChildFill="True">
+            <TextBlock
+                MinWidth="120"
+                Margin="0,5,10,0"
                 Text="Show Usage Results" />
             <WrapPanel
                 Width="Auto"

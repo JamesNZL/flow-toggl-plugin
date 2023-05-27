@@ -185,6 +185,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		public bool ShowUsageTips { get; set; } = true;
 		public bool ShowUsageExamples { get; set; } = true;
 		public bool ShowUsageWarnings { get; set; } = true;
+
+		public bool AllowSuccessNotifications { get; set; } = true;
+		public bool AllowErrorNotifications { get; set; } = true;
 	}
 
 	public class CommandArgument

@@ -249,6 +249,26 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			return this._lastToken.IsValid;
 		}
+		
+		internal void ShowSuccessMessage(string title, string subTitle = "", string iconPath = "")
+		{
+			if (!this._settings.AllowSuccessNotifications)
+			{
+				return;
+			}
+			
+			this._context.API.ShowMsg(title, subTitle, iconPath);
+		}
+		
+		internal void ShowErrorMessage(string title, string subTitle = "")
+		{
+			if (!this._settings.AllowErrorNotifications)
+			{
+				return;
+			}
+
+			this._context.API.ShowMsgError(title, subTitle);
+		}
 
 		internal List<Result> NotifyMissingToken()
 		{
@@ -597,7 +617,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									throw new Exception("An API error was encountered.");
 								}
 
-								this._context.API.ShowMsg($"Started {createdTimeEntry.RawDescription}", projectName, "start.png");
+								this.ShowSuccessMessage($"Started {createdTimeEntry.RawDescription}", projectName, "start.png");
 
 								// Update cached running time entry state
 								this.RefreshCache();
@@ -605,7 +625,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							catch (Exception exception)
 							{
 								this._context.API.LogException("TogglTrack", "Failed to start time entry", exception);
-								this._context.API.ShowMsgError("Failed to start time entry.", exception.Message);
+								this.ShowErrorMessage("Failed to start time entry.", exception.Message);
 							}
 							finally
 							{
@@ -719,7 +739,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 										throw new Exception("An API error was encountered.");
 									}
 
-									this._context.API.ShowMsg($"Started {createdTimeEntry.RawDescription}{((string.IsNullOrEmpty(sanitisedDescription) ? string.Empty : " "))}{startTime.Humanize()}", projectName, "start.png");
+									this.ShowSuccessMessage($"Started {createdTimeEntry.RawDescription}{((string.IsNullOrEmpty(sanitisedDescription) ? string.Empty : " "))}{startTime.Humanize()}", projectName, "start.png");
 
 									// Update cached running time entry state
 									this.RefreshCache();
@@ -727,7 +747,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								catch (Exception exception)
 								{
 									this._context.API.LogException("TogglTrack", "Failed to start time entry", exception);
-									this._context.API.ShowMsgError("Failed to start time entry.", exception.Message);
+									this.ShowErrorMessage("Failed to start time entry.", exception.Message);
 								}
 								finally
 								{
@@ -808,7 +828,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								throw new Exception("An API error was encountered.");
 							}
 
-							this._context.API.ShowMsg($"Started {createdTimeEntry.RawDescription}{((string.IsNullOrEmpty(description) ? string.Empty : " "))}at previous stop time", $"{projectName} | {createdTimeEntry.DetailedElapsed}", "start.png");
+							this.ShowSuccessMessage($"Started {createdTimeEntry.RawDescription}{((string.IsNullOrEmpty(description) ? string.Empty : " "))}at previous stop time", $"{projectName} | {createdTimeEntry.DetailedElapsed}", "start.png");
 
 							// Update cached running time entry state
 							this.RefreshCache();
@@ -816,7 +836,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						catch (Exception exception)
 						{
 							this._context.API.LogException("TogglTrack", "Failed to start time entry at previous stop time", exception);
-							this._context.API.ShowMsgError("Failed to start time entry.", exception.Message);
+							this.ShowErrorMessage("Failed to start time entry.", exception.Message);
 						}
 						finally
 						{
@@ -989,7 +1009,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									throw new Exception("An API error was encountered.");
 								}
 
-								this._context.API.ShowMsg($"Edited {editedTimeEntry.RawDescription}", $"{projectName} | {runningTimeEntry.DetailedElapsed}", "edit.png");
+								this.ShowSuccessMessage($"Edited {editedTimeEntry.RawDescription}", $"{projectName} | {runningTimeEntry.DetailedElapsed}", "edit.png");
 
 								// Update cached running time entry state
 								this.RefreshCache();
@@ -997,7 +1017,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							catch (Exception exception)
 							{
 								this._context.API.LogException("TogglTrack", "Failed to edit time entry", exception);
-								this._context.API.ShowMsgError("Failed to edit time entry.", exception.Message);
+								this.ShowErrorMessage("Failed to edit time entry.", exception.Message);
 							}
 							finally
 							{
@@ -1126,7 +1146,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 										throw new Exception("An API error was encountered.");
 									}
 
-									this._context.API.ShowMsg($"Edited {editedTimeEntry.RawDescription}", $"{projectName} | {(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")}", "edit.png");
+									this.ShowSuccessMessage($"Edited {editedTimeEntry.RawDescription}", $"{projectName} | {(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")}", "edit.png");
 
 									// Update cached running time entry state
 									this.RefreshCache();
@@ -1134,7 +1154,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								catch (Exception exception)
 								{
 									this._context.API.LogException("TogglTrack", "Failed to edit time entry", exception);
-									this._context.API.ShowMsgError("Failed to edit time entry.", exception.Message);
+									this.ShowErrorMessage("Failed to edit time entry.", exception.Message);
 								}
 								finally
 								{
@@ -1257,7 +1277,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									throw new Exception("An API error was encountered.");
 								}
 
-								this._context.API.ShowMsg($"Stopped {stoppedTimeEntry.RawDescription}", $"{runningTimeEntry.DetailedElapsed} elapsed", "stop.png");
+								this.ShowSuccessMessage($"Stopped {stoppedTimeEntry.RawDescription}", $"{runningTimeEntry.DetailedElapsed} elapsed", "stop.png");
 
 								// Update cached running time entry state
 								this.RefreshCache();
@@ -1265,7 +1285,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							catch (Exception exception)
 							{
 								this._context.API.LogException("TogglTrack", "Failed to stop time entry", exception);
-								this._context.API.ShowMsgError("Failed to stop time entry.", exception.Message);
+								this.ShowErrorMessage("Failed to stop time entry.", exception.Message);
 							}
 						});
 
@@ -1349,7 +1369,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									throw new Exception("An API error was encountered.");
 								}
 
-								this._context.API.ShowMsg($"Stopped {stoppedTimeEntry.RawDescription}", $"{(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")} elapsed", "stop.png");
+								this.ShowSuccessMessage($"Stopped {stoppedTimeEntry.RawDescription}", $"{(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")} elapsed", "stop.png");
 
 								// Update cached running time entry state
 								this.RefreshCache();
@@ -1357,7 +1377,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							catch (Exception exception)
 							{
 								this._context.API.LogException("TogglTrack", "Failed to stop time entry", exception);
-								this._context.API.ShowMsgError("Failed to stop time entry.", exception.Message);
+								this.ShowErrorMessage("Failed to stop time entry.", exception.Message);
 							}
 						});
 
@@ -1445,7 +1465,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									throw new Exception("An API error was encountered.");
 								}
 
-								this._context.API.ShowMsg($"Deleted {runningTimeEntry.RawDescription}", $"{runningTimeEntry.DetailedElapsed} elapsed", "delete.png");
+								this.ShowSuccessMessage($"Deleted {runningTimeEntry.RawDescription}", $"{runningTimeEntry.DetailedElapsed} elapsed", "delete.png");
 
 								// Update cached running time entry state
 								this.RefreshCache();
@@ -1453,7 +1473,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							catch (Exception exception)
 							{
 								this._context.API.LogException("TogglTrack", "Failed to delete time entry", exception, "RequestDeleteEntry");
-								this._context.API.ShowMsgError("Failed to delete time entry.", exception.Message);
+								this.ShowErrorMessage("Failed to delete time entry.", exception.Message);
 							}
 						});
 

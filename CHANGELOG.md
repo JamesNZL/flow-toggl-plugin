@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.5.0](https://github.com/JamesNZL/flow-toggl-plugin/compare/v2.4.0...v2.5.0) (2023-05-27)
+
+
+### Features
+
+* **ux:** :sparkles: display time since previous stop ([#37](https://github.com/JamesNZL/flow-toggl-plugin/issues/37)) ([936390c](https://github.com/JamesNZL/flow-toggl-plugin/commit/936390c957eb975ecbefb9ac881e4d4384de29ba))
+
+
+### Bug Fixes
+
+* **reports:** :bug: proper fix for running timer in wrong daily report ([#36](https://github.com/JamesNZL/flow-toggl-plugin/issues/36)) ([08604ca](https://github.com/JamesNZL/flow-toggl-plugin/commit/08604cae31618014edcdaececf0c436f48cd85a6))
+
 ## [2.4.0](https://github.com/JamesNZL/flow-toggl-plugin/compare/v2.3.2...v2.4.0) (2023-05-27)
 
 

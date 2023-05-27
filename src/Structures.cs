@@ -194,6 +194,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				? DateTimeOffset.Parse(this.Stop)
 				: null;
 		}
+		
+		public string? HumanisedStop
+		{
+			get => (this.Stop is not null)
+				? DateTime.Parse(this.Stop).Humanize(false)
+				: null;
+		}
 
 		public TimeSpan Elapsed
 		{

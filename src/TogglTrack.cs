@@ -791,7 +791,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			results.Add(new Result
 			{
-				Title = $"Start {description}{((string.IsNullOrEmpty(description) ? string.Empty : " "))}at previous stop time",
+				Title = $"Start {description}{((string.IsNullOrEmpty(description) ? string.Empty : " "))}{likelyPastTimeEntry.HumanisedStop} at previous stop time",
 				SubTitle = projectName,
 				IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "start.png") ,
 				AutoCompleteText = $"{query.ActionKeyword} {query.Search}",

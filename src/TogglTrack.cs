@@ -785,7 +785,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								throw new Exception("An API error was encountered.");
 							}
 
-							this._context.API.ShowMsg($"Started {createdTimeEntry.RawDescription}{((string.IsNullOrEmpty(description) ? string.Empty : " "))}at previous stop time", projectName, "start.png");
+							this._context.API.ShowMsg($"Started {createdTimeEntry.RawDescription}{((string.IsNullOrEmpty(description) ? string.Empty : " "))}at previous stop time", $"{projectName} | {createdTimeEntry.DetailedElapsed}", "start.png");
 
 							// Update cached running time entry state
 							this.RefreshCache();

@@ -1746,9 +1746,26 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			// Use cached time entry here to improve responsiveness
 			var runningTimeEntry = (await this._GetRunningTimeEntry())?.ToTimeEntry(me);
-			if ((runningTimeEntry is not null) && ((runningTimeEntry.StartDate.ToUniversalTime().Date >= start.ToUniversalTime().Date) && (runningTimeEntry.StartDate.ToUniversalTime().Date <= end.ToUniversalTime().Date)))
+			if (runningTimeEntry is not null)
 			{
-				summary = summary?.InsertRunningTimeEntry(runningTimeEntry, groupingConfiguration.Grouping);
+				DateTimeOffset runningEntryStart;
+				try
+				{
+					runningEntryStart = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(runningTimeEntry.StartDate, me.ReportsTimeZoneId);
+				}
+				catch (Exception exception)
+				{
+					this._context.API.LogException("TogglTrack", $"Failed to convert time to reports time zone '{me.ReportsTimeZoneId}'", exception);
+					// Use local time instead
+					runningEntryStart = runningTimeEntry.StartDate.ToLocalTime();
+				}
+
+				this._context.API.LogInfo("TogglTrack", $"{start.Date}, {end.Date}, {runningEntryStart.Date}");
+				
+				if (runningEntryStart.Date >= start.Date && runningEntryStart.Date <= end.Date)
+				{
+					summary = summary?.InsertRunningTimeEntry(runningTimeEntry, groupingConfiguration.Grouping);
+				}
 			}
 
 			var total = summary?.Elapsed ?? TimeSpan.Zero;

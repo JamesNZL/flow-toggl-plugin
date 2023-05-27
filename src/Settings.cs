@@ -21,7 +21,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		internal const string EditProjectFlag = "-p";
 		internal const string TimeSpanFlag = "-t";
 
-		internal enum ReportsSpanKeys
+		internal enum ReportsSpanKey
 		{
 			Day,
 			Week,
@@ -140,7 +140,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			},
 		};
 
-		public enum ReportsGroupingKeys
+		public enum ReportsGroupingKey
 		{
 			Projects,
 			Clients,
@@ -156,7 +156,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				Argument = Settings.ReportsGroupingProjectsArgument,
 				Interpolation = "View tracked time grouped by project",
 				Score = 300,
-				Grouping = Settings.ReportsGroupingKeys.Projects,
+				Grouping = Settings.ReportsGroupingKey.Projects,
 				SubArgument = null,
 			},
 			new ReportsGroupingCommandArgument
@@ -164,7 +164,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				Argument = Settings.ReportsGroupingClientsArgument,
 				Interpolation = "View tracked time grouped by client",
 				Score = 200,
-				Grouping = Settings.ReportsGroupingKeys.Clients,
+				Grouping = Settings.ReportsGroupingKey.Clients,
 				SubArgument = Settings.ReportsGroupingProjectsArgument,
 			},
 			new ReportsGroupingCommandArgument
@@ -172,7 +172,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				Argument = Settings.ReportsGroupingEntriesArgument,
 				Interpolation = "View tracked time entries",
 				Score = 100,
-				Grouping = Settings.ReportsGroupingKeys.Entries,
+				Grouping = Settings.ReportsGroupingKey.Entries,
 				SubArgument = null,
 			},
 		};
@@ -208,7 +208,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 	public class ReportsGroupingCommandArgument : CommandArgument
 	{
 		#nullable disable
-		public Settings.ReportsGroupingKeys Grouping { get; init; }
+		public Settings.ReportsGroupingKey Grouping { get; init; }
 		public string SubArgument { get; init; }
 		#nullable enable
 	}

@@ -156,7 +156,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		private async ValueTask<SummaryTimeEntryResponse?> _GetSummaryTimeEntries(
 			long workspaceId,
 			long userId,
-			Settings.ReportsGroupingKeys reportGrouping,
+			Settings.ReportsGroupingKey reportGrouping,
 			DateTimeOffset start,
 			DateTimeOffset? end,
 			bool force = false
@@ -1751,7 +1751,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			switch (groupingConfiguration.Grouping)
 			{
-				case (Settings.ReportsGroupingKeys.Projects):
+				case (Settings.ReportsGroupingKey.Projects):
 				{
 					if (this._selectedProjectId == -1)
 					{
@@ -1813,7 +1813,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						: subResults.Where(result => this._context.API.FuzzySearch(subNameQuery, result.Title).Score > 0)
 					).ToList();
 				}
-				case (Settings.ReportsGroupingKeys.Clients):
+				case (Settings.ReportsGroupingKey.Clients):
 				{
 					if (this._selectedClientId == -1)
 					{	
@@ -1892,7 +1892,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						: subResults.Where(result => this._context.API.FuzzySearch(subNameQuery, result.Title).Score > 0)
 					).ToList();
 				}
-				case (Settings.ReportsGroupingKeys.Entries):
+				case (Settings.ReportsGroupingKey.Entries):
 				{
 					results.AddRange(
 						summary.Groups.Values.SelectMany(group =>

@@ -247,7 +247,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return this.Clone();
 		}
 
-		public SummaryTimeEntry? InsertRunningTimeEntry(TimeEntry timeEntry, Settings.ReportsGroupingKeys reportGrouping)
+		public SummaryTimeEntry? InsertRunningTimeEntry(TimeEntry timeEntry, Settings.ReportsGroupingKey reportGrouping)
 		{
 			const string PROJECTS_KEY = "projects";
 			const string CLIENTS_KEY = "clients";
@@ -255,9 +255,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			(string grouping, string subGrouping) = (reportGrouping) switch
 			{
-				Settings.ReportsGroupingKeys.Projects => (PROJECTS_KEY, ENTRIES_KEY),
-				Settings.ReportsGroupingKeys.Clients => (CLIENTS_KEY, PROJECTS_KEY),
-				Settings.ReportsGroupingKeys.Entries => (PROJECTS_KEY, ENTRIES_KEY),
+				Settings.ReportsGroupingKey.Projects => (PROJECTS_KEY, ENTRIES_KEY),
+				Settings.ReportsGroupingKey.Clients => (CLIENTS_KEY, PROJECTS_KEY),
+				Settings.ReportsGroupingKey.Entries => (PROJECTS_KEY, ENTRIES_KEY),
 				_ => (PROJECTS_KEY, ENTRIES_KEY),
 			};
 

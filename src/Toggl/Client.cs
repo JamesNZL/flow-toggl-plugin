@@ -117,16 +117,16 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 		public async Task<SummaryTimeEntryResponse?> GetSummaryTimeEntries(
 			long workspaceId,
 			long userId,
-			Settings.ReportsGroupingKeys reportGrouping,
+			Settings.ReportsGroupingKey reportGrouping,
 			DateTimeOffset start,
 			DateTimeOffset? end
 		)
 		{
 			(string grouping, string sub_grouping) = (reportGrouping) switch
 			{
-				Settings.ReportsGroupingKeys.Projects => ("projects", "time_entries"),
-				Settings.ReportsGroupingKeys.Clients => ("clients", "projects"),
-				Settings.ReportsGroupingKeys.Entries => ("projects", "time_entries"),
+				Settings.ReportsGroupingKey.Projects => ("projects", "time_entries"),
+				Settings.ReportsGroupingKey.Clients => ("clients", "projects"),
+				Settings.ReportsGroupingKey.Entries => ("projects", "time_entries"),
 				_ => ("projects", "time_entries"),
 			};
 

@@ -617,7 +617,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					},
 				},
 			};
-
+			
 			if (!query.SearchTerms.Contains(Settings.TimeSpanFlag))
 			{
 				results.Add(new Result
@@ -987,6 +987,23 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					},
 				},
 			};
+			
+			if (string.IsNullOrEmpty(description) && !string.IsNullOrEmpty(runningTimeEntry.RawDescription))
+			{
+				results.Add(new Result
+				{
+					Title = "Usage Warning",
+					SubTitle = $"Time entry description will be cleared if nothing is entered!",
+					IcoPath = "tip-warning.png",
+					AutoCompleteText = $"{query.ActionKeyword} {query.Search} {runningTimeEntry.RawDescription} ",
+					Score = 1000,
+					Action = c =>
+					{
+						this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {runningTimeEntry.RawDescription} ");
+						return false;
+					}
+				});
+			}
 
 			if (!query.SearchTerms.Contains(Settings.TimeSpanFlag))
 			{
@@ -1032,6 +1049,23 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									: ArgumentIndices.DescriptionWithoutProject
 							)
 					);
+					
+					if (string.IsNullOrEmpty(sanitisedDescription) && !string.IsNullOrEmpty(runningTimeEntry.RawDescription))
+					{
+						results.Add(new Result
+						{
+							Title = "Usage Warning",
+							SubTitle = $"Time entry description will be cleared if nothing is entered!",
+							IcoPath = "tip-warning.png",
+							AutoCompleteText = $"{query.ActionKeyword} {query.Search} {runningTimeEntry.RawDescription} ",
+							Score = 1000,
+							Action = c =>
+							{
+								this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {runningTimeEntry.RawDescription} ");
+								return false;
+							}
+						});
+					}
 
 					results.Add(new Result
 					{

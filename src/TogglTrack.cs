@@ -1100,7 +1100,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					Title = (string.IsNullOrEmpty(description)) ? timeEntry.Description : description,
 					SubTitle = $"{projectName} | {timeEntry.HumanisedElapsed} ({timeEntry.DetailedElapsed})",
 					IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "edit.png") ,
-					AutoCompleteText = $"{query.ActionKeyword} {(string.IsNullOrEmpty(description) ? ($"{query.Search} {timeEntry.Description}") : query.Search)}",
+					AutoCompleteText = $"{query.ActionKeyword} {(string.IsNullOrEmpty(description) ? ($"{query.Search} {timeEntry.Description}") : query.Search)} ",
 					Score = 10000,
 					Action = c =>
 					{
@@ -1375,7 +1375,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					Title = $"Stop {runningTimeEntry.Description} now",
 					SubTitle = $"{projectName} | {runningTimeEntry.HumanisedElapsed} ({runningTimeEntry.DetailedElapsed})",
 					IcoPath = this._colourIconProvider.GetColourIcon(runningTimeEntry.Project?.Colour, "stop.png") ,
-					AutoCompleteText = $"{query.ActionKeyword} {Settings.StopCommand} {runningTimeEntry.Description}",
+					AutoCompleteText = $"{query.ActionKeyword} {Settings.StopCommand} {runningTimeEntry.Description} ",
 					Score = 10000,
 					Action = c =>
 					{
@@ -1711,7 +1711,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					Action = c =>
 					{
 						this._selectedProjectId = project.Project?.Id;
-						this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project.Project?.KebabName ?? "no-project"} {timeEntry.RawTitle}");
+						this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project.Project?.KebabName ?? "no-project"} {timeEntry.RawTitle} ");
 						return false;
 					},
 				});
@@ -2057,7 +2057,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 											Action = c =>
 											{
 												this._selectedProjectId = project?.Id;
-												this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project?.KebabName ?? "no-project"} {timeEntry.RawDescription}");
+												this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project?.KebabName ?? "no-project"} {timeEntry.RawDescription} ");
 												return false;
 											},
 										};
@@ -2077,7 +2077,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								Action = c =>
 								{
 									this._selectedProjectId = project?.Id;
-									this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project?.KebabName ?? "no-project"} {subGroup.RawTitle}");
+									this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project?.KebabName ?? "no-project"} {subGroup.RawTitle} ");
 									return false;
 								},
 							});
@@ -2087,12 +2087,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						{
 							Title = $"Display {((this._reportsShowDetailed) ? "summary" : "detailed")} report",
 							IcoPath = "reports.png",
-							AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
+							AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
 							Score = (int)selectedProjectGroup.Elapsed.TotalSeconds + 10000,
 							Action = c =>
 							{
 								this._reportsShowDetailed = !this._reportsShowDetailed;
-								this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search}", true);
+								this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} ", true);
 								return false;
 							},
 						});
@@ -2247,7 +2247,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 											Action = c =>
 											{
 												this._selectedProjectId = timeEntry.Project?.Id;
-												this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {timeEntry.Project?.KebabName ?? "no-project"} {timeEntry.RawDescription}");
+												this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {timeEntry.Project?.KebabName ?? "no-project"} {timeEntry.RawDescription} ");
 												return false;
 											},
 										};
@@ -2275,7 +2275,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 										Action = c =>
 										{
 											this._selectedProjectId = group.Project?.Id;
-											this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {group.Project?.KebabName ?? "no-project"} {subGroup.RawTitle}");
+											this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {group.Project?.KebabName ?? "no-project"} {subGroup.RawTitle} ");
 											return false;
 										},
 									});
@@ -2287,12 +2287,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						{
 							Title = $"Display {((this._reportsShowDetailed) ? "summary" : "detailed")} report",
 							IcoPath = "reports.png",
-							AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
+							AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
 							Score = (int)total.TotalSeconds + 10000,
 							Action = c =>
 							{
 								this._reportsShowDetailed = !this._reportsShowDetailed;
-								this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search}", true);
+								this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} ", true);
 								return false;
 							}
 						});

@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.6.0](https://github.com/JamesNZL/flow-toggl-plugin/compare/v2.5.0...v2.6.0) (2023-06-04)
+
+
+### Features
+
+* **reports:** :sparkles: implement detailed reports ([#40](https://github.com/JamesNZL/flow-toggl-plugin/issues/40)) ([abba1eb](https://github.com/JamesNZL/flow-toggl-plugin/commit/abba1ebe72ff3f1ca254f80909687aad09b39f8f))
+* **ux:** :children_crossing: improve `continue` command ([#39](https://github.com/JamesNZL/flow-toggl-plugin/issues/39)) ([1baf735](https://github.com/JamesNZL/flow-toggl-plugin/commit/1baf73598105e176433501cb1ddef8abd21069a3))
+* **ux:** :children_crossing: improve autocompletion of spaces ([#44](https://github.com/JamesNZL/flow-toggl-plugin/issues/44)) ([5d80b76](https://github.com/JamesNZL/flow-toggl-plugin/commit/5d80b7687d15aaf1ab031cf2306449de31bb6e38))
+* **ux:** :children_crossing: sort `continue` by latest ([#42](https://github.com/JamesNZL/flow-toggl-plugin/issues/42)) ([419f877](https://github.com/JamesNZL/flow-toggl-plugin/commit/419f8775b16a9e08490fb36962f785c441a24971))
+* **ux:** :sparkles: implement deletion for all time entries ([#43](https://github.com/JamesNZL/flow-toggl-plugin/issues/43)) ([a74c5f2](https://github.com/JamesNZL/flow-toggl-plugin/commit/a74c5f264ad9a16f90557b0a0d9fb543b0373b05))
+* **ux:** :sparkles: implement editing for all time entries ([#38](https://github.com/JamesNZL/flow-toggl-plugin/issues/38)) ([abf2ee3](https://github.com/JamesNZL/flow-toggl-plugin/commit/abf2ee31afa7b9b855bad6f57a47b3a4fd1ed4aa))
+
+
+### Bug Fixes
+
+* **toggl:** :goal_net: do not re-throw exceptions ([#41](https://github.com/JamesNZL/flow-toggl-plugin/issues/41)) ([e4a9863](https://github.com/JamesNZL/flow-toggl-plugin/commit/e4a9863d0a3aae89ee07621b509d8c9dcee141e6))
+
 ## [2.5.0](https://github.com/JamesNZL/flow-toggl-plugin/compare/v2.4.0...v2.5.0) (2023-05-27)
 
 

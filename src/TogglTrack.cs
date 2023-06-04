@@ -198,6 +198,35 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			this._summaryTimeEntriesCacheKeys.ForEach(key => this._cache.Remove(key));
 			this._summaryTimeEntriesCacheKeys.Clear();
 		}
+		
+		private async ValueTask<SummaryTimeEntryResponse?> _GetMaxReportTimeEntries(bool force = false)
+		{
+			var me = (await this._GetMe(force))?.ToMe();
+			if (me is null)
+			{
+				return null;
+			}
+
+			DateTimeOffset reportsNow;
+			try
+			{
+				reportsNow = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTimeOffset.UtcNow, me.ReportsTimeZoneId);
+			}
+			catch (Exception exception)
+			{
+				this._context.API.LogException("TogglTrack", $"Failed to convert time to reports time zone '{me.ReportsTimeZoneId}'", exception);
+				// Use local time instead
+				reportsNow = DateTimeOffset.Now;
+			}
+			return await this._GetSummaryTimeEntries(
+				workspaceId: me.DefaultWorkspaceId,
+				userId: me.Id,
+				reportGrouping: Settings.ReportsGroupingKey.Entries,
+				start: reportsNow.AddYears(-1), // API has a maximum reports duration of 1 year
+				end: reportsNow,
+				force 
+			);
+		}
 
 		internal void RefreshCache(bool refreshMe = false)
 		{
@@ -208,6 +237,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				_ = this._GetRunningTimeEntry(true);
 				_ = this._GetTimeEntries(true);
 				this._ClearSummaryTimeEntriesCache();
+
+				_ = this._GetMaxReportTimeEntries(true);
 			});
 		}
 
@@ -1496,7 +1527,20 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				return this.NotifyUnknownError();
 			}
 
-			var timeEntries = (await this._GetTimeEntries())?.ConvertAll(timeEntry => timeEntry.ToTimeEntry(me));
+			DateTimeOffset reportsNow;
+			try
+			{
+				reportsNow = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTimeOffset.UtcNow, me.ReportsTimeZoneId);
+			}
+			catch (Exception exception)
+			{
+				this._context.API.LogException("TogglTrack", $"Failed to convert time to reports time zone '{me.ReportsTimeZoneId}'", exception);
+				// Use local time instead
+				reportsNow = DateTimeOffset.Now;
+			}
+			
+			var timeEntries = (await this._GetMaxReportTimeEntries())?.ToSummaryTimeEntry(me);
+			
 			if (timeEntries is null)
 			{
 				return new List<Result>
@@ -1520,20 +1564,28 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				Description = 1,
 			};
 
-			var entries = timeEntries.ConvertAll(timeEntry => new Result
+			var entries = timeEntries.Groups.Values.SelectMany(project =>
 			{
-				Title = timeEntry.Description,
-				SubTitle = $"{timeEntry.Project?.WithClientName ?? "No Project"} | {timeEntry.HumanisedElapsed} ({timeEntry.HumanisedStart})",
-				IcoPath = this._colourIconProvider.GetColourIcon(timeEntry.Project?.Colour, "continue.png") ,
-				AutoCompleteText = $"{query.ActionKeyword} {Settings.ContinueCommand} {timeEntry.Description}",
-				Score = timeEntries.Count - timeEntries.IndexOf(timeEntry),
-				Action = c =>
+				if (project.SubGroups is null)
 				{
-					this._selectedProjectId = timeEntry.ProjectId;
-					this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {timeEntry.Project?.KebabName ?? "no-project"} {timeEntry.RawDescription}");
-					return false;
-				},
-			});
+					return Enumerable.Empty<Result>();
+				}
+
+				return project.SubGroups.Values.Select(timeEntry => new Result
+				{
+					Title = timeEntry.Title,
+					SubTitle = $"{project.Project?.WithClientName ?? "No Project"} | {timeEntry.HumanisedElapsed}",
+					IcoPath = this._colourIconProvider.GetColourIcon(project.Project?.Colour, "continue.png"),
+					AutoCompleteText = $"{query.ActionKeyword} {Settings.ContinueCommand} {timeEntry.Title}",
+					Score = (int)timeEntry.Elapsed.TotalSeconds,
+					Action = c =>
+					{
+						this._selectedProjectId = project.Project?.Id;
+						this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project.Project?.KebabName ?? "no-project"} {timeEntry.RawTitle}");
+						return false;
+					},
+				});
+			}).ToList();
 
 			string entriesQuery = Main.ExtractFromQuery(query, ArgumentIndices.Description);
 			return (string.IsNullOrWhiteSpace(entriesQuery))

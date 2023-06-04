@@ -190,6 +190,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 		public long? id { get; set; }
 		public string? title { get; set; }
 		public long seconds { get; set; }
+		public List<long>? ids { get; set; }
 
 		public SummaryReportSubGroup ToSummaryReportSubGroup()
 		{

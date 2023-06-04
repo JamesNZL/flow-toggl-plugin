@@ -122,12 +122,12 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 			DateTimeOffset? end
 		)
 		{
-			(string grouping, string sub_grouping) = (reportGrouping) switch
+			(string grouping, string sub_grouping, bool includeTimeEntryIds) = (reportGrouping) switch
 			{
-				Settings.ReportsGroupingKey.Projects => ("projects", "time_entries"),
-				Settings.ReportsGroupingKey.Clients => ("clients", "projects"),
-				Settings.ReportsGroupingKey.Entries => ("projects", "time_entries"),
-				_ => ("projects", "time_entries"),
+				Settings.ReportsGroupingKey.Projects => ("projects", "time_entries", false),
+				Settings.ReportsGroupingKey.Clients => ("clients", "projects", false),
+				Settings.ReportsGroupingKey.Entries => ("projects", "time_entries", true),
+				_ => ("projects", "time_entries", false),
 			};
 
 			return await this._reportsApi.Post<SummaryReportResponse>($"workspace/{workspaceId}/summary/time_entries", new
@@ -137,6 +137,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 				end_date = end?.ToString("yyyy-MM-dd"),
 				grouping,
 				sub_grouping,
+				include_time_entry_ids = includeTimeEntryIds,
 			});
 		}
 	}

@@ -1577,7 +1577,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					SubTitle = $"{project.Project?.WithClientName ?? "No Project"} | {timeEntry.HumanisedElapsed}",
 					IcoPath = this._colourIconProvider.GetColourIcon(project.Project?.Colour, "continue.png"),
 					AutoCompleteText = $"{query.ActionKeyword} {Settings.ContinueCommand} {timeEntry.Title}",
-					Score = (int)timeEntry.Elapsed.TotalSeconds,
+					Score = (int)(timeEntry.LatestId ?? 0),
 					Action = c =>
 					{
 						this._selectedProjectId = project.Project?.Id;

@@ -459,18 +459,23 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		public long? Id;
 		public string? RawTitle;
 		public long Seconds;
+		public List<long>? Ids;
 
 		public SummaryReportSubGroup(SummaryReportSubGroupResponse response)
 		{
 			this.Id = response.id;
 			this.RawTitle = response.title;
 			this.Seconds = response.seconds;
+			this.Ids = response.ids;
 		}
 		public SummaryReportSubGroup(SummaryReportSubGroup subGroup)
 		{
 			this.Id = subGroup.Id;
 			this.RawTitle = subGroup.RawTitle;
 			this.Seconds = subGroup.Seconds;
+			this.Ids = (subGroup.Ids is not null)
+				? new List<long>(subGroup.Ids)
+				: null;
 		}
 
 		public SummaryReportSubGroup Clone()
@@ -500,6 +505,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		public string DetailedElapsed
 		{
 			get => $"{(int)this.Elapsed.TotalHours}:{this.Elapsed.ToString(@"mm\:ss")}";
+		}
+
+		public long? LatestId
+		{
+			get => (this.Ids?.Any() ?? false)
+				? this.Ids.Max()
+				: null;
 		}
 	}
 }

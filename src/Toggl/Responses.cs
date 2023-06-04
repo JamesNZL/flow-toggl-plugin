@@ -197,4 +197,39 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 			return new SummaryReportSubGroup(this);
 		}
 	}
+
+	public class DetailedReportTimeEntryGroupResponse
+	{
+		public bool? billable { get; set; }
+		// public long? billable_amount_in_cents { get; set; }
+		// public string? currency { get; set; }
+		public string? description { get; set; }
+		// public long? hourly_rate_in_cents { get; set; }
+		public long id { get; set; }
+		public long? project_id { get; set; }
+		// public List<long>? tag_ids { get; set; }
+		// public long? task_id { get; set; }
+		public List<DetailedReportTimeEntryResponse>? time_entries { get; set; }
+		// public long? user_id { get; set; }
+		// public string? username { get; set; }
+
+		public DetailedReportTimeEntryGroup ToDetailedReportTimeEntryGroup(Me me)
+		{
+			return new DetailedReportTimeEntryGroup(this, me);
+		}
+	}
+
+	public class DetailedReportTimeEntryResponse
+	{
+		// public string? at { get; set; }
+		public long id { get; set; }
+		public long seconds { get; set; }
+		public string? start { get; set; }
+		public string? stop { get; set; }
+
+		public TimeEntry ToTimeEntry(Me me, DetailedReportTimeEntryGroupResponse timeEntryGroupResponse)
+		{
+			return new TimeEntry(this, timeEntryGroupResponse, me);
+		}
+	}
 }

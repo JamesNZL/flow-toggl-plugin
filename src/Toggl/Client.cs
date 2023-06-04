@@ -9,13 +9,14 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 	{
 		private readonly static string _baseUrl = "https://api.track.toggl.com/api/v9/";
 		private readonly static string _reportsUrl = "https://api.track.toggl.com/reports/api/v3/";
+		private readonly static string _reportsPaginationHeader = "X-Next-Row-Number";
 		private readonly AuthenticatedFetch _api;
 		private readonly AuthenticatedFetch _reportsApi;
 
 		public TogglClient(string token)
 		{
 			this._api = new AuthenticatedFetch(token, TogglClient._baseUrl);
-			this._reportsApi = new AuthenticatedFetch(token, TogglClient._reportsUrl);
+			this._reportsApi = new AuthenticatedFetch(token, TogglClient._reportsUrl, TogglClient._reportsPaginationHeader);
 		}
 
 		public void UpdateToken(string token)
@@ -114,7 +115,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 		 * Reports API
 		 */
 
-		public async Task<SummaryReportResponse?> GetSummaryTimeEntries(
+		public async Task<SummaryReportResponse?> GetSummaryReport(
 			long workspaceId,
 			long userId,
 			Settings.ReportsGroupingKey reportGrouping,
@@ -139,6 +140,43 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 				sub_grouping,
 				include_time_entry_ids = includeTimeEntryIds,
 			});
+		}
+
+		public async Task<List<DetailedReportTimeEntryGroupResponse>> GetDetailedReport(
+			long workspaceId,
+			long userId,
+			List<long?>? projectIds,
+			DateTimeOffset start,
+			DateTimeOffset? end
+		)
+		{
+			List<DetailedReportTimeEntryGroupResponse> results = new List<DetailedReportTimeEntryGroupResponse>();
+			int? nextPaginationCursor = 1;
+
+			while (nextPaginationCursor is not null)
+			{
+				var response = await this._reportsApi.Post<List<DetailedReportTimeEntryGroupResponse>>($"workspace/{workspaceId}/search/time_entries", new
+				{
+					user_ids = new long[] { userId },
+					project_ids = projectIds,
+					start_date = start.ToString("yyyy-MM-dd"),
+					end_date = end?.ToString("yyyy-MM-dd"),
+					grouped = true,
+					order_by = "date",
+					order_dir = "DESC",
+					first_row_number = nextPaginationCursor,
+				});
+
+				if (response is null)
+				{
+					return results;
+				}
+
+				results.AddRange(response);
+				nextPaginationCursor = this._reportsApi.nextPaginationCursor;
+			}
+
+			return results;
 		}
 	}
 }

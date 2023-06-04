@@ -30,7 +30,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			new SemaphoreSlim(1, 1)
 		);
 		private NullableCache _cache = new NullableCache();
-		private List<string> _summaryTimeEntriesCacheKeys = new List<string>();
+		private List<string> _SummaryReportCacheKeys = new List<string>();
+		private List<string> _DetailedReportCacheKeys = new List<string>();
 
 		internal ColourIconProvider _colourIconProvider;
 
@@ -44,6 +45,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			ProjectSelected,
 		}
 		private EditProjectState _editProjectState = TogglTrack.EditProjectState.NoProjectChange;
+
+		private bool _reportsShowDetailed = false;
 
 		internal TogglTrack(PluginInitContext context, Settings settings)
 		{
@@ -153,7 +156,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 		}
 
-		private async ValueTask<SummaryReportResponse?> _GetSummaryTimeEntries(
+		private async ValueTask<SummaryReportResponse?> _GetSummaryReport(
 			long workspaceId,
 			long userId,
 			Settings.ReportsGroupingKey reportGrouping,
@@ -162,7 +165,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			bool force = false
 		)
 		{
-			string cacheKey = $"SummaryTimeEntries{workspaceId}{userId}{(int)reportGrouping}{start.ToString("yyyy-MM-dd")}{end?.ToString("yyyy-MM-dd")}";
+			string cacheKey = $"SummaryReport{workspaceId}{userId}{(int)reportGrouping}{start.ToString("yyyy-MM-dd")}{end?.ToString("yyyy-MM-dd")}";
 
 			if (!force && this._cache.Contains(cacheKey))
 			{
@@ -171,9 +174,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			try
 			{
-				this._context.API.LogInfo("TogglTrack", "Fetching summary time entries for reports");
+				this._context.API.LogInfo("TogglTrack", "Fetching summary reports");
 
-				var summary = await this._client.GetSummaryTimeEntries(
+				var summary = await this._client.GetSummaryReport(
 					workspaceId: workspaceId,
 					userId: userId,
 					reportGrouping: reportGrouping,
@@ -182,23 +185,68 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				);
 
 				this._cache.Set(cacheKey, summary, DateTimeOffset.Now.AddSeconds(60));
-				this._summaryTimeEntriesCacheKeys.Add(cacheKey);
+				this._SummaryReportCacheKeys.Add(cacheKey);
 
 				return summary;
 			}
 			catch (Exception exception)
 			{
-				this._context.API.LogException("TogglTrack", "Failed to fetch summary time entries for reports", exception);
+				this._context.API.LogException("TogglTrack", "Failed to fetch summary reports", exception);
 				return null;
 			}
 		}
 
-		private void _ClearSummaryTimeEntriesCache()
+		private void _ClearSummaryReportCache()
 		{
-			this._summaryTimeEntriesCacheKeys.ForEach(key => this._cache.Remove(key));
-			this._summaryTimeEntriesCacheKeys.Clear();
+			this._SummaryReportCacheKeys.ForEach(key => this._cache.Remove(key));
+			this._SummaryReportCacheKeys.Clear();
 		}
 
+		private async ValueTask<List<DetailedReportTimeEntryGroupResponse>?> _GetDetailedReport(
+			long workspaceId,
+			long userId,
+			List<long?>? projectIds,
+			DateTimeOffset start,
+			DateTimeOffset? end,
+			bool force = false
+		)
+		{
+			string cacheKey = $"DetailedReport{workspaceId}{userId}{string.Join(",", projectIds ?? new List<long?>())}{start.ToString("yyyy-MM-dd")}{end?.ToString("yyyy-MM-dd")}";
+
+			if (!force && this._cache.Contains(cacheKey))
+			{
+				return (List<DetailedReportTimeEntryGroupResponse>?)this._cache.Get(cacheKey);
+			}
+
+			try
+			{
+				this._context.API.LogInfo("TogglTrack", "Fetching detailed reports");
+
+				var report = await this._client.GetDetailedReport(
+					workspaceId: workspaceId,
+					userId: userId,
+					projectIds: projectIds,
+					start: start,
+					end: end
+				);
+
+				this._cache.Set(cacheKey, report, DateTimeOffset.Now.AddSeconds(60));
+				this._DetailedReportCacheKeys.Add(cacheKey);
+
+				return report;
+			}
+			catch (Exception exception)
+			{
+				this._context.API.LogException("TogglTrack", "Failed to fetch detailed reports", exception);
+				return null;
+			}
+		}
+
+		private void _ClearDetailedReportCache()
+		{
+			this._DetailedReportCacheKeys.ForEach(key => this._cache.Remove(key));
+			this._DetailedReportCacheKeys.Clear();
+		}
 		private async ValueTask<SummaryReportResponse?> _GetMaxReportTimeEntries(bool force = false)
 		{
 			var me = (await this._GetMe(force))?.ToMe();
@@ -218,7 +266,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				// Use local time instead
 				reportsNow = DateTimeOffset.Now;
 			}
-			return await this._GetSummaryTimeEntries(
+			return await this._GetSummaryReport(
 				workspaceId: me.DefaultWorkspaceId,
 				userId: me.Id,
 				reportGrouping: Settings.ReportsGroupingKey.Entries,
@@ -236,7 +284,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				_ = this._GetMe(refreshMe);
 				_ = this._GetRunningTimeEntry(true);
 				_ = this._GetTimeEntries(true);
-				this._ClearSummaryTimeEntriesCache();
+				this._ClearSummaryReportCache();
+				this._ClearDetailedReportCache();
 
 				_ = this._GetMaxReportTimeEntries(true);
 			});
@@ -398,6 +447,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			this._selectedProjectId = -1;
 			this._selectedClientId = -1;
 			this._editProjectState = TogglTrack.EditProjectState.NoProjectChange;
+			this._reportsShowDetailed = false;
 
 			var results = new List<Result>
 			{
@@ -1726,7 +1776,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 
 			/* 
-			 * Report groupinging selection --- tgl view [duration] [projects | clients | entries]
+			 * Report grouping selection --- tgl view [duration] [projects | clients | entries]
 			 */
 			if ((query.SearchTerms.Length == ArgumentIndices.Grouping) || !Settings.ReportsGroupingArguments.Exists(grouping => grouping.Argument == query.SearchTerms[ArgumentIndices.Grouping]))
 			{
@@ -1788,7 +1838,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			this._context.API.LogInfo("TogglTrack", $"{spanArgument}, {groupingArgument}, {start.ToString("yyyy-MM-dd")}, {end.ToString("yyyy-MM-dd")}");
 
-			var summary = (await this._GetSummaryTimeEntries(
+			var summary = (await this._GetSummaryReport(
 				workspaceId: me.DefaultWorkspaceId,
 				userId: me.Id,
 				reportGrouping: groupingConfiguration.Grouping,
@@ -1872,17 +1922,97 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 						var project = me.GetProject(selectedProjectGroup.Id);
 
-						var subResults = selectedProjectGroup.SubGroups.Values.Select(subGroup => new Result
+						IEnumerable<Result> subResults = Enumerable.Empty<Result>();
+						if (this._reportsShowDetailed)
 						{
-							Title = subGroup.Title,
-							SubTitle = $"{subGroup.HumanisedElapsed} ({subGroup.DetailedElapsed})",
-							IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "reports.png"),
-							AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} {project?.KebabName ?? "no-project"} {subGroup.Title}",
-							Score = (int)subGroup.Elapsed.TotalSeconds,
+							var report = (await this._GetDetailedReport(
+								workspaceId: me.DefaultWorkspaceId,
+								userId: me.Id,
+								projectIds: new List<long?> { this._selectedProjectId },
+								start: start,
+								end: end
+							))?.ConvertAll(timeEntryGroup => timeEntryGroup.ToDetailedReportTimeEntryGroup(me));
+
+							if (report is null)
+							{
+								break;
+							}
+
+							if (runningTimeEntry is not null)
+							{
+								DateTimeOffset runningEntryStart;
+								try
+								{
+									runningEntryStart = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(runningTimeEntry.StartDate, me.ReportsTimeZoneId);
+								}
+								catch (Exception exception)
+								{
+									this._context.API.LogException("TogglTrack", $"Failed to convert time to reports time zone '{me.ReportsTimeZoneId}'", exception);
+									// Use local time instead
+									runningEntryStart = runningTimeEntry.StartDate.ToLocalTime();
+								}
+
+								this._context.API.LogInfo("TogglTrack", $"{start.Date}, {end.Date}, {runningEntryStart.Date}");
+
+								if (runningEntryStart.Date >= start.Date && runningEntryStart.Date <= end.Date)
+								{
+									report.Add(new DetailedReportTimeEntryGroup(runningTimeEntry, me));
+								}
+							}
+
+							report.ForEach(timeEntryGroup =>
+							{
+								subResults = subResults.Concat(
+									timeEntryGroup.TimeEntries.Values.Select(timeEntry =>
+									{
+										DateTimeOffset startDate = timeEntry.StartDate.ToLocalTime();
+
+										return new Result
+										{
+											Title = timeEntry.Description,
+											SubTitle = $"{timeEntry.DetailedElapsed} ({timeEntry.HumanisedStart} at {startDate.ToString("t")} {startDate.ToString("ddd")} {startDate.ToString("m")})",
+											IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "reports.png"),
+											AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} {project?.KebabName ?? "no-project"} {timeEntry.Description}",
+											Score = (int)timeEntry.Id,
+											Action = c =>
+											{
+												this._selectedProjectId = project?.Id;
+												this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project?.KebabName ?? "no-project"} {timeEntry.RawDescription}");
+												return false;
+											},
+										};
+									})
+								);
+							});
+						}
+						else
+						{
+							subResults = selectedProjectGroup.SubGroups.Values.Select(subGroup => new Result
+							{
+								Title = subGroup.Title,
+								SubTitle = $"{subGroup.HumanisedElapsed} ({subGroup.DetailedElapsed})",
+								IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "reports.png"),
+								AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} {project?.KebabName ?? "no-project"} {subGroup.Title}",
+								Score = (int)subGroup.Elapsed.TotalSeconds,
+								Action = c =>
+								{
+									this._selectedProjectId = project?.Id;
+									this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project?.KebabName ?? "no-project"} {subGroup.RawTitle}");
+									return false;
+								},
+							});
+						}
+
+						subResults = subResults.Append(new Result
+						{
+							Title = $"Display {((this._reportsShowDetailed) ? "summary" : "detailed")} report",
+							IcoPath = "reports.png",
+							AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
+							Score = (int)selectedProjectGroup.Elapsed.TotalSeconds + 10000,
 							Action = c =>
 							{
-								this._selectedProjectId = project?.Id;
-								this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project?.KebabName ?? "no-project"} {subGroup.RawTitle}");
+								this._reportsShowDetailed = !this._reportsShowDetailed;
+								this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search}", true);
 								return false;
 							},
 						});
@@ -1983,30 +2113,109 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					}
 				case (Settings.ReportsGroupingKey.Entries):
 					{
-						results.AddRange(
-							summary.Groups.Values.SelectMany(group =>
+						if (this._reportsShowDetailed)
+						{
+							var report = (await this._GetDetailedReport(
+								workspaceId: me.DefaultWorkspaceId,
+								userId: me.Id,
+								projectIds: null,
+								start: start,
+								end: end
+							))?.ConvertAll(timeEntryGroup => timeEntryGroup.ToDetailedReportTimeEntryGroup(me));
+
+							if (report is null)
 							{
-								if (group.SubGroups is null)
+								break;
+							}
+
+							if (runningTimeEntry is not null)
+							{
+								DateTimeOffset runningEntryStart;
+								try
 								{
-									return Enumerable.Empty<Result>();
+									runningEntryStart = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(runningTimeEntry.StartDate, me.ReportsTimeZoneId);
+								}
+								catch (Exception exception)
+								{
+									this._context.API.LogException("TogglTrack", $"Failed to convert time to reports time zone '{me.ReportsTimeZoneId}'", exception);
+									// Use local time instead
+									runningEntryStart = runningTimeEntry.StartDate.ToLocalTime();
 								}
 
-								return group.SubGroups.Values.Select(subGroup => new Result
+								this._context.API.LogInfo("TogglTrack", $"{start.Date}, {end.Date}, {runningEntryStart.Date}");
+
+								if (runningEntryStart.Date >= start.Date && runningEntryStart.Date <= end.Date)
 								{
-									Title = subGroup.Title,
-									SubTitle = $"{group.Project?.WithClientName ?? "No Project"} | {subGroup.HumanisedElapsed} ({subGroup.DetailedElapsed})",
-									IcoPath = this._colourIconProvider.GetColourIcon(group.Project?.Colour, "reports.png"),
-									AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} {subGroup.Title}",
-									Score = (int)subGroup.Elapsed.TotalSeconds,
-									Action = c =>
+									report.Add(new DetailedReportTimeEntryGroup(runningTimeEntry, me));
+								}
+							}
+
+							report.ForEach(timeEntryGroup =>
+							{
+								results.AddRange(
+									timeEntryGroup.TimeEntries.Values.Select(timeEntry =>
 									{
-										this._selectedProjectId = group.Project?.Id;
-										this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {group.Project?.KebabName ?? "no-project"} {subGroup.RawTitle}");
-										return false;
-									},
-								});
-							})
-						);
+										DateTimeOffset startDate = timeEntry.StartDate.ToLocalTime();
+
+										return new Result
+										{
+											Title = timeEntry.Description,
+											SubTitle = $"{timeEntry.DetailedElapsed} ({timeEntry.HumanisedStart} at {startDate.ToString("t")} {startDate.ToString("ddd")} {startDate.ToString("m")})",
+											IcoPath = this._colourIconProvider.GetColourIcon(timeEntry.Project?.Colour, "reports.png"),
+											AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} {timeEntry.Description}",
+											Score = (int)timeEntry.Id,
+											Action = c =>
+											{
+												this._selectedProjectId = timeEntry.Project?.Id;
+												this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {timeEntry.Project?.KebabName ?? "no-project"} {timeEntry.RawDescription}");
+												return false;
+											},
+										};
+									})
+								);
+							});
+						}
+						else
+						{
+							results.AddRange(
+								summary.Groups.Values.SelectMany(group =>
+								{
+									if (group.SubGroups is null)
+									{
+										return Enumerable.Empty<Result>();
+									}
+
+									return group.SubGroups.Values.Select(subGroup => new Result
+									{
+										Title = subGroup.Title,
+										SubTitle = $"{group.Project?.WithClientName ?? "No Project"} | {subGroup.HumanisedElapsed} ({subGroup.DetailedElapsed})",
+										IcoPath = this._colourIconProvider.GetColourIcon(group.Project?.Colour, "reports.png"),
+										AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} {subGroup.Title}",
+										Score = (int)subGroup.Elapsed.TotalSeconds,
+										Action = c =>
+										{
+											this._selectedProjectId = group.Project?.Id;
+											this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {group.Project?.KebabName ?? "no-project"} {subGroup.RawTitle}");
+											return false;
+										},
+									});
+								})
+							);
+						}
+
+						results.Add(new Result
+						{
+							Title = $"Display {((this._reportsShowDetailed) ? "summary" : "detailed")} report",
+							IcoPath = "reports.png",
+							AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
+							Score = (int)total.TotalSeconds + 10000,
+							Action = c =>
+							{
+								this._reportsShowDetailed = !this._reportsShowDetailed;
+								this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search}", true);
+								return false;
+							}
+						});
 
 						break;
 					}

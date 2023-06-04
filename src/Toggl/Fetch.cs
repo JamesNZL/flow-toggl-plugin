@@ -75,17 +75,21 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 
 		private string _token;
 		private readonly string _baseUrl;
+		private readonly string? _paginationHeader;
 		private HttpClient _httpClient;
+
+		public int? nextPaginationCursor = null;
 
 		private static string Base64Encode(string str)
 		{
 			return Convert.ToBase64String(Encoding.UTF8.GetBytes(str));
 		}
 
-		public AuthenticatedFetch(string token, string baseUrl)
+		public AuthenticatedFetch(string token, string baseUrl, string? paginationHeader = null)
 		{
 			this._token = token;
 			this._baseUrl = baseUrl;
+			this._paginationHeader = paginationHeader;
 
 			this._httpClient = this.CreateHttpClient();
 		}
@@ -135,6 +139,22 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 			if (!response.IsSuccessStatusCode)
 			{
 				return default(T);
+			}
+
+			if (!string.IsNullOrWhiteSpace(this._paginationHeader) && response.Headers.TryGetValues(this._paginationHeader, out var nextPaginationCursor))
+			{
+				try
+				{
+					this.nextPaginationCursor = int.Parse(nextPaginationCursor.FirstOrDefault() ?? "");
+				}
+				catch
+				{
+					this.nextPaginationCursor = null;
+				}
+			}
+			else
+			{
+				this.nextPaginationCursor = null;
 			}
 
 			return JsonSerializer.Deserialize<T>(await response.Content.ReadAsStringAsync());

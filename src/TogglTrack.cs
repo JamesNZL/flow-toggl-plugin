@@ -494,6 +494,19 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				},
 				new Result
 				{
+					Title = Settings.DeleteCommand,
+					SubTitle = "Delete previous time entry",
+					IcoPath = "delete.png",
+					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.DeleteCommand} ",
+					Score = 20,
+					Action = c =>
+					{
+						this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.DeleteCommand} ");
+						return false;
+					}
+				},
+				new Result
+				{
 					Title = Settings.ReportsCommand,
 					SubTitle = "View tracked time reports",
 					IcoPath = "reports.png",
@@ -548,19 +561,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				Action = c =>
 				{
 					this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StopCommand} ");
-					return false;
-				}
-			});
-			results.Add(new Result
-			{
-				Title = Settings.DeleteCommand,
-				SubTitle = "Delete current time entry",
-				IcoPath = "delete.png",
-				AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.DeleteCommand} ",
-				Score = 60,
-				Action = c =>
-				{
-					this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.DeleteCommand} ");
 					return false;
 				}
 			});
@@ -1526,10 +1526,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return results;
 		}
 
-		internal async ValueTask<List<Result>> RequestDeleteEntry(CancellationToken token)
+		internal async ValueTask<List<Result>> RequestDeleteEntry(CancellationToken token, Query query)
 		{
 			if (token.IsCancellationRequested)
 			{
+				this._selectedTimeEntryId = -1;
 				return new List<Result>();
 			}
 
@@ -1539,15 +1540,15 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				return this.NotifyUnknownError();
 			}
 
-			var runningTimeEntry = (await this._GetRunningTimeEntry())?.ToTimeEntry(me);
-			if (runningTimeEntry is null)
+			var timeEntries = (await this._GetTimeEntries())?.ConvertAll(timeEntry => timeEntry.ToTimeEntry(me));
+			if (timeEntries is null)
 			{
 				return new List<Result>
 				{
 					new Result
 					{
-						Title = $"No running time entry",
-						SubTitle = "There is no current time entry to delete.",
+						Title = $"No previous time entries",
+						SubTitle = "There are no previous time entries to delete.",
 						IcoPath = this._context.CurrentPluginMetadata.IcoPath,
 						Action = c =>
 						{
@@ -1557,25 +1558,63 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				};
 			}
 
+			var ArgumentIndices = new
+			{
+				Command = 0,
+				Description = 1,
+			};
+
+			if (this._selectedTimeEntryId == -1)
+			{
+				var entries = timeEntries.ConvertAll(timeEntry => new Result
+				{
+					Title = timeEntry.Description,
+					SubTitle = $"{timeEntry.Project?.WithClientName ?? "No Project"} | {timeEntry.HumanisedElapsed} ({timeEntry.HumanisedStart})",
+					IcoPath = this._colourIconProvider.GetColourIcon(timeEntry.Project?.Colour, "delete.png"),
+					AutoCompleteText = $"{query.ActionKeyword} {Settings.DeleteCommand} {timeEntry.Description}",
+					Score = timeEntries.Count - timeEntries.IndexOf(timeEntry),
+					Action = c =>
+					{
+						this._selectedTimeEntryId = timeEntry.Id;
+						this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.DeleteCommand} ", true);
+						return false;
+					},
+				});
+
+				string entriesQuery = Main.ExtractFromQuery(query, ArgumentIndices.Description);
+				return (string.IsNullOrWhiteSpace(entriesQuery))
+					? entries
+					: entries.FindAll(result =>
+					{
+						return this._context.API.FuzzySearch(entriesQuery, result.Title).Score > 0;
+					});
+			}
+
+			var timeEntry = timeEntries.Find(timeEntry => timeEntry.Id == this._selectedTimeEntryId);
+			if (timeEntry is null)
+			{
+				return this.NotifyUnknownError();
+			}
+
 			return new List<Result>
 			{
 				new Result
 				{
-					Title = $"Delete {runningTimeEntry.Description}",
-					SubTitle = $"{runningTimeEntry.Project?.WithClientName ?? "No Project"} | {runningTimeEntry.HumanisedElapsed} ({runningTimeEntry.DetailedElapsed})",
-					IcoPath = this._colourIconProvider.GetColourIcon(runningTimeEntry.Project?.Colour, "delete.png") ,
-					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.DeleteCommand} {runningTimeEntry.Description}",
+					Title = $"Delete {timeEntry.Description}",
+					SubTitle = $"{timeEntry.Project?.WithClientName ?? "No Project"} | {timeEntry.HumanisedElapsed} ({timeEntry.DetailedElapsed})",
+					IcoPath = this._colourIconProvider.GetColourIcon(timeEntry.Project?.Colour, "delete.png") ,
+					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.DeleteCommand} {timeEntry.Description}",
 					Action = c =>
 					{
 						Task.Run(async delegate
 						{
 							try
 							{
-								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.Id}, {runningTimeEntry.WorkspaceId}, {runningTimeEntry.StartDate}, {runningTimeEntry.DetailedElapsed}");
+								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {timeEntry.Id}, {timeEntry.WorkspaceId}, {timeEntry.StartDate}, {timeEntry.DetailedElapsed}");
 
 								var statusCode = await this._client.DeleteTimeEntry(
-									workspaceId: runningTimeEntry.WorkspaceId,
-									id: runningTimeEntry.Id
+									workspaceId: timeEntry.WorkspaceId,
+									id: timeEntry.Id
 								);
 
 								if (statusCode is null)
@@ -1583,7 +1622,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									throw new Exception("An API error was encountered.");
 								}
 
-								this.ShowSuccessMessage($"Deleted {runningTimeEntry.RawDescription}", $"{runningTimeEntry.DetailedElapsed} elapsed", "delete.png");
+								this.ShowSuccessMessage($"Deleted {timeEntry.RawDescription}", $"{timeEntry.DetailedElapsed} elapsed", "delete.png");
 
 								// Update cached running time entry state
 								this.RefreshCache();
@@ -1592,6 +1631,10 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							{
 								this._context.API.LogException("TogglTrack", "Failed to delete time entry", exception, "RequestDeleteEntry");
 								this.ShowErrorMessage("Failed to delete time entry.", exception.Message);
+							}
+							finally
+							{
+								this._selectedTimeEntryId = -1;
 							}
 						});
 

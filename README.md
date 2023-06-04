@@ -35,10 +35,10 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 # Commands
 
 - `Start` new time entries
-- `Edit` currently running time entries
 - `Stop` currently running time entries
-- `Delete` currently running time entries
 - `Continue` a previously tracked time entry
+- `Edit` a previously tracked time entry
+- `Delete` a previously tracked time entry 
 - `Reports` of tracked time by projects, clients, and entries
 - `Browser` quick-launch shortcut
 

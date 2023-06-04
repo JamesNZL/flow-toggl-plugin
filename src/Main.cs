@@ -39,7 +39,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			Main._viewModel = new SettingsViewModel(this._settings);
 
 			this._togglTrack = new TogglTrack(this._context, this._settings);
-			
+
 			// Complete the API calls on background threads so plugin initialisation can proceed as soon as possible
 			// Cache is not immediately needed so no need to block for it to fulfil
 			await Task.Run(() =>

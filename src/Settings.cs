@@ -34,7 +34,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			new ReportsSpanCommandArgument
 			{
 				Argument = "day",
-				Interpolation = offset => 
+				Interpolation = offset =>
 				{
 					switch (offset)
 					{
@@ -60,7 +60,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			new ReportsSpanCommandArgument
 			{
 				Argument = "week",
-				Interpolation = offset => 
+				Interpolation = offset =>
 				{
 					switch (offset)
 					{
@@ -87,7 +87,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			new ReportsSpanCommandArgument
 			{
 				Argument = "month",
-				Interpolation = offset => 
+				Interpolation = offset =>
 				{
 					switch (offset)
 					{
@@ -114,7 +114,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			new ReportsSpanCommandArgument
 			{
 				Argument = "year",
-				Interpolation = offset => 
+				Interpolation = offset =>
 				{
 					switch (offset)
 					{
@@ -192,27 +192,27 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 	public class CommandArgument
 	{
-		#nullable disable
+#nullable disable
 		public string Argument { get; init; }
 		public string Interpolation { get; init; }
 		public int Score { get; init; }
-		#nullable enable
+#nullable enable
 	}
 
 	public class ReportsSpanCommandArgument : CommandArgument
 	{
-		#nullable disable
+#nullable disable
 		public new Func<int, string> Interpolation { get; init; }
 		public Func<DateTimeOffset, DayOfWeek, int, DateTimeOffset> Start { get; init; }
 		public Func<DateTimeOffset, DayOfWeek, int, DateTimeOffset> End { get; init; }
-		#nullable enable
+#nullable enable
 	}
 
 	public class ReportsGroupingCommandArgument : CommandArgument
 	{
-		#nullable disable
+#nullable disable
 		public Settings.ReportsGroupingKey Grouping { get; init; }
 		public string SubArgument { get; init; }
-		#nullable enable
+#nullable enable
 	}
 }

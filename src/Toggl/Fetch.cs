@@ -10,10 +10,10 @@ using System.Threading.Tasks;
 namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 {
 	/// <summary>
-    /// This is a custom JsonConverter that ensures that certain fields are never ignored, even if they are null.
-    /// 
-    /// This is necessary as certain fields (ie project_id) still carry meaning when they are null, rather than being necessarily 'optional'.
-    /// </summary>
+	/// This is a custom JsonConverter that ensures that certain fields are never ignored, even if they are null.
+	/// 
+	/// This is necessary as certain fields (ie project_id) still carry meaning when they are null, rather than being necessarily 'optional'.
+	/// </summary>
 	public class NullPropertyConverter : JsonConverter<object>
 	{
 		private readonly string[] _neverIgnore;
@@ -37,7 +37,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 			{
 				return;
 			}
-			
+
 			writer.WriteStartObject();
 
 			foreach (var property in properties)

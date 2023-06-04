@@ -30,8 +30,8 @@ namespace Flow.Launcher.Plugin.TogglTrack.ViewModels
 				this.OnPropertyChanged();
 			}
 		}
-		
-		public bool ShowUsageTips 
+
+		public bool ShowUsageTips
 		{
 			get => this.Settings.ShowUsageTips;
 			set
@@ -41,7 +41,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.ViewModels
 			}
 		}
 
-		public bool ShowUsageExamples 
+		public bool ShowUsageExamples
 		{
 			get => this.Settings.ShowUsageExamples;
 			set
@@ -51,7 +51,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.ViewModels
 			}
 		}
 
-		public bool ShowUsageWarnings 
+		public bool ShowUsageWarnings
 		{
 			get => this.Settings.ShowUsageWarnings;
 			set
@@ -60,8 +60,8 @@ namespace Flow.Launcher.Plugin.TogglTrack.ViewModels
 				this.OnPropertyChanged();
 			}
 		}
-		
-		public bool AllowSuccessNotifications 
+
+		public bool AllowSuccessNotifications
 		{
 			get => this.Settings.AllowSuccessNotifications;
 			set
@@ -71,7 +71,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.ViewModels
 			}
 		}
 
-		public bool AllowErrorNotifications 
+		public bool AllowErrorNotifications
 		{
 			get => this.Settings.AllowErrorNotifications;
 			set

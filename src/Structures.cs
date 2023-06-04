@@ -108,7 +108,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			this.ClientId = response.client_id;
 			this.WorkspaceId = response.workspace_id;
-			
+
 			this.Active = response.active;
 			this.ActualHours = response.actual_hours;
 			this.Colour = response.color;
@@ -194,7 +194,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				? DateTimeOffset.Parse(this.Stop)
 				: null;
 		}
-		
+
 		public string? HumanisedStop
 		{
 			get => (this.Stop is not null)
@@ -408,7 +408,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		{
 			return $"{this.Id?.ToString("X") ?? "-1"}-{id?.ToString("X") ?? title}";
 		}
-		
+
 		public SummaryTimeEntryGroup Clone()
 		{
 			return new SummaryTimeEntryGroup(this);

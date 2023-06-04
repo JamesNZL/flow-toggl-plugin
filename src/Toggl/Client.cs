@@ -54,7 +54,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 				workspace_id = workspaceId,
 			});
 		}
-		
+
 		public async Task<TimeEntryResponse?> EditTimeEntry(
 			long workspaceId,
 			long? projectId,

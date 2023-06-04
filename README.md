@@ -1,10 +1,13 @@
 <div align="center">
-   <img src="assets/app.png" width="12.5%">
+   <img src="assets/header/flow.png" width="12.5%">
+   <img src="assets/header/toggl.png" width="12.5%">
+   <br>
    <img src="assets/start.png" width="12.5%">
-   <img src="assets/edit.png" width="12.5%">
    <img src="assets/stop.png" width="12.5%">
-   <img src="assets/delete.png" width="12.5%">
    <img src="assets/continue.png" width="12.5%">
+   <img src="assets/edit.png" width="12.5%">
+   <img src="assets/delete.png" width="12.5%">
+   <img src="assets/reports.png" width="12.5%">
    <br>
    <br>
    <div>

@@ -114,7 +114,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 		 * Reports API
 		 */
 
-		public async Task<SummaryTimeEntryResponse?> GetSummaryTimeEntries(
+		public async Task<SummaryReportResponse?> GetSummaryTimeEntries(
 			long workspaceId,
 			long userId,
 			Settings.ReportsGroupingKey reportGrouping,
@@ -130,7 +130,7 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 				_ => ("projects", "time_entries"),
 			};
 
-			return await this._reportsApi.Post<SummaryTimeEntryResponse>($"workspace/{workspaceId}/summary/time_entries", new
+			return await this._reportsApi.Post<SummaryReportResponse>($"workspace/{workspaceId}/summary/time_entries", new
 			{
 				user_ids = new long[] { userId },
 				start_date = start.ToString("yyyy-MM-dd"),

@@ -153,7 +153,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 		}
 
-		private async ValueTask<SummaryTimeEntryResponse?> _GetSummaryTimeEntries(
+		private async ValueTask<SummaryReportResponse?> _GetSummaryTimeEntries(
 			long workspaceId,
 			long userId,
 			Settings.ReportsGroupingKey reportGrouping,
@@ -166,7 +166,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			if (!force && this._cache.Contains(cacheKey))
 			{
-				return (SummaryTimeEntryResponse?)this._cache.Get(cacheKey);
+				return (SummaryReportResponse?)this._cache.Get(cacheKey);
 			}
 
 			try
@@ -199,7 +199,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			this._summaryTimeEntriesCacheKeys.Clear();
 		}
 
-		private async ValueTask<SummaryTimeEntryResponse?> _GetMaxReportTimeEntries(bool force = false)
+		private async ValueTask<SummaryReportResponse?> _GetMaxReportTimeEntries(bool force = false)
 		{
 			var me = (await this._GetMe(force))?.ToMe();
 			if (me is null)
@@ -1539,7 +1539,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				reportsNow = DateTimeOffset.Now;
 			}
 
-			var timeEntries = (await this._GetMaxReportTimeEntries())?.ToSummaryTimeEntry(me);
+			var timeEntries = (await this._GetMaxReportTimeEntries())?.ToSummaryReport(me);
 
 			if (timeEntries is null)
 			{
@@ -1794,7 +1794,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				reportGrouping: groupingConfiguration.Grouping,
 				start: start,
 				end: end
-			))?.ToSummaryTimeEntry(me);
+			))?.ToSummaryReport(me);
 
 			// Use cached time entry here to improve responsiveness
 			var runningTimeEntry = (await this._GetRunningTimeEntry())?.ToTimeEntry(me);

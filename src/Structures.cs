@@ -220,20 +220,20 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		}
 	}
 
-	public class SummaryTimeEntry : ICloneable
+	public class SummaryReport : ICloneable
 	{
 		private readonly Me _me;
 
 		// Key as -1 for 'No Project' or 'No Client' cases
-		public Dictionary<long, SummaryTimeEntryGroup> Groups;
+		public Dictionary<long, SummaryReportGroup> Groups;
 
-		public SummaryTimeEntry(SummaryTimeEntryResponse response, Me me)
+		public SummaryReport(SummaryReportResponse response, Me me)
 		{
 			this._me = me;
 
-			this.Groups = response.groups?.ToDictionary(keySelector: groupResponse => SummaryTimeEntry.GetGroupKey(groupResponse.id), elementSelector: groupResponse => groupResponse.ToSummaryTimeEntryGroup(me)) ?? new Dictionary<long, SummaryTimeEntryGroup>();
+			this.Groups = response.groups?.ToDictionary(keySelector: groupResponse => SummaryReport.GetGroupKey(groupResponse.id), elementSelector: groupResponse => groupResponse.ToSummaryReportGroup(me)) ?? new Dictionary<long, SummaryReportGroup>();
 		}
-		public SummaryTimeEntry(SummaryTimeEntry summary)
+		public SummaryReport(SummaryReport summary)
 		{
 			this._me = summary._me;
 
@@ -245,16 +245,16 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return id ?? -1;
 		}
 
-		public SummaryTimeEntry Clone()
+		public SummaryReport Clone()
 		{
-			return new SummaryTimeEntry(this);
+			return new SummaryReport(this);
 		}
 		object ICloneable.Clone()
 		{
 			return this.Clone();
 		}
 
-		public SummaryTimeEntry? InsertRunningTimeEntry(TimeEntry timeEntry, Settings.ReportsGroupingKey reportGrouping)
+		public SummaryReport? InsertRunningTimeEntry(TimeEntry timeEntry, Settings.ReportsGroupingKey reportGrouping)
 		{
 			const string PROJECTS_KEY = "projects";
 			const string CLIENTS_KEY = "clients";
@@ -285,18 +285,18 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			var newSubGroup = (subGrouping) switch
 			{
-				ENTRIES_KEY => new SummaryTimeEntrySubGroupResponse
+				ENTRIES_KEY => new SummaryReportSubGroupResponse
 				{
 					title = timeEntry.RawDescription,
 					seconds = (int)timeEntry.Elapsed.TotalSeconds,
 				},
-				PROJECTS_KEY => new SummaryTimeEntrySubGroupResponse
+				PROJECTS_KEY => new SummaryReportSubGroupResponse
 				{
 					id = timeEntry.ProjectId,
 					seconds = (int)timeEntry.Elapsed.TotalSeconds,
 				},
 				// Default sub-grouping of entries
-				_ => new SummaryTimeEntrySubGroupResponse
+				_ => new SummaryReportSubGroupResponse
 				{
 					title = timeEntry.RawDescription,
 					seconds = (int)timeEntry.Elapsed.TotalSeconds,
@@ -314,28 +314,28 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			if (group?.SubGroups is not null)
 			{
-				group.SubGroups.Add(group.GetSubGroupKey(newSubGroup.id, newSubGroup.title), new SummaryTimeEntrySubGroup(newSubGroup));
+				group.SubGroups.Add(group.GetSubGroupKey(newSubGroup.id, newSubGroup.title), new SummaryReportSubGroup(newSubGroup));
 				return clonedSummary;
 			}
 
 			if (group is not null)
 			{
-				group.SubGroups = new Dictionary<string, SummaryTimeEntrySubGroup>
+				group.SubGroups = new Dictionary<string, SummaryReportSubGroup>
 				{
 					{
-						group.GetSubGroupKey(newSubGroup.id, newSubGroup.title), new SummaryTimeEntrySubGroup(newSubGroup)
+						group.GetSubGroupKey(newSubGroup.id, newSubGroup.title), new SummaryReportSubGroup(newSubGroup)
 					}
 				};
 				return clonedSummary;
 			}
 
 			clonedSummary.Groups.Add(
-				SummaryTimeEntry.GetGroupKey(groupId),
-				new SummaryTimeEntryGroup(
-					new SummaryTimeEntryGroupResponse
+				SummaryReport.GetGroupKey(groupId),
+				new SummaryReportGroup(
+					new SummaryReportGroupResponse
 					{
 						id = groupId,
-						sub_groups = new List<SummaryTimeEntrySubGroupResponse>
+						sub_groups = new List<SummaryReportSubGroupResponse>
 						{
 							newSubGroup,
 						},
@@ -367,33 +367,33 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			get => $"{(int)this.Elapsed.TotalHours}:{this.Elapsed.ToString(@"mm\:ss")}";
 		}
 
-		public SummaryTimeEntryGroup? GetGroup(long? id)
+		public SummaryReportGroup? GetGroup(long? id)
 		{
-			return this.Groups.GetValueOrDefault(SummaryTimeEntry.GetGroupKey(id));
+			return this.Groups.GetValueOrDefault(SummaryReport.GetGroupKey(id));
 		}
 	}
 
-	public class SummaryTimeEntryGroup : ICloneable
+	public class SummaryReportGroup : ICloneable
 	{
 		private readonly Me _me;
 
 		public long? Id;
-		public Dictionary<string, SummaryTimeEntrySubGroup>? SubGroups;
+		public Dictionary<string, SummaryReportSubGroup>? SubGroups;
 
 		public Project? Project;
 		public Client? Client;
 
-		public SummaryTimeEntryGroup(SummaryTimeEntryGroupResponse response, Me me)
+		public SummaryReportGroup(SummaryReportGroupResponse response, Me me)
 		{
 			this._me = me;
 
 			this.Id = response.id;
-			this.SubGroups = response.sub_groups?.ToDictionary(keySelector: subGroupResponse => this.GetSubGroupKey(subGroupResponse.id, subGroupResponse.title), elementSelector: subGroupResponse => subGroupResponse.ToSummaryTimeEntrySubGroup());
+			this.SubGroups = response.sub_groups?.ToDictionary(keySelector: subGroupResponse => this.GetSubGroupKey(subGroupResponse.id, subGroupResponse.title), elementSelector: subGroupResponse => subGroupResponse.ToSummaryReportSubGroup());
 
 			this.Project = me.GetProject(this.Id);
 			this.Client = me.GetClient(this.Id);
 		}
-		public SummaryTimeEntryGroup(SummaryTimeEntryGroup group)
+		public SummaryReportGroup(SummaryReportGroup group)
 		{
 			this._me = group._me;
 
@@ -409,9 +409,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return $"{this.Id?.ToString("X") ?? "-1"}-{id?.ToString("X") ?? title}";
 		}
 
-		public SummaryTimeEntryGroup Clone()
+		public SummaryReportGroup Clone()
 		{
-			return new SummaryTimeEntryGroup(this);
+			return new SummaryReportGroup(this);
 		}
 		object ICloneable.Clone()
 		{
@@ -438,12 +438,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			get => $"{(int)this.Elapsed.TotalHours}:{this.Elapsed.ToString(@"mm\:ss")}";
 		}
 
-		public SummaryTimeEntrySubGroup? LongestSubGroup
+		public SummaryReportSubGroup? LongestSubGroup
 		{
 			get => this.SubGroups?.Values.MaxBy(subGroup => subGroup.Seconds);
 		}
 
-		public SummaryTimeEntrySubGroup? GetSubGroup(long? id, string? title)
+		public SummaryReportSubGroup? GetSubGroup(long? id, string? title)
 		{
 			if (this.SubGroups is null)
 			{
@@ -454,28 +454,28 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		}
 	}
 
-	public class SummaryTimeEntrySubGroup : ICloneable
+	public class SummaryReportSubGroup : ICloneable
 	{
 		public long? Id;
 		public string? RawTitle;
 		public long Seconds;
 
-		public SummaryTimeEntrySubGroup(SummaryTimeEntrySubGroupResponse response)
+		public SummaryReportSubGroup(SummaryReportSubGroupResponse response)
 		{
 			this.Id = response.id;
 			this.RawTitle = response.title;
 			this.Seconds = response.seconds;
 		}
-		public SummaryTimeEntrySubGroup(SummaryTimeEntrySubGroup subGroup)
+		public SummaryReportSubGroup(SummaryReportSubGroup subGroup)
 		{
 			this.Id = subGroup.Id;
 			this.RawTitle = subGroup.RawTitle;
 			this.Seconds = subGroup.Seconds;
 		}
 
-		public SummaryTimeEntrySubGroup Clone()
+		public SummaryReportSubGroup Clone()
 		{
-			return new SummaryTimeEntrySubGroup(this);
+			return new SummaryReportSubGroup(this);
 		}
 		object ICloneable.Clone()
 		{

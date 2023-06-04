@@ -164,36 +164,36 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 		}
 	}
 
-	public class SummaryTimeEntryResponse
+	public class SummaryReportResponse
 	{
-		public List<SummaryTimeEntryGroupResponse>? groups { get; set; }
+		public List<SummaryReportGroupResponse>? groups { get; set; }
 
-		public SummaryTimeEntry ToSummaryTimeEntry(Me me)
+		public SummaryReport ToSummaryReport(Me me)
 		{
-			return new SummaryTimeEntry(this, me);
+			return new SummaryReport(this, me);
 		}
 	}
 
-	public class SummaryTimeEntryGroupResponse
+	public class SummaryReportGroupResponse
 	{
 		public long? id { get; set; }
-		public List<SummaryTimeEntrySubGroupResponse>? sub_groups { get; set; }
+		public List<SummaryReportSubGroupResponse>? sub_groups { get; set; }
 
-		public SummaryTimeEntryGroup ToSummaryTimeEntryGroup(Me me)
+		public SummaryReportGroup ToSummaryReportGroup(Me me)
 		{
-			return new SummaryTimeEntryGroup(this, me);
+			return new SummaryReportGroup(this, me);
 		}
 	}
 
-	public class SummaryTimeEntrySubGroupResponse
+	public class SummaryReportSubGroupResponse
 	{
 		public long? id { get; set; }
 		public string? title { get; set; }
 		public long seconds { get; set; }
 
-		public SummaryTimeEntrySubGroup ToSummaryTimeEntrySubGroup()
+		public SummaryReportSubGroup ToSummaryReportSubGroup()
 		{
-			return new SummaryTimeEntrySubGroup(this);
+			return new SummaryReportSubGroup(this);
 		}
 	}
 }

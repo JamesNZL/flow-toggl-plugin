@@ -20,6 +20,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 		internal const string EditProjectFlag = "-p";
 		internal const string TimeSpanFlag = "-t";
+		internal const string TimeSpanEndFlag = "-T";
 
 		internal enum ReportsSpanKey
 		{

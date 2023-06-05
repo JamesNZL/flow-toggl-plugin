@@ -206,6 +206,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			get => DateTime.Parse(this.Start).Humanize(false);
 		}
 
+		public bool IsRunning
+		{
+			get => (this.Stop is null);
+		}
+
 		public DateTimeOffset? StopDate
 		{
 			get => (this.Stop is not null)

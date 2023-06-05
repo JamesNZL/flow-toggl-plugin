@@ -1165,47 +1165,118 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				});
 			}
 
-			if (!query.SearchTerms.Contains(Settings.TimeSpanFlag))
+			var timeSpanFlags = new string[] { Settings.TimeSpanFlag, Settings.TimeSpanEndFlag };
+			bool hasTimeSpanFlag = query.SearchTerms.Contains(Settings.TimeSpanFlag);
+			bool hasTimeSpanEndFlag = query.SearchTerms.Contains(Settings.TimeSpanEndFlag);
+
+			if (!hasTimeSpanFlag && !hasTimeSpanEndFlag)
 			{
 				if (this._settings.ShowUsageTips)
 				{
-					results.Add(new Result
+					if (!hasTimeSpanFlag)
 					{
-						Title = "Usage Tip",
-						SubTitle = $"Use {Settings.TimeSpanFlag} after the description to edit the start time",
-						IcoPath = "tip.png",
-						AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ",
-						Score = 1,
-						Action = c =>
+						results.Add(new Result
 						{
-							this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ");
-							return false;
-						}
-					});
+							Title = "Usage Tip",
+							SubTitle = $"Use {Settings.TimeSpanFlag} after the description to edit the start time",
+							IcoPath = "tip.png",
+							AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ",
+							Score = 10,
+							Action = c =>
+							{
+								this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ");
+								return false;
+							}
+						});
+					}
+
+					if (!hasTimeSpanEndFlag)
+					{
+						results.Add(new Result
+						{
+							Title = "Usage Tip",
+							SubTitle = $"Use {Settings.TimeSpanEndFlag} after the description to edit the stop time",
+							IcoPath = "tip.png",
+							AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.TimeSpanEndFlag} ",
+							Score = 5,
+							Action = c =>
+							{
+								this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {Settings.TimeSpanEndFlag} ");
+								return false;
+							}
+						});
+					}
 				}
 			}
 			else
 			{
+				// TimeSpanFlag and/or TimeSpanEndFlag is present
+				int firstFlag = -1;
+				for (int i = 0; i < query.SearchTerms.Length; i++)
+				{
+					if (!timeSpanFlags.Contains(query.SearchTerms[i]))
+					{
+						continue;
+					}
+
+					firstFlag = i;
+					break;
+				}
+
 				try
 				{
-					var startTimeSpan = TimeSpanParser.Parse(
-						Main.ExtractFromQuery(query, Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag) + 1),
-						new TimeSpanParserOptions
-						{
-							UncolonedDefault = Units.Minutes,
-							ColonedDefault = Units.Minutes,
-						}
-					);
-					// An exception will be thrown if a time span was not able to be parsed
-					// If we get here, there will have been a valid time span
-					var startTime = timeEntry.StartDate + startTimeSpan;
-					var newElapsed = timeEntry.Elapsed.Subtract(startTimeSpan);
+					TimeSpan? startTimeSpan = null;
+					TimeSpan? endTimeSpan = null;
+					TimeSpan newElapsed = timeEntry.Elapsed;
 
-					// Remove -t flag from description
+					if (hasTimeSpanFlag)
+					{
+						try
+						{
+							startTimeSpan = TimeSpanParser.Parse(
+								Main.ExtractFromQuery(query, Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag) + 1),
+								new TimeSpanParserOptions
+								{
+									UncolonedDefault = Units.Minutes,
+									ColonedDefault = Units.Minutes,
+								}
+							);
+							// An exception will be thrown if a time span was not able to be parsed
+							// If we get here, there will have been a valid time span
+							newElapsed = newElapsed.Subtract((TimeSpan)startTimeSpan);
+						}
+						catch
+						{
+							throw new ArgumentException(Settings.TimeSpanFlag);
+						}
+					}
+					if (hasTimeSpanEndFlag)
+					{
+						try
+						{
+							endTimeSpan = TimeSpanParser.Parse(
+								Main.ExtractFromQuery(query, Array.IndexOf(query.SearchTerms, Settings.TimeSpanEndFlag) + 1),
+								new TimeSpanParserOptions
+								{
+									UncolonedDefault = Units.Minutes,
+									ColonedDefault = Units.Minutes,
+								}
+							);
+							// An exception will be thrown if a time span was not able to be parsed
+							// If we get here, there will have been a valid time span
+							newElapsed = newElapsed.Add((TimeSpan)endTimeSpan);
+						}
+						catch
+						{
+							throw new ArgumentException(Settings.TimeSpanEndFlag);
+						}
+					}
+
+					// Remove flags from description
 					string sanitisedDescription = string.Join(
 						" ",
 						query.SearchTerms
-							.Take(Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag))
+							.Take(firstFlag)
 							.Skip(
 								(this._editProjectState == TogglTrack.EditProjectState.ProjectSelected)
 									? ArgumentIndices.DescriptionWithProject
@@ -1230,6 +1301,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						});
 					}
 
+					var startTime = (timeEntry.StartDate + startTimeSpan) ?? timeEntry.StartDate;
+					var stopTime = ((timeEntry.StopDate ?? DateTimeOffset.UtcNow) + endTimeSpan);
+
 					results.Add(new Result
 					{
 						Title = (string.IsNullOrEmpty(sanitisedDescription))
@@ -1245,7 +1319,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							{
 								try
 								{
-									this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {timeEntry.Id}, {timeEntry.Duration}, {timeEntry.Start}, {this._selectedProjectId}, {timeEntry.WorkspaceId}, {sanitisedDescription}, {startTime.ToString("yyyy-MM-ddTHH:mm:ssZ")}, {startTimeSpan.ToString()}, edit start time");
+									this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {timeEntry.Id}, {timeEntry.Duration}, {timeEntry.Start}, {this._selectedProjectId}, {timeEntry.WorkspaceId}, {sanitisedDescription}, {startTime.ToString("yyyy-MM-ddTHH:mm:ssZ")}, {startTimeSpan.ToString()}, {stopTime?.ToString("yyyy-MM-ddTHH:mm:ssZ")}, {endTimeSpan.ToString()}, edit start time");
 
 									var editedTimeEntry = (await this._client.EditTimeEntry(
 										workspaceId: timeEntry.WorkspaceId,
@@ -1253,6 +1327,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 										id: timeEntry.Id,
 										description: sanitisedDescription,
 										start: startTime,
+										stop: stopTime,
 										duration: timeEntry.Duration,
 										tags: timeEntry.Tags,
 										billable: timeEntry.Billable
@@ -1285,22 +1360,24 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						},
 					});
 				}
-				catch
+				catch (ArgumentException exception)
 				{
 					if (this._settings.ShowUsageExamples)
 					{
-						var queryToFlag = string.Join(" ", query.SearchTerms.Take(Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag)));
+						string flag = exception.Message;
+
+						var queryToFlag = string.Join(" ", query.SearchTerms.Take(Array.IndexOf(query.SearchTerms, flag)));
 
 						results.Add(new Result
 						{
 							Title = "Usage Example",
-							SubTitle = $"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} 5 mins",
+							SubTitle = $"{query.ActionKeyword} {queryToFlag} {flag} 5 mins",
 							IcoPath = "tip.png",
-							AutoCompleteText = $"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} 5 mins",
+							AutoCompleteText = $"{query.ActionKeyword} {queryToFlag} {flag} 5 mins",
 							Score = 100000,
 							Action = c =>
 							{
-								this._context.API.ChangeQuery($"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} 5 mins");
+								this._context.API.ChangeQuery($"{query.ActionKeyword} {queryToFlag} {flag} 5 mins");
 								return false;
 							}
 						});

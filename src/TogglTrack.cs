@@ -2040,10 +2040,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								}
 							}
 
-							report.ForEach(timeEntryGroup =>
-							{
-								subResults = subResults.Concat(
-									timeEntryGroup.TimeEntries.Values.Select(timeEntry =>
+							subResults = subResults.Concat(
+								report.SelectMany(timeEntryGroup =>
+									timeEntryGroup.TimeEntries.ConvertAll(timeEntry =>
 									{
 										DateTimeOffset startDate = timeEntry.StartDate.ToLocalTime();
 
@@ -2062,8 +2061,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 											},
 										};
 									})
-								);
-							});
+								)
+							);
 						}
 						else
 						{
@@ -2230,10 +2229,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								}
 							}
 
-							report.ForEach(timeEntryGroup =>
-							{
-								results.AddRange(
-									timeEntryGroup.TimeEntries.Values.Select(timeEntry =>
+							results.AddRange(
+								report.SelectMany(timeEntryGroup =>
+									timeEntryGroup.TimeEntries.ConvertAll(timeEntry =>
 									{
 										DateTimeOffset startDate = timeEntry.StartDate.ToLocalTime();
 
@@ -2252,8 +2250,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 											},
 										};
 									})
-								);
-							});
+								)
+							);
 						}
 						else
 						{

@@ -533,70 +533,26 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		}
 	}
 
-	public class DetailedReportTimeEntryGroup : ICloneable
+	public class DetailedReportTimeEntryGroup
 	{
 		private readonly Me _me;
 
-		public Dictionary<long, TimeEntry> TimeEntries;
+		public List<TimeEntry> TimeEntries;
 
 		public DetailedReportTimeEntryGroup(DetailedReportTimeEntryGroupResponse response, Me me)
 		{
 			this._me = me;
 
-			this.TimeEntries = response.time_entries?.ToDictionary(keySelector: timeEntryResponse => timeEntryResponse.id, elementSelector: timeEntryResponse => timeEntryResponse.ToTimeEntry(me, response)) ?? new Dictionary<long, TimeEntry>();
-		}
-		public DetailedReportTimeEntryGroup(DetailedReportTimeEntryGroup timeEntryGroup)
-		{
-			this._me = timeEntryGroup._me;
-
-			// Only need a shallow copy here, as we do not need to edit any previously-tracked time entries
-			// (including when inserting the currently-running time entry as the ids will be different)
-			this.TimeEntries = new Dictionary<long, TimeEntry>(timeEntryGroup.TimeEntries);
+			this.TimeEntries = response.time_entries?.ConvertAll(timeEntryResponse => timeEntryResponse.ToTimeEntry(me, response)) ?? new List<TimeEntry>();
 		}
 		public DetailedReportTimeEntryGroup(TimeEntry timeEntry, Me me)
 		{
 			this._me = me;
 
-			this.TimeEntries = new Dictionary<long, TimeEntry>
+			this.TimeEntries = new List<TimeEntry>
 			{
-				{
-					timeEntry.Id, timeEntry
-				},
+				timeEntry,
 			};
-		}
-
-		public DetailedReportTimeEntryGroup Clone()
-		{
-			return new DetailedReportTimeEntryGroup(this);
-		}
-		object ICloneable.Clone()
-		{
-			return this.Clone();
-		}
-
-		public long Seconds
-		{
-			get => this.TimeEntries.Values.Sum(timeEntry => timeEntry.Duration);
-		}
-
-		public TimeSpan Elapsed
-		{
-			get => TimeSpan.FromSeconds(this.Seconds);
-		}
-
-		public string HumanisedElapsed
-		{
-			get => this.Elapsed.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour);
-		}
-
-		public string DetailedElapsed
-		{
-			get => $"{(int)this.Elapsed.TotalHours}:{this.Elapsed.ToString(@"mm\:ss")}";
-		}
-
-		public TimeEntry? GetTimeEntry(long id)
-		{
-			return this.TimeEntries.GetValueOrDefault(id);
 		}
 	}
 }

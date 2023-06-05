@@ -2095,7 +2095,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								break;
 							}
 
-							if (runningTimeEntry is not null)
+							if (runningTimeEntry is not null && runningTimeEntry.ProjectId == project?.Id)
 							{
 								DateTimeOffset runningEntryStart;
 								try

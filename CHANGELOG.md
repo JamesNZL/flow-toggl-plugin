@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.7.0](https://github.com/JamesNZL/flow-toggl-plugin/compare/v2.6.0...v2.7.0) (2023-06-05)
+
+
+### Features
+
+* **ux:** :sparkles: implement editing of stop time ([#46](https://github.com/JamesNZL/flow-toggl-plugin/issues/46)) ([acc2e2f](https://github.com/JamesNZL/flow-toggl-plugin/commit/acc2e2f9f39ae1cf94608f0feec9718fffcb5d2c))
+
+
+### Bug Fixes
+
+* **reports:** :bug: fix wrongful inclusion of running time entry in detailed project report ([#47](https://github.com/JamesNZL/flow-toggl-plugin/issues/47)) ([fecff39](https://github.com/JamesNZL/flow-toggl-plugin/commit/fecff390442e465a4e817dac8efbaeb6aa447225))
+
 ## [2.6.0](https://github.com/JamesNZL/flow-toggl-plugin/compare/v2.5.0...v2.6.0) (2023-06-04)
 
 

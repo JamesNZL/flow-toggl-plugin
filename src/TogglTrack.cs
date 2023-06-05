@@ -1771,6 +1771,15 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				Description = 1,
 			};
 
+			if (query.SearchTerms.Length == ArgumentIndices.Description)
+			{
+				// Start fetch for time entries asynchronously in the background
+				_ = Task.Run(() =>
+				{
+					_ = this._GetTimeEntries(true);
+				});
+			}
+
 			var entries = timeEntries.Groups.Values.SelectMany(project =>
 			{
 				if (project.SubGroups is null)

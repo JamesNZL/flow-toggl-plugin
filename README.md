@@ -74,17 +74,17 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 
 ![Start time in the past](./assets/screenshots/start-past.jpg)
 
-## `tgl edit`
-![Editing running time entry](./assets/screenshots/edit.jpg)
-
 ## `tgl stop`
 ![Stopping running time entry](./assets/screenshots/stop.jpg)
 
-## `tgl delete`
-![Deleting running time entry](./assets/screenshots/delete.jpg)
-
 ## `tgl continue`
 ![Continue previous time entry](./assets/screenshots/continue.jpg)
+
+## `tgl edit`
+![Editing running time entry](./assets/screenshots/edit.jpg)
+
+## `tgl delete`
+![Deleting running time entry](./assets/screenshots/delete.jpg)
 
 ## `tgl reports`
 ![View tracked time reports](./assets/screenshots/reports.jpg)
@@ -116,3 +116,4 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
     > This can be found at the bottom of your Toggl Track [profile settings](https://track.toggl.com/profile) page.
 
 3. Trigger the plugin with the (configurable) action keyword `tgl`.
+

@@ -277,18 +277,22 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			);
 		}
 
-		internal void RefreshCache(bool refreshMe = false)
+		internal void RefreshCache(bool force = true, bool refreshMe = false)
 		{
 			_ = Task.Run(() =>
 			{
 				// This is the main one that needs to be run
-				_ = this._GetMe(refreshMe);
-				_ = this._GetRunningTimeEntry(true);
-				_ = this._GetTimeEntries(true);
-				this._ClearSummaryReportCache();
-				this._ClearDetailedReportCache();
+				_ = this._GetMe(force: refreshMe);
+				_ = this._GetRunningTimeEntry(force: force);
+				_ = this._GetTimeEntries(force: force);
 
-				_ = this._GetMaxReportTimeEntries(force: true, refreshMe);
+				if (force)
+				{
+					this._ClearSummaryReportCache();
+					this._ClearDetailedReportCache();
+				}
+
+				_ = this._GetMaxReportTimeEntries(force: force, refreshMe: refreshMe);
 			});
 		}
 
@@ -325,7 +329,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			if (this._lastToken.IsValid)
 			{
-				this.RefreshCache(true);
+				this.RefreshCache(refreshMe: true);
 			}
 
 			return this._lastToken.IsValid;
@@ -443,13 +447,18 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			};
 		}
 
-		internal async ValueTask<List<Result>> GetDefaultHotKeys()
+		internal async ValueTask<List<Result>> GetDefaultHotKeys(bool prefetch = false)
 		{
 			this._selectedTimeEntryId = -1;
 			this._selectedProjectId = -1;
 			this._selectedClientId = -1;
 			this._editProjectState = TogglTrack.EditProjectState.NoProjectChange;
 			this._reportsShowDetailed = false;
+
+			if (prefetch)
+			{
+				this.RefreshCache(force: false);
+			}
 
 			var results = new List<Result>
 			{
@@ -540,7 +549,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					Score = -100,
 					Action = c =>
 					{
-						this.RefreshCache(true);
+						this.RefreshCache(refreshMe: true);
 						return true;
 					},
 				},

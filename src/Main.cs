@@ -78,7 +78,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			if (string.IsNullOrWhiteSpace(query.Search))
 			{
-				return await this._togglTrack.GetDefaultHotKeys();
+				return await this._togglTrack.GetDefaultHotKeys(prefetch: true);
 			}
 
 			return (query.FirstSearch.ToLower()) switch

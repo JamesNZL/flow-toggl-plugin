@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.8.0](https://github.com/JamesNZL/flow-toggl-plugin/compare/v2.7.0...v2.8.0) (2023-06-07)
+
+
+### Features
+
+* **ux:** :zap: improve loading time of commands when cache is empty ([#49](https://github.com/JamesNZL/flow-toggl-plugin/issues/49)) ([ed00bda](https://github.com/JamesNZL/flow-toggl-plugin/commit/ed00bda91b54117ad2806d699188e05cc517c700))
+
+
+### Bug Fixes
+
+* **toggl:** :zap: fix erroneous forced fetch of `Me` ([#50](https://github.com/JamesNZL/flow-toggl-plugin/issues/50)) ([eee7569](https://github.com/JamesNZL/flow-toggl-plugin/commit/eee75695e367405ab1f260c8cfc7f6e7351d159f))
+
 ## [2.7.0](https://github.com/JamesNZL/flow-toggl-plugin/compare/v2.6.0...v2.7.0) (2023-06-05)
 
 

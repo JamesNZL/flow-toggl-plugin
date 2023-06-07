@@ -199,6 +199,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 		private void _ClearSummaryReportCache()
 		{
+			this._context.API.LogInfo("TogglTrack", "Clearing summary reports cache");
+
 			this._SummaryReportCacheKeys.ForEach(key => this._cache.Remove(key));
 			this._SummaryReportCacheKeys.Clear();
 		}
@@ -245,6 +247,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 		private void _ClearDetailedReportCache()
 		{
+			this._context.API.LogInfo("TogglTrack", "Clearing detailed reports cache");
+
 			this._DetailedReportCacheKeys.ForEach(key => this._cache.Remove(key));
 			this._DetailedReportCacheKeys.Clear();
 		}
@@ -281,6 +285,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		{
 			_ = Task.Run(() =>
 			{
+				this._context.API.LogInfo("TogglTrack", $"Refreshing cache, {force}, {refreshMe}");
+
 				// This is the main one that needs to be run
 				_ = this._GetMe(force: refreshMe);
 				_ = this._GetRunningTimeEntry(force: force);

@@ -248,9 +248,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			this._DetailedReportCacheKeys.ForEach(key => this._cache.Remove(key));
 			this._DetailedReportCacheKeys.Clear();
 		}
-		private async ValueTask<SummaryReportResponse?> _GetMaxReportTimeEntries(bool force = false)
+		private async ValueTask<SummaryReportResponse?> _GetMaxReportTimeEntries(bool force = false, bool refreshMe = false)
 		{
-			var me = (await this._GetMe(force))?.ToMe();
+			var me = (await this._GetMe(refreshMe))?.ToMe();
 			if (me is null)
 			{
 				return null;
@@ -288,7 +288,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				this._ClearSummaryReportCache();
 				this._ClearDetailedReportCache();
 
-				_ = this._GetMaxReportTimeEntries(true);
+				_ = this._GetMaxReportTimeEntries(force: true, refreshMe);
 			});
 		}
 

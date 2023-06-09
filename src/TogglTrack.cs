@@ -15,8 +15,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		private PluginInitContext _context { get; set; }
 		private Settings _settings { get; set; }
 
+		internal ColourIconProvider _colourIconProvider;
+
 		private TogglClient _client;
-		private (bool IsValid, string Token) _lastToken = (false, string.Empty);
 
 		private readonly (
 			SemaphoreSlim Token,
@@ -29,15 +30,15 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			new SemaphoreSlim(1, 1),
 			new SemaphoreSlim(1, 1)
 		);
+
 		private NullableCache _cache = new NullableCache();
-		private List<string> _SummaryReportCacheKeys = new List<string>();
-		private List<string> _DetailedReportCacheKeys = new List<string>();
-
-		internal ColourIconProvider _colourIconProvider;
-
-		private long _selectedTimeEntryId = -1;
-		private long? _selectedProjectId = -1;
-		private long? _selectedClientId = -1;
+		private (
+			List<string> Summary,
+			List<string> Detailed
+		) _cacheKeys = (
+			new List<string>(),
+			new List<string>()
+		);
 
 		private enum EditProjectState
 		{
@@ -45,9 +46,17 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			NoProjectSelected,
 			ProjectSelected,
 		}
-		private EditProjectState _editProjectState = TogglTrack.EditProjectState.NoProjectChange;
-
-		private bool _reportsShowDetailed = false;
+		private (
+			(bool IsValid, string Token) LastToken,
+			(long TimeEntry, long? Project, long? Client) SelectedIds,
+			EditProjectState EditProject,
+			bool ReportsShowDetailed
+		) _state = (
+			(false, string.Empty),
+			(-1, -1, -1),
+			TogglTrack.EditProjectState.NoProjectChange,
+			false
+		);
 
 		internal TogglTrack(PluginInitContext context, Settings settings)
 		{
@@ -186,7 +195,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				);
 
 				this._cache.Set(cacheKey, summary, DateTimeOffset.Now.AddSeconds(60));
-				this._SummaryReportCacheKeys.Add(cacheKey);
+				this._cacheKeys.Summary.Add(cacheKey);
 
 				return summary;
 			}
@@ -201,8 +210,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		{
 			this._context.API.LogInfo("TogglTrack", "Clearing summary reports cache");
 
-			this._SummaryReportCacheKeys.ForEach(key => this._cache.Remove(key));
-			this._SummaryReportCacheKeys.Clear();
+			this._cacheKeys.Summary.ForEach(key => this._cache.Remove(key));
+			this._cacheKeys.Summary.Clear();
 		}
 
 		private async ValueTask<List<DetailedReportTimeEntryGroupResponse>?> _GetDetailedReport(
@@ -234,7 +243,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				);
 
 				this._cache.Set(cacheKey, report, DateTimeOffset.Now.AddSeconds(60));
-				this._DetailedReportCacheKeys.Add(cacheKey);
+				this._cacheKeys.Detailed.Add(cacheKey);
 
 				return report;
 			}
@@ -249,8 +258,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		{
 			this._context.API.LogInfo("TogglTrack", "Clearing detailed reports cache");
 
-			this._DetailedReportCacheKeys.ForEach(key => this._cache.Remove(key));
-			this._DetailedReportCacheKeys.Clear();
+			this._cacheKeys.Detailed.ForEach(key => this._cache.Remove(key));
+			this._cacheKeys.Detailed.Clear();
 		}
 		private async ValueTask<SummaryReportResponse?> _GetMaxReportTimeEntries(bool force = false, bool refreshMe = false)
 		{
@@ -311,10 +320,10 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			await this._semaphores.Token.WaitAsync();
 
-			if (this._settings.ApiToken.Equals(this._lastToken.Token))
+			if (this._settings.ApiToken.Equals(this._state.LastToken.Token))
 			{
 				this._semaphores.Token.Release();
-				return this._lastToken.IsValid;
+				return this._state.LastToken.IsValid;
 			}
 
 			// Clear the cache if the token has changed (#15)
@@ -323,22 +332,22 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			if (string.IsNullOrWhiteSpace(this._settings.ApiToken))
 			{
 				this._semaphores.Token.Release();
-				return this._lastToken.IsValid = false;
+				return this._state.LastToken.IsValid = false;
 			}
 
 			this._client.UpdateToken(this._settings.ApiToken);
 
-			this._lastToken.IsValid = (await this._GetMe(true))?.ToMe().ApiToken?.Equals(this._settings.ApiToken) ?? false;
-			this._lastToken.Token = this._settings.ApiToken;
+			this._state.LastToken.IsValid = (await this._GetMe(true))?.ToMe().ApiToken?.Equals(this._settings.ApiToken) ?? false;
+			this._state.LastToken.Token = this._settings.ApiToken;
 
 			this._semaphores.Token.Release();
 
-			if (this._lastToken.IsValid)
+			if (this._state.LastToken.IsValid)
 			{
 				this.RefreshCache(refreshMe: true);
 			}
 
-			return this._lastToken.IsValid;
+			return this._state.LastToken.IsValid;
 		}
 
 		internal void ShowSuccessMessage(string title, string subTitle = "", string iconPath = "")
@@ -455,11 +464,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 		internal async ValueTask<List<Result>> GetDefaultHotKeys(bool prefetch = false)
 		{
-			this._selectedTimeEntryId = -1;
-			this._selectedProjectId = -1;
-			this._selectedClientId = -1;
-			this._editProjectState = TogglTrack.EditProjectState.NoProjectChange;
-			this._reportsShowDetailed = false;
+			this._state.SelectedIds = (-1, -1, -1);
+			this._state.EditProject = TogglTrack.EditProjectState.NoProjectChange;
+			this._state.ReportsShowDetailed = false;
 
 			if (prefetch)
 			{
@@ -587,7 +594,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		{
 			if (token.IsCancellationRequested)
 			{
-				this._selectedProjectId = -1;
+				this._state.SelectedIds.Project = -1;
 				return new List<Result>();
 			}
 
@@ -606,7 +613,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			if (query.SearchTerms.Length == ArgumentIndices.Project)
 			{
-				this._selectedProjectId = -1;
+				this._state.SelectedIds.Project = -1;
 
 				// Start fetch for time entries asynchronously in the background
 				_ = Task.Run(() =>
@@ -615,7 +622,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				});
 			}
 
-			if (this._selectedProjectId == -1)
+			if (this._state.SelectedIds.Project == -1)
 			{
 				var projects = new List<Result>
 				{
@@ -628,7 +635,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						Score = (me.Projects?.Count ?? 0) + 1,
 						Action = c =>
 						{
-							this._selectedProjectId = null;
+							this._state.SelectedIds.Project = null;
 							this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} no-project ", true);
 							return false;
 						},
@@ -649,7 +656,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							Score = me.ActiveProjects.Count - me.ActiveProjects.IndexOf(project),
 							Action = c =>
 							{
-								this._selectedProjectId = project.Id;
+								this._state.SelectedIds.Project = project.Id;
 								this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project.KebabName} ", true);
 								return false;
 							},
@@ -666,7 +673,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					});
 			}
 
-			var project = me.GetProject(this._selectedProjectId);
+			var project = me.GetProject(this._state.SelectedIds.Project);
 			long workspaceId = project?.WorkspaceId ?? me.DefaultWorkspaceId;
 
 			string projectName = project?.WithClientName ?? "No Project";
@@ -687,7 +694,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						{
 							try
 							{
-								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {workspaceId}, {description}");
+								this._context.API.LogInfo("TogglTrack", $"{this._state.SelectedIds.Project}, {workspaceId}, {description}");
 
 								var runningTimeEntry = (await this._GetRunningTimeEntry(true))?.ToTimeEntry(me);
 								if (runningTimeEntry is not null)
@@ -705,7 +712,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 								var createdTimeEntry = (await this._client.CreateTimeEntry(
 									workspaceId: workspaceId,
-									projectId: this._selectedProjectId,
+									projectId: this._state.SelectedIds.Project,
 									description: description,
 									start: DateTimeOffset.UtcNow
 								))?.ToTimeEntry(me);
@@ -727,7 +734,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							}
 							finally
 							{
-								this._selectedProjectId = -1;
+								this._state.SelectedIds.Project = -1;
 							}
 						});
 
@@ -804,7 +811,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							{
 								try
 								{
-									this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {workspaceId}, {sanitisedDescription}, {startTimeSpan.ToString()}, time span flag");
+									this._context.API.LogInfo("TogglTrack", $"{this._state.SelectedIds.Project}, {workspaceId}, {sanitisedDescription}, {startTimeSpan.ToString()}, time span flag");
 
 									var runningTimeEntry = (await this._GetRunningTimeEntry(true))?.ToTimeEntry(me);
 									if (runningTimeEntry is not null)
@@ -827,7 +834,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 									var createdTimeEntry = (await this._client.CreateTimeEntry(
 										workspaceId: workspaceId,
-										projectId: this._selectedProjectId,
+										projectId: this._state.SelectedIds.Project,
 										description: sanitisedDescription,
 										start: startTime
 									))?.ToTimeEntry(me);
@@ -849,7 +856,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								}
 								finally
 								{
-									this._selectedProjectId = -1;
+									this._state.SelectedIds.Project = -1;
 								}
 							});
 
@@ -900,7 +907,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					{
 						try
 						{
-							this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {workspaceId}, {description}, at previous stop time");
+							this._context.API.LogInfo("TogglTrack", $"{this._state.SelectedIds.Project}, {workspaceId}, {description}, at previous stop time");
 
 							// Force a new fetch to ensure correctness
 							// User input has ended at this point so no responsiveness concerns
@@ -916,7 +923,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 							var createdTimeEntry = (await this._client.CreateTimeEntry(
 								workspaceId: workspaceId,
-								projectId: this._selectedProjectId,
+								projectId: this._state.SelectedIds.Project,
 								description: description,
 								start: (DateTimeOffset)lastTimeEntry.StopDate
 							))?.ToTimeEntry(me);
@@ -938,7 +945,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						}
 						finally
 						{
-							this._selectedProjectId = -1;
+							this._state.SelectedIds.Project = -1;
 						}
 					});
 
@@ -953,9 +960,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		{
 			if (token.IsCancellationRequested)
 			{
-				this._selectedTimeEntryId = -1;
-				this._selectedProjectId = -1;
-				this._editProjectState = TogglTrack.EditProjectState.NoProjectChange;
+				this._state.SelectedIds.TimeEntry = -1;
+				this._state.SelectedIds.Project = -1;
+				this._state.EditProject = TogglTrack.EditProjectState.NoProjectChange;
 				return new List<Result>();
 			}
 
@@ -992,7 +999,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				DescriptionWithProject = 2,
 			};
 
-			if (this._selectedTimeEntryId == -1)
+			if (this._state.SelectedIds.TimeEntry == -1)
 			{
 				var entries = timeEntries.ConvertAll(timeEntry => new Result
 				{
@@ -1003,7 +1010,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					Score = timeEntries.Count - timeEntries.IndexOf(timeEntry),
 					Action = c =>
 					{
-						this._selectedTimeEntryId = timeEntry.Id;
+						this._state.SelectedIds.TimeEntry = timeEntry.Id;
 						this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.EditCommand} ", true);
 						return false;
 					},
@@ -1018,34 +1025,34 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					});
 			}
 
-			var timeEntry = timeEntries.Find(timeEntry => timeEntry.Id == this._selectedTimeEntryId);
+			var timeEntry = timeEntries.Find(timeEntry => timeEntry.Id == this._state.SelectedIds.TimeEntry);
 			if (timeEntry is null)
 			{
 				return this.NotifyUnknownError();
 			}
 
 			// Reset project selection if query emptied to 'tgl edit '
-			if (query.SearchTerms.Length == (ArgumentIndices.Command + 1) && this._editProjectState == TogglTrack.EditProjectState.ProjectSelected)
+			if (query.SearchTerms.Length == (ArgumentIndices.Command + 1) && this._state.EditProject == TogglTrack.EditProjectState.ProjectSelected)
 			{
-				this._selectedProjectId = -1;
-				this._editProjectState = TogglTrack.EditProjectState.NoProjectChange;
+				this._state.SelectedIds.Project = -1;
+				this._state.EditProject = TogglTrack.EditProjectState.NoProjectChange;
 			}
 
-			if (this._editProjectState == TogglTrack.EditProjectState.NoProjectChange)
+			if (this._state.EditProject == TogglTrack.EditProjectState.NoProjectChange)
 			{
 				// Firstly set to current project
-				this._selectedProjectId = timeEntry.ProjectId;
+				this._state.SelectedIds.Project = timeEntry.ProjectId;
 
 				// If the -p flag exists, set up next request for project selection
 				if (Array.IndexOf(query.SearchTerms, Settings.EditProjectFlag) != -1)
 				{
-					this._selectedProjectId = -1;
-					this._editProjectState = TogglTrack.EditProjectState.NoProjectSelected;
+					this._state.SelectedIds.Project = -1;
+					this._state.EditProject = TogglTrack.EditProjectState.NoProjectSelected;
 					this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.EditCommand} ");
 				}
 			}
 
-			if (this._selectedProjectId == -1)
+			if (this._state.SelectedIds.Project == -1)
 			{
 				var projects = new List<Result>
 				{
@@ -1058,8 +1065,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						Score = (me.Projects?.Count ?? 0) + 1,
 						Action = c =>
 						{
-							this._selectedProjectId = null;
-							this._editProjectState = TogglTrack.EditProjectState.ProjectSelected;
+							this._state.SelectedIds.Project = null;
+							this._state.EditProject = TogglTrack.EditProjectState.ProjectSelected;
 							this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.EditCommand} no-project ", true);
 							return false;
 						},
@@ -1080,8 +1087,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							Score = me.ActiveProjects.Count - me.ActiveProjects.IndexOf(project),
 							Action = c =>
 							{
-								this._selectedProjectId = project.Id;
-								this._editProjectState = TogglTrack.EditProjectState.ProjectSelected;
+								this._state.SelectedIds.Project = project.Id;
+								this._state.EditProject = TogglTrack.EditProjectState.ProjectSelected;
 								this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.EditCommand} {project.KebabName} ", true);
 								return false;
 							},
@@ -1098,12 +1105,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					});
 			}
 
-			var project = me.GetProject(this._selectedProjectId);
+			var project = me.GetProject(this._state.SelectedIds.Project);
 
 			string projectName = project?.WithClientName ?? "No Project";
 			string description = Main.ExtractFromQuery(
 				query,
-				(this._editProjectState == TogglTrack.EditProjectState.ProjectSelected)
+				(this._state.EditProject == TogglTrack.EditProjectState.ProjectSelected)
 					? ArgumentIndices.DescriptionWithProject
 					: ArgumentIndices.DescriptionWithoutProject
 			);
@@ -1123,11 +1130,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						{
 							try
 							{
-								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {timeEntry.Id}, {timeEntry.Duration}, {timeEntry.Start}, {this._selectedProjectId}, {timeEntry.WorkspaceId}, {description}");
+								this._context.API.LogInfo("TogglTrack", $"{this._state.SelectedIds.Project}, {timeEntry.Id}, {timeEntry.Duration}, {timeEntry.Start}, {this._state.SelectedIds.Project}, {timeEntry.WorkspaceId}, {description}");
 
 								var editedTimeEntry = (await this._client.EditTimeEntry(
 									workspaceId: timeEntry.WorkspaceId,
-									projectId: this._selectedProjectId,
+									projectId: this._state.SelectedIds.Project,
 									id: timeEntry.Id,
 									description: description,
 									duration: timeEntry.Duration,
@@ -1152,9 +1159,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							}
 							finally
 							{
-								this._selectedTimeEntryId = -1;
-								this._selectedProjectId = -1;
-								this._editProjectState = TogglTrack.EditProjectState.NoProjectChange;
+								this._state.SelectedIds.TimeEntry = -1;
+								this._state.SelectedIds.Project = -1;
+								this._state.EditProject = TogglTrack.EditProjectState.NoProjectChange;
 							}
 						});
 
@@ -1293,7 +1300,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						query.SearchTerms
 							.Take(firstFlag)
 							.Skip(
-								(this._editProjectState == TogglTrack.EditProjectState.ProjectSelected)
+								(this._state.EditProject == TogglTrack.EditProjectState.ProjectSelected)
 									? ArgumentIndices.DescriptionWithProject
 									: ArgumentIndices.DescriptionWithoutProject
 							)
@@ -1334,11 +1341,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							{
 								try
 								{
-									this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {timeEntry.Id}, {timeEntry.Duration}, {timeEntry.Start}, {this._selectedProjectId}, {timeEntry.WorkspaceId}, {sanitisedDescription}, {startTime.ToString("yyyy-MM-ddTHH:mm:ssZ")}, {startTimeSpan.ToString()}, {stopTime?.ToString("yyyy-MM-ddTHH:mm:ssZ")}, {endTimeSpan.ToString()}, edit start time");
+									this._context.API.LogInfo("TogglTrack", $"{this._state.SelectedIds.Project}, {timeEntry.Id}, {timeEntry.Duration}, {timeEntry.Start}, {this._state.SelectedIds.Project}, {timeEntry.WorkspaceId}, {sanitisedDescription}, {startTime.ToString("yyyy-MM-ddTHH:mm:ssZ")}, {startTimeSpan.ToString()}, {stopTime?.ToString("yyyy-MM-ddTHH:mm:ssZ")}, {endTimeSpan.ToString()}, edit start time");
 
 									var editedTimeEntry = (await this._client.EditTimeEntry(
 										workspaceId: timeEntry.WorkspaceId,
-										projectId: this._selectedProjectId,
+										projectId: this._state.SelectedIds.Project,
 										id: timeEntry.Id,
 										description: sanitisedDescription,
 										start: startTime,
@@ -1365,9 +1372,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								}
 								finally
 								{
-									this._selectedTimeEntryId = -1;
-									this._selectedProjectId = -1;
-									this._editProjectState = TogglTrack.EditProjectState.NoProjectChange;
+									this._state.SelectedIds.TimeEntry = -1;
+									this._state.SelectedIds.Project = -1;
+									this._state.EditProject = TogglTrack.EditProjectState.NoProjectChange;
 								}
 							});
 
@@ -1400,7 +1407,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				}
 			}
 
-			if (this._editProjectState != TogglTrack.EditProjectState.NoProjectChange)
+			if (this._state.EditProject != TogglTrack.EditProjectState.NoProjectChange)
 			{
 				return results;
 			}
@@ -1475,7 +1482,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						{
 							try
 							{
-								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.Id}, {runningTimeEntry.WorkspaceId}, {runningTimeEntry.StartDate}, {runningTimeEntry.DetailedElapsed}");
+								this._context.API.LogInfo("TogglTrack", $"{this._state.SelectedIds.Project}, {runningTimeEntry.Id}, {runningTimeEntry.WorkspaceId}, {runningTimeEntry.StartDate}, {runningTimeEntry.DetailedElapsed}");
 
 								var stoppedTimeEntry = (await this._client.StopTimeEntry(
 									workspaceId: runningTimeEntry.WorkspaceId,
@@ -1562,7 +1569,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						{
 							try
 							{
-								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {runningTimeEntry.Id}, {runningTimeEntry.WorkspaceId}, {runningTimeEntry.StartDate}, {(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")}, {stopTime}, time span flag");
+								this._context.API.LogInfo("TogglTrack", $"{this._state.SelectedIds.Project}, {runningTimeEntry.Id}, {runningTimeEntry.WorkspaceId}, {runningTimeEntry.StartDate}, {(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")}, {stopTime}, time span flag");
 
 								var stoppedTimeEntry = (await this._client.EditTimeEntry(
 									workspaceId: runningTimeEntry.WorkspaceId,
@@ -1622,7 +1629,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		{
 			if (token.IsCancellationRequested)
 			{
-				this._selectedTimeEntryId = -1;
+				this._state.SelectedIds.TimeEntry = -1;
 				return new List<Result>();
 			}
 
@@ -1656,7 +1663,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				Description = 1,
 			};
 
-			if (this._selectedTimeEntryId == -1)
+			if (this._state.SelectedIds.TimeEntry == -1)
 			{
 				var entries = timeEntries.ConvertAll(timeEntry => new Result
 				{
@@ -1667,7 +1674,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					Score = timeEntries.Count - timeEntries.IndexOf(timeEntry),
 					Action = c =>
 					{
-						this._selectedTimeEntryId = timeEntry.Id;
+						this._state.SelectedIds.TimeEntry = timeEntry.Id;
 						this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.DeleteCommand} ", true);
 						return false;
 					},
@@ -1682,7 +1689,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					});
 			}
 
-			var timeEntry = timeEntries.Find(timeEntry => timeEntry.Id == this._selectedTimeEntryId);
+			var timeEntry = timeEntries.Find(timeEntry => timeEntry.Id == this._state.SelectedIds.TimeEntry);
 			if (timeEntry is null)
 			{
 				return this.NotifyUnknownError();
@@ -1702,7 +1709,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						{
 							try
 							{
-								this._context.API.LogInfo("TogglTrack", $"{this._selectedProjectId}, {timeEntry.Id}, {timeEntry.WorkspaceId}, {timeEntry.StartDate}, {timeEntry.DetailedElapsed}");
+								this._context.API.LogInfo("TogglTrack", $"{this._state.SelectedIds.Project}, {timeEntry.Id}, {timeEntry.WorkspaceId}, {timeEntry.StartDate}, {timeEntry.DetailedElapsed}");
 
 								var statusCode = await this._client.DeleteTimeEntry(
 									workspaceId: timeEntry.WorkspaceId,
@@ -1726,7 +1733,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							}
 							finally
 							{
-								this._selectedTimeEntryId = -1;
+								this._state.SelectedIds.TimeEntry = -1;
 							}
 						});
 
@@ -1811,7 +1818,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					Score = (int)(timeEntry.LatestId ?? 0),
 					Action = c =>
 					{
-						this._selectedProjectId = project.Project?.Id;
+						this._state.SelectedIds.Project = project.Project?.Id;
 						this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project.Project?.KebabName ?? "no-project"} {timeEntry.RawTitle} ");
 						return false;
 					},
@@ -1831,8 +1838,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		{
 			if (token.IsCancellationRequested)
 			{
-				this._selectedProjectId = -1;
-				this._selectedClientId = -1;
+				this._state.SelectedIds.Project = -1;
+				this._state.SelectedIds.Client = -1;
 				return new List<Result>();
 			}
 
@@ -1862,8 +1869,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			else if (query.SearchTerms.Length == ArgumentIndices.GroupingName)
 			{
-				this._selectedProjectId = -1;
-				this._selectedClientId = -1;
+				this._state.SelectedIds.Project = -1;
+				this._state.SelectedIds.Client = -1;
 			}
 
 			/* 
@@ -2073,7 +2080,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			{
 				case (Settings.ReportsGroupingKey.Projects):
 					{
-						if (this._selectedProjectId == -1)
+						if (this._state.SelectedIds.Project == -1)
 						{
 							results.AddRange(
 								summary.Groups.Values.Select(group => new Result
@@ -2085,7 +2092,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									Score = (int)group.Seconds,
 									Action = c =>
 									{
-										this._selectedProjectId = group.Project?.Id;
+										this._state.SelectedIds.Project = group.Project?.Id;
 										this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} {group.Project?.KebabName ?? "no-project"} ", true);
 										return false;
 									}
@@ -2094,7 +2101,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							break;
 						}
 
-						var selectedProjectGroup = summary.GetGroup(this._selectedProjectId);
+						var selectedProjectGroup = summary.GetGroup(this._state.SelectedIds.Project);
 
 						if (selectedProjectGroup?.SubGroups is null)
 						{
@@ -2104,12 +2111,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						var project = me.GetProject(selectedProjectGroup.Id);
 
 						IEnumerable<Result> subResults = Enumerable.Empty<Result>();
-						if (this._reportsShowDetailed)
+						if (this._state.ReportsShowDetailed)
 						{
 							var report = (await this._GetDetailedReport(
 								workspaceId: me.DefaultWorkspaceId,
 								userId: me.Id,
-								projectIds: new List<long?> { this._selectedProjectId },
+								projectIds: new List<long?> { this._state.SelectedIds.Project },
 								start: start,
 								end: end
 							))?.ConvertAll(timeEntryGroup => timeEntryGroup.ToDetailedReportTimeEntryGroup(me));
@@ -2156,7 +2163,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 											Score = (int)timeEntry.Id,
 											Action = c =>
 											{
-												this._selectedProjectId = project?.Id;
+												this._state.SelectedIds.Project = project?.Id;
 												this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project?.KebabName ?? "no-project"} {timeEntry.RawDescription} ");
 												return false;
 											},
@@ -2176,7 +2183,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								Score = (int)subGroup.Elapsed.TotalSeconds,
 								Action = c =>
 								{
-									this._selectedProjectId = project?.Id;
+									this._state.SelectedIds.Project = project?.Id;
 									this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project?.KebabName ?? "no-project"} {subGroup.RawTitle} ");
 									return false;
 								},
@@ -2185,13 +2192,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 						subResults = subResults.Append(new Result
 						{
-							Title = $"Display {((this._reportsShowDetailed) ? "summary" : "detailed")} report",
+							Title = $"Display {((this._state.ReportsShowDetailed) ? "summary" : "detailed")} report",
 							IcoPath = "reports.png",
 							AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
 							Score = (int)selectedProjectGroup.Elapsed.TotalSeconds + 10000,
 							Action = c =>
 							{
-								this._reportsShowDetailed = !this._reportsShowDetailed;
+								this._state.ReportsShowDetailed = !this._state.ReportsShowDetailed;
 								this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} ", true);
 								return false;
 							},
@@ -2214,7 +2221,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					}
 				case (Settings.ReportsGroupingKey.Clients):
 					{
-						if (this._selectedClientId == -1)
+						if (this._state.SelectedIds.Client == -1)
 						{
 							results.AddRange(
 								summary.Groups.Values.Select(group =>
@@ -2230,7 +2237,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 										Score = (int)group.Seconds,
 										Action = c =>
 										{
-											this._selectedClientId = group.Client?.Id;
+											this._state.SelectedIds.Client = group.Client?.Id;
 											this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} {group.Client?.KebabName ?? "no-client"} ", true);
 											return false;
 										}
@@ -2240,7 +2247,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							break;
 						}
 
-						var selectedClientGroup = summary.GetGroup(this._selectedClientId);
+						var selectedClientGroup = summary.GetGroup(this._state.SelectedIds.Client);
 
 						if (selectedClientGroup?.SubGroups is null)
 						{
@@ -2262,8 +2269,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								Score = (int)subGroup.Seconds,
 								Action = c =>
 								{
-									this._selectedClientId = -1;
-									this._selectedProjectId = project?.Id;
+									this._state.SelectedIds.Client = -1;
+									this._state.SelectedIds.Project = project?.Id;
 
 									if (string.IsNullOrEmpty(groupingConfiguration.SubArgument))
 									{
@@ -2293,7 +2300,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					}
 				case (Settings.ReportsGroupingKey.Entries):
 					{
-						if (this._reportsShowDetailed)
+						if (this._state.ReportsShowDetailed)
 						{
 							var report = (await this._GetDetailedReport(
 								workspaceId: me.DefaultWorkspaceId,
@@ -2345,7 +2352,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 											Score = (int)timeEntry.Id,
 											Action = c =>
 											{
-												this._selectedProjectId = timeEntry.Project?.Id;
+												this._state.SelectedIds.Project = timeEntry.Project?.Id;
 												this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {timeEntry.Project?.KebabName ?? "no-project"} {timeEntry.RawDescription} ");
 												return false;
 											},
@@ -2373,7 +2380,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 										Score = (int)subGroup.Elapsed.TotalSeconds,
 										Action = c =>
 										{
-											this._selectedProjectId = group.Project?.Id;
+											this._state.SelectedIds.Project = group.Project?.Id;
 											this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {group.Project?.KebabName ?? "no-project"} {subGroup.RawTitle} ");
 											return false;
 										},
@@ -2384,13 +2391,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 						results.Add(new Result
 						{
-							Title = $"Display {((this._reportsShowDetailed) ? "summary" : "detailed")} report",
+							Title = $"Display {((this._state.ReportsShowDetailed) ? "summary" : "detailed")} report",
 							IcoPath = "reports.png",
 							AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
 							Score = (int)total.TotalSeconds + 10000,
 							Action = c =>
 							{
-								this._reportsShowDetailed = !this._reportsShowDetailed;
+								this._state.ReportsShowDetailed = !this._state.ReportsShowDetailed;
 								this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} ", true);
 								return false;
 							}

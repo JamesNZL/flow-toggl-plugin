@@ -10,10 +10,10 @@ namespace Flow.Launcher.Plugin.TogglTrack
 	public class Settings
 	{
 		internal const string StartCommand = "start";
-		internal const string EditCommand = "edit";
 		internal const string StopCommand = "stop";
-		internal const string DeleteCommand = "delete";
 		internal const string ContinueCommand = "continue";
+		internal const string EditCommand = "edit";
+		internal const string DeleteCommand = "delete";
 		internal const string ReportsCommand = "reports";
 		internal const string BrowserCommand = "browser";
 		internal const string RefreshCommand = "refresh";

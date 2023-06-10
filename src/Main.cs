@@ -84,10 +84,10 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return (query.FirstSearch.ToLower()) switch
 			{
 				Settings.StartCommand => await this._togglTrack.RequestStartEntry(token, query),
-				Settings.EditCommand => await this._togglTrack.RequestEditEntry(token, query),
 				Settings.StopCommand => await this._togglTrack.RequestStopEntry(token, query),
-				Settings.DeleteCommand => await this._togglTrack.RequestDeleteEntry(token, query),
 				Settings.ContinueCommand => await this._togglTrack.RequestContinueEntry(token, query),
+				Settings.EditCommand => await this._togglTrack.RequestEditEntry(token, query),
+				Settings.DeleteCommand => await this._togglTrack.RequestDeleteEntry(token, query),
 				Settings.ReportsCommand => await this._togglTrack.RequestViewReports(token, query),
 				_ => (await this._togglTrack.GetDefaultHotKeys())
 					.FindAll(result =>

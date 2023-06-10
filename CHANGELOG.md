@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.9.0](https://github.com/JamesNZL/flow-toggl-plugin/compare/v2.8.0...v2.9.0) (2023-06-10)
+
+
+### Features
+
+* **ux:** :children_crossing: autocomplete command on whitespace ([#52](https://github.com/JamesNZL/flow-toggl-plugin/issues/52)) ([dcf4161](https://github.com/JamesNZL/flow-toggl-plugin/commit/dcf416161121a8ef027561b11e31b2b23ec7f41d))
+
 ## [2.8.0](https://github.com/JamesNZL/flow-toggl-plugin/compare/v2.7.0...v2.8.0) (2023-06-07)
 
 

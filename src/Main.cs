@@ -19,6 +19,15 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 		internal TogglTrack? _togglTrack;
 
+		private (
+			string LastCommand,
+			// ! this is needed as tuples must have minimum 2 elements
+			bool? _null
+		) _state = (
+			LastCommand: string.Empty,
+			null
+		);
+
 		public static string ExtractFromQuery(Query query, int index)
 		{
 			return (index == 1)
@@ -81,7 +90,20 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				return await this._togglTrack.GetDefaultHotKeys(prefetch: true);
 			}
 
-			return (query.FirstSearch.ToLower()) switch
+			string command = query.FirstSearch;
+			if (!Settings.Commands.Contains(command) && command == this._state.LastCommand)
+			{
+				command = (await this._togglTrack.GetDefaultHotKeys())
+					.GroupBy(result => this._context!.API.FuzzySearch(query.FirstSearch, result.Title).Score)
+					.MaxBy(group => group.Key)
+					?.MaxBy(result => result.Score)
+					?.Title
+					?? query.FirstSearch;
+				this._context!.API.ChangeQuery($"{query.ActionKeyword} {command} ");
+			}
+			this._state.LastCommand = command;
+
+			return (command.ToLower()) switch
 			{
 				Settings.StartCommand => await this._togglTrack.RequestStartEntry(token, query),
 				Settings.StopCommand => await this._togglTrack.RequestStopEntry(token, query),

@@ -17,6 +17,16 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		internal const string ReportsCommand = "reports";
 		internal const string BrowserCommand = "browser";
 		internal const string RefreshCommand = "refresh";
+		internal static readonly string[] Commands = new string[] {
+			StartCommand,
+			StopCommand,
+			ContinueCommand,
+			EditCommand,
+			DeleteCommand,
+			ReportsCommand,
+			BrowserCommand,
+			RefreshCommand,
+		};
 
 		internal const string EditProjectFlag = "-p";
 		internal const string TimeSpanFlag = "-t";

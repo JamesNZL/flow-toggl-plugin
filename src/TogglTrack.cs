@@ -481,7 +481,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					SubTitle = "Start a new time entry",
 					IcoPath = "start.png",
 					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StartCommand} ",
-					Score = 100,
+					Score = 15000,
 					Action = c =>
 					{
 						this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StartCommand} ");
@@ -494,7 +494,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					SubTitle = "Continue previous time entry",
 					IcoPath = "continue.png",
 					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.ContinueCommand} ",
-					Score = 80,
+					Score = 12500,
 					Action = c =>
 					{
 						this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.ContinueCommand} ");
@@ -507,7 +507,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					SubTitle = "Edit previous time entry",
 					IcoPath = "edit.png",
 					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.EditCommand} ",
-					Score = 60,
+					Score = 6000,
 					Action = c =>
 					{
 						this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.EditCommand} ");
@@ -520,7 +520,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					SubTitle = "Delete previous time entry",
 					IcoPath = "delete.png",
 					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.DeleteCommand} ",
-					Score = 20,
+					Score = 4000,
 					Action = c =>
 					{
 						this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.DeleteCommand} ");
@@ -533,7 +533,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					SubTitle = "View tracked time reports",
 					IcoPath = "reports.png",
 					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.ReportsCommand} ",
-					Score = 5,
+					Score = 2000,
 					Action = c =>
 					{
 						this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.ReportsCommand} ");
@@ -546,7 +546,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					SubTitle = "Open Toggl Track in browser",
 					IcoPath = "browser.png",
 					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.BrowserCommand} ",
-					Score = -50,
+					Score = 100,
 					Action = c =>
 					{
 						this._context.API.OpenUrl(new Uri(@"https://track.toggl.com/timer"));
@@ -559,7 +559,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					SubTitle = "Refresh plugin cache",
 					IcoPath = "refresh.png",
 					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.RefreshCommand} ",
-					Score = -100,
+					Score = 5,
 					Action = c =>
 					{
 						this.RefreshCache(refreshMe: true);
@@ -579,7 +579,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				SubTitle = "Stop current time entry",
 				IcoPath = "stop.png",
 				AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StopCommand} ",
-				Score = 130,
+				Score = 15050,
 				Action = c =>
 				{
 					this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StopCommand} ");

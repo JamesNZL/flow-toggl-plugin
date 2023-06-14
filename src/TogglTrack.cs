@@ -1293,7 +1293,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					Action = c =>
 					{
 						this._state.SelectedIds.TimeEntry = timeEntry.Id;
-						this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.EditCommand} ", true);
+						this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.EditCommand} {timeEntry.RawDescription} ", true);
 						return false;
 					},
 				});
@@ -1349,7 +1349,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						{
 							this._state.SelectedIds.Project = null;
 							this._state.EditProject = TogglTrack.EditProjectState.ProjectSelected;
-							this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.EditCommand} no-project ", true);
+							this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.EditCommand} no-project {timeEntry.RawDescription} ", true);
 							return false;
 						},
 					},
@@ -1371,7 +1371,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							{
 								this._state.SelectedIds.Project = project.Id;
 								this._state.EditProject = TogglTrack.EditProjectState.ProjectSelected;
-								this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.EditCommand} {project.KebabName} ", true);
+								this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.EditCommand} {project.KebabName} {timeEntry.RawDescription} ", true);
 								return false;
 							},
 						})

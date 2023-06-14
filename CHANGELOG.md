@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.10.0](https://github.com/JamesNZL/flow-toggl-plugin/compare/v2.9.0...v2.10.0) (2023-06-14)
+
+
+### Features
+
+* **ux:** :children_crossing: do not clear `tgl edit` description by default ([#57](https://github.com/JamesNZL/flow-toggl-plugin/issues/57)) ([db5485c](https://github.com/JamesNZL/flow-toggl-plugin/commit/db5485cbe19e46e3aaf28fa5bf5429aaf1fa8906))
+
 ## [2.9.0](https://github.com/JamesNZL/flow-toggl-plugin/compare/v2.8.0...v2.9.0) (2023-06-10)
 
 

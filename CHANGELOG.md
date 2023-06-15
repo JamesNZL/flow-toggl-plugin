@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.10.1](https://github.com/JamesNZL/flow-toggl-plugin/compare/v2.10.0...v2.10.1) (2023-06-15)
+
+
+### Bug Fixes
+
+* **ux:** :bug: fix autocomplete with too many trailing spaces ([#59](https://github.com/JamesNZL/flow-toggl-plugin/issues/59)) ([a5610c9](https://github.com/JamesNZL/flow-toggl-plugin/commit/a5610c963fbd4ee7d688a5c5457da27eda91c4d8))
+
 ## [2.10.0](https://github.com/JamesNZL/flow-toggl-plugin/compare/v2.9.0...v2.10.0) (2023-06-14)
 
 

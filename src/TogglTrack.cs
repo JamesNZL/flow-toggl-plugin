@@ -722,7 +722,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									throw new Exception("An API error was encountered.");
 								}
 
-								this.ShowSuccessMessage($"Started {createdTimeEntry.RawDescription}", projectName, "start.png");
+								this.ShowSuccessMessage($"Started {createdTimeEntry.GetRawDescription()}", projectName, "start.png");
 
 								// Update cached running time entry state
 								this.RefreshCache();
@@ -844,7 +844,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 										throw new Exception("An API error was encountered.");
 									}
 
-									this.ShowSuccessMessage($"Started {createdTimeEntry.RawDescription}{((string.IsNullOrEmpty(sanitisedDescription) ? string.Empty : " "))}{startTime.Humanize()}", projectName, "start.png");
+									this.ShowSuccessMessage($"Started {createdTimeEntry.GetRawDescription(withTrailingSpace: true)}{startTime.Humanize()}", projectName, "start.png");
 
 									// Update cached running time entry state
 									this.RefreshCache();
@@ -933,7 +933,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								throw new Exception("An API error was encountered.");
 							}
 
-							this.ShowSuccessMessage($"Started {createdTimeEntry.RawDescription}{((string.IsNullOrEmpty(description) ? string.Empty : " "))}at previous stop time", $"{projectName} | {createdTimeEntry.DetailedElapsed}", "start.png");
+							this.ShowSuccessMessage($"Started {createdTimeEntry.GetRawDescription(withTrailingSpace: true)}at previous stop time", $"{projectName} | {createdTimeEntry.DetailedElapsed}", "start.png");
 
 							// Update cached running time entry state
 							this.RefreshCache();
@@ -1016,7 +1016,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									throw new Exception("An API error was encountered.");
 								}
 
-								this.ShowSuccessMessage($"Stopped {stoppedTimeEntry.RawDescription}", $"{runningTimeEntry.DetailedElapsed} elapsed", "stop.png");
+								this.ShowSuccessMessage($"Stopped {stoppedTimeEntry.GetRawDescription()}", $"{runningTimeEntry.DetailedElapsed} elapsed", "stop.png");
 
 								// Update cached running time entry state
 								this.RefreshCache();
@@ -1108,7 +1108,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									throw new Exception("An API error was encountered.");
 								}
 
-								this.ShowSuccessMessage($"Stopped {stoppedTimeEntry.RawDescription}", $"{(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")} elapsed", "stop.png");
+								this.ShowSuccessMessage($"Stopped {stoppedTimeEntry.GetRawDescription()}", $"{(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")} elapsed", "stop.png");
 
 								// Update cached running time entry state
 								this.RefreshCache();
@@ -1223,7 +1223,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					Action = c =>
 					{
 						this._state.SelectedIds.Project = project.Project?.Id;
-						this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project.Project?.KebabName ?? "no-project"} {timeEntry.RawTitle} ");
+						this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project.Project?.KebabName ?? "no-project"} {timeEntry.GetRawTitle(withTrailingSpace: true)}");
 						return false;
 					},
 				});
@@ -1293,7 +1293,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					Action = c =>
 					{
 						this._state.SelectedIds.TimeEntry = timeEntry.Id;
-						this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.EditCommand} {timeEntry.RawDescription} ", true);
+						this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.EditCommand} {timeEntry.GetRawDescription(withTrailingSpace: true)}", true);
 						return false;
 					},
 				});
@@ -1349,7 +1349,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						{
 							this._state.SelectedIds.Project = null;
 							this._state.EditProject = TogglTrack.EditProjectState.ProjectSelected;
-							this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.EditCommand} no-project {timeEntry.RawDescription} ", true);
+							this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.EditCommand} no-project {timeEntry.GetRawDescription(withTrailingSpace: true)}", true);
 							return false;
 						},
 					},
@@ -1371,7 +1371,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							{
 								this._state.SelectedIds.Project = project.Id;
 								this._state.EditProject = TogglTrack.EditProjectState.ProjectSelected;
-								this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.EditCommand} {project.KebabName} {timeEntry.RawDescription} ", true);
+								this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.EditCommand} {project.KebabName} {timeEntry.GetRawDescription(withTrailingSpace: true)}", true);
 								return false;
 							},
 						})
@@ -1429,7 +1429,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									throw new Exception("An API error was encountered.");
 								}
 
-								this.ShowSuccessMessage($"Edited {editedTimeEntry.RawDescription}", $"{projectName} | {timeEntry.DetailedElapsed}", "edit.png");
+								this.ShowSuccessMessage($"Edited {editedTimeEntry.GetRawDescription()}", $"{projectName} | {timeEntry.DetailedElapsed}", "edit.png");
 
 								// Update cached running time entry state
 								this.RefreshCache();
@@ -1452,18 +1452,18 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				},
 			};
 
-			if (this._settings.ShowUsageWarnings && string.IsNullOrEmpty(description) && !string.IsNullOrEmpty(timeEntry.RawDescription))
+			if (this._settings.ShowUsageWarnings && string.IsNullOrEmpty(description) && !string.IsNullOrEmpty(timeEntry.GetRawDescription()))
 			{
 				results.Add(new Result
 				{
 					Title = "Usage Warning",
 					SubTitle = $"Time entry description will be cleared if nothing is entered!",
 					IcoPath = "tip-warning.png",
-					AutoCompleteText = $"{query.ActionKeyword} {query.Search} {timeEntry.RawDescription} ",
+					AutoCompleteText = $"{query.ActionKeyword} {query.Search} {timeEntry.GetRawDescription(withTrailingSpace: true)}",
 					Score = 1000,
 					Action = c =>
 					{
-						this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {timeEntry.RawDescription} ");
+						this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {timeEntry.GetRawDescription(withTrailingSpace: true)}");
 						return false;
 					}
 				});
@@ -1588,18 +1588,18 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							)
 					);
 
-					if (this._settings.ShowUsageWarnings && string.IsNullOrEmpty(sanitisedDescription) && !string.IsNullOrEmpty(timeEntry.RawDescription))
+					if (this._settings.ShowUsageWarnings && string.IsNullOrEmpty(sanitisedDescription) && !string.IsNullOrEmpty(timeEntry.GetRawDescription()))
 					{
 						results.Add(new Result
 						{
 							Title = "Usage Warning",
 							SubTitle = $"Time entry description will be cleared if nothing is entered!",
 							IcoPath = "tip-warning.png",
-							AutoCompleteText = $"{query.ActionKeyword} {query.Search} {timeEntry.RawDescription} ",
+							AutoCompleteText = $"{query.ActionKeyword} {query.Search} {timeEntry.GetRawDescription(withTrailingSpace: true)}",
 							Score = 1000,
 							Action = c =>
 							{
-								this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {timeEntry.RawDescription} ");
+								this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {timeEntry.GetRawDescription(withTrailingSpace: true)}");
 								return false;
 							}
 						});
@@ -1642,7 +1642,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 										throw new Exception("An API error was encountered.");
 									}
 
-									this.ShowSuccessMessage($"Edited {editedTimeEntry.RawDescription}", $"{projectName} | {(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")}", "edit.png");
+									this.ShowSuccessMessage($"Edited {editedTimeEntry.GetRawDescription()}", $"{projectName} | {(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")}", "edit.png");
 
 									// Update cached running time entry state
 									this.RefreshCache();
@@ -1812,7 +1812,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									throw new Exception("An API error was encountered.");
 								}
 
-								this.ShowSuccessMessage($"Deleted {timeEntry.RawDescription}", $"{timeEntry.DetailedElapsed} elapsed", "delete.png");
+								this.ShowSuccessMessage($"Deleted {timeEntry.GetRawDescription()}", $"{timeEntry.DetailedElapsed} elapsed", "delete.png");
 
 								// Update cached running time entry state
 								this.RefreshCache();
@@ -2164,7 +2164,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 											Action = c =>
 											{
 												this._state.SelectedIds.Project = project?.Id;
-												this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project?.KebabName ?? "no-project"} {timeEntry.RawDescription} ");
+												this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project?.KebabName ?? "no-project"} {timeEntry.GetRawDescription(withTrailingSpace: true)}");
 												return false;
 											},
 										};
@@ -2184,7 +2184,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								Action = c =>
 								{
 									this._state.SelectedIds.Project = project?.Id;
-									this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project?.KebabName ?? "no-project"} {subGroup.RawTitle} ");
+									this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project?.KebabName ?? "no-project"} {subGroup.GetRawTitle(withTrailingSpace: true)}");
 									return false;
 								},
 							});
@@ -2353,7 +2353,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 											Action = c =>
 											{
 												this._state.SelectedIds.Project = timeEntry.Project?.Id;
-												this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {timeEntry.Project?.KebabName ?? "no-project"} {timeEntry.RawDescription} ");
+												this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {timeEntry.Project?.KebabName ?? "no-project"} {timeEntry.GetRawDescription(withTrailingSpace: true)}");
 												return false;
 											},
 										};
@@ -2381,7 +2381,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 										Action = c =>
 										{
 											this._state.SelectedIds.Project = group.Project?.Id;
-											this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {group.Project?.KebabName ?? "no-project"} {subGroup.RawTitle} ");
+											this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {group.Project?.KebabName ?? "no-project"} {subGroup.GetRawTitle(withTrailingSpace: true)}");
 											return false;
 										},
 									});

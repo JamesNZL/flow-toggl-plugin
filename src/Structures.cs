@@ -139,9 +139,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 	public class TimeEntry
 	{
 		private readonly Me _me;
+		private readonly string? _rawDescription;
 
 		public readonly long Id;
-		public readonly string? RawDescription;
 
 		public readonly long WorkspaceId;
 		public readonly long? ProjectId;
@@ -157,9 +157,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		public TimeEntry(TimeEntryResponse response, Me me)
 		{
 			this._me = me;
+			this._rawDescription = response.description;
 
 			this.Id = response.id;
-			this.RawDescription = response.description;
 
 			this.WorkspaceId = response.workspace_id;
 			this.ProjectId = response.project_id;
@@ -176,9 +176,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		public TimeEntry(DetailedReportTimeEntryResponse timeEntryResponse, DetailedReportTimeEntryGroupResponse timeEntryGroupResponse, Me me)
 		{
 			this._me = me;
+			this._rawDescription = timeEntryGroupResponse.description;
 
 			this.Id = timeEntryResponse.id;
-			this.RawDescription = timeEntryGroupResponse.description;
 
 			this.WorkspaceId = me.DefaultWorkspaceId;
 			this.ProjectId = timeEntryGroupResponse.project_id;
@@ -191,9 +191,24 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			this.Project = this._me.GetProject(this.ProjectId);
 		}
 
+		public string? GetRawDescription(bool withTrailingSpace = true)
+		{
+			if (string.IsNullOrEmpty(this._rawDescription))
+			{
+				return string.Empty;
+			}
+
+			if (!withTrailingSpace)
+			{
+				return this._rawDescription;
+			}
+
+			return $"{this._rawDescription} ";
+		}
+
 		public string Description
 		{
-			get => (string.IsNullOrEmpty(this.RawDescription)) ? "(no description)" : this.RawDescription;
+			get => (string.IsNullOrEmpty(this._rawDescription)) ? "(no description)" : this._rawDescription;
 		}
 
 		public DateTimeOffset StartDate
@@ -310,7 +325,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			{
 				ENTRIES_KEY => new SummaryReportSubGroupResponse
 				{
-					title = timeEntry.RawDescription,
+					title = timeEntry.GetRawDescription(),
 					seconds = (int)timeEntry.Elapsed.TotalSeconds,
 				},
 				PROJECTS_KEY => new SummaryReportSubGroupResponse
@@ -321,7 +336,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				// Default sub-grouping of entries
 				_ => new SummaryReportSubGroupResponse
 				{
-					title = timeEntry.RawDescription,
+					title = timeEntry.GetRawDescription(),
 					seconds = (int)timeEntry.Elapsed.TotalSeconds,
 				},
 			};
@@ -479,22 +494,24 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 	public class SummaryReportSubGroup : ICloneable
 	{
+		private string? _rawTitle;
+
 		public long? Id;
-		public string? RawTitle;
 		public long Seconds;
 		public List<long>? Ids;
 
 		public SummaryReportSubGroup(SummaryReportSubGroupResponse response)
 		{
+			this._rawTitle = response.title;
+
 			this.Id = response.id;
-			this.RawTitle = response.title;
 			this.Seconds = response.seconds;
 			this.Ids = response.ids;
 		}
 		public SummaryReportSubGroup(SummaryReportSubGroup subGroup)
 		{
 			this.Id = subGroup.Id;
-			this.RawTitle = subGroup.RawTitle;
+			this._rawTitle = subGroup._rawTitle;
 			this.Seconds = subGroup.Seconds;
 			this.Ids = (subGroup.Ids is not null)
 				? new List<long>(subGroup.Ids)
@@ -510,9 +527,24 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return this.Clone();
 		}
 
+		public string? GetRawTitle(bool withTrailingSpace = false)
+		{
+			if (string.IsNullOrEmpty(this._rawTitle))
+			{
+				return string.Empty;
+			}
+
+			if (!withTrailingSpace)
+			{
+				return this._rawTitle;
+			}
+
+			return $"{this._rawTitle} ";
+		}
+
 		public string Title
 		{
-			get => (string.IsNullOrEmpty(this.RawTitle)) ? "(no description)" : this.RawTitle;
+			get => (string.IsNullOrEmpty(this._rawTitle)) ? "(no description)" : this._rawTitle;
 		}
 
 		public TimeSpan Elapsed

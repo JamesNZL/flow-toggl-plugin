@@ -679,13 +679,32 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			string projectName = project?.WithClientName ?? "No Project";
 			string description = Main.ReplaceSearchBackslashes(Main.ExtractFromQuery(query, ArgumentIndices.Description));
 
-			var results = new List<Result>
+			var results = new List<Result>();
+
+			if (this._settings.ShowUsageTips && string.IsNullOrEmpty(description))
 			{
-				new Result
+				results.Add(new Result
+				{
+					Title = "Usage Tip",
+					SubTitle = $"Keep typing to specify the time entry description",
+					IcoPath = "tip.png",
+					AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
+					Score = 1000,
+					Action = c =>
+					{
+						this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} ");
+						return false;
+					}
+				});
+			}
+
+			if (!query.SearchTerms.Contains(Settings.TimeSpanFlag))
+			{
+				results.Add(new Result
 				{
 					Title = $"Start {description}{((string.IsNullOrEmpty(description) ? string.Empty : " "))}now",
 					SubTitle = projectName,
-					IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "start.png") ,
+					IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "start.png"),
 					AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
 					Score = 10000,
 					Action = c =>
@@ -740,28 +759,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 						return true;
 					},
-				},
-			};
-
-			if (this._settings.ShowUsageTips && string.IsNullOrEmpty(description))
-			{
-				results.Add(new Result
-				{
-					Title = "Usage Tip",
-					SubTitle = $"Keep typing to specify the time entry description",
-					IcoPath = "tip.png",
-					AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
-					Score = 1000,
-					Action = c =>
-					{
-						this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} ");
-						return false;
-					}
 				});
-			}
 
-			if (!query.SearchTerms.Contains(Settings.TimeSpanFlag))
-			{
 				if (this._settings.ShowUsageTips)
 				{
 					results.Add(new Result
@@ -865,6 +864,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							return true;
 						},
 					});
+
+					return results;
 				}
 				catch
 				{
@@ -886,6 +887,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							}
 						});
 					}
+
+					return results;
 				}
 			}
 
@@ -991,13 +994,15 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			string projectName = runningTimeEntry.Project?.WithClientName ?? "No Project";
 
-			var results = new List<Result>
+			var results = new List<Result>();
+
+			if (!query.SearchTerms.Contains(Settings.TimeSpanEndFlag))
 			{
-				new Result
+				results.Add(new Result
 				{
 					Title = $"Stop {runningTimeEntry.GetDescription()} now",
 					SubTitle = $"{projectName} | {runningTimeEntry.HumanisedElapsed} ({runningTimeEntry.DetailedElapsed})",
-					IcoPath = this._colourIconProvider.GetColourIcon(runningTimeEntry.Project?.Colour, "stop.png") ,
+					IcoPath = this._colourIconProvider.GetColourIcon(runningTimeEntry.Project?.Colour, "stop.png"),
 					AutoCompleteText = $"{query.ActionKeyword} {Settings.StopCommand} {runningTimeEntry.GetDescription(escapePotentialFlags: true)} ",
 					Score = 10000,
 					Action = c =>
@@ -1032,11 +1037,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 						return true;
 					},
-				},
-			};
+				});
 
-			if (!query.SearchTerms.Contains(Settings.TimeSpanEndFlag))
-			{
 				if (!this._settings.ShowUsageTips)
 				{
 					return results;
@@ -1419,58 +1421,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					: ArgumentIndices.DescriptionWithoutProject
 			));
 
-			results.Add(new Result
-			{
-				Title = (string.IsNullOrEmpty(description)) ? timeEntry.GetDescription() : description,
-				SubTitle = $"{projectName} | {timeEntry.HumanisedElapsed} ({timeEntry.DetailedElapsed})",
-				IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "edit.png"),
-				AutoCompleteText = $"{query.ActionKeyword} {(string.IsNullOrEmpty(description) ? ($"{query.Search} {timeEntry.GetDescription(escapePotentialFlags: true)}") : query.Search)} ",
-				Score = 10000,
-				Action = c =>
-				{
-					Task.Run(async delegate
-					{
-						try
-						{
-							this._context.API.LogInfo("TogglTrack", $"{this._state.SelectedIds.Project}, {timeEntry.Id}, {timeEntry.Duration}, {timeEntry.Start}, {this._state.SelectedIds.Project}, {timeEntry.WorkspaceId}, {description}");
-
-							var editedTimeEntry = (await this._client.EditTimeEntry(
-								workspaceId: timeEntry.WorkspaceId,
-								projectId: this._state.SelectedIds.Project,
-								id: timeEntry.Id,
-								description: description,
-								duration: timeEntry.Duration,
-								tags: timeEntry.Tags,
-								billable: timeEntry.Billable
-							))?.ToTimeEntry(me);
-
-							if (editedTimeEntry?.Id is null)
-							{
-								throw new Exception("An API error was encountered.");
-							}
-
-							this.ShowSuccessMessage($"Edited {editedTimeEntry.GetRawDescription()}", $"{projectName} | {timeEntry.DetailedElapsed}", "edit.png");
-
-							// Update cached running time entry state
-							this.RefreshCache();
-						}
-						catch (Exception exception)
-						{
-							this._context.API.LogException("TogglTrack", "Failed to edit time entry", exception);
-							this.ShowErrorMessage("Failed to edit time entry.", exception.Message);
-						}
-						finally
-						{
-							this._state.SelectedIds.TimeEntry = -1;
-							this._state.SelectedIds.Project = -1;
-							this._state.EditProject = TogglTrack.EditProjectState.NoProjectChange;
-						}
-					});
-
-					return true;
-				},
-			});
-
 			if (this._settings.ShowUsageWarnings && string.IsNullOrEmpty(description) && !string.IsNullOrEmpty(timeEntry.GetRawDescription()))
 			{
 				results.Add(new Result
@@ -1494,6 +1444,58 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			if (!hasTimeSpanFlag && !hasTimeSpanEndFlag)
 			{
+				results.Add(new Result
+				{
+					Title = (string.IsNullOrEmpty(description)) ? timeEntry.GetDescription() : description,
+					SubTitle = $"{projectName} | {timeEntry.HumanisedElapsed} ({timeEntry.DetailedElapsed})",
+					IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "edit.png"),
+					AutoCompleteText = $"{query.ActionKeyword} {(string.IsNullOrEmpty(description) ? ($"{query.Search} {timeEntry.GetDescription(escapePotentialFlags: true)}") : query.Search)} ",
+					Score = 10000,
+					Action = c =>
+					{
+						Task.Run(async delegate
+						{
+							try
+							{
+								this._context.API.LogInfo("TogglTrack", $"{this._state.SelectedIds.Project}, {timeEntry.Id}, {timeEntry.Duration}, {timeEntry.Start}, {this._state.SelectedIds.Project}, {timeEntry.WorkspaceId}, {description}");
+
+								var editedTimeEntry = (await this._client.EditTimeEntry(
+									workspaceId: timeEntry.WorkspaceId,
+									projectId: this._state.SelectedIds.Project,
+									id: timeEntry.Id,
+									description: description,
+									duration: timeEntry.Duration,
+									tags: timeEntry.Tags,
+									billable: timeEntry.Billable
+								))?.ToTimeEntry(me);
+
+								if (editedTimeEntry?.Id is null)
+								{
+									throw new Exception("An API error was encountered.");
+								}
+
+								this.ShowSuccessMessage($"Edited {editedTimeEntry.GetRawDescription()}", $"{projectName} | {timeEntry.DetailedElapsed}", "edit.png");
+
+								// Update cached running time entry state
+								this.RefreshCache();
+							}
+							catch (Exception exception)
+							{
+								this._context.API.LogException("TogglTrack", "Failed to edit time entry", exception);
+								this.ShowErrorMessage("Failed to edit time entry.", exception.Message);
+							}
+							finally
+							{
+								this._state.SelectedIds.TimeEntry = -1;
+								this._state.SelectedIds.Project = -1;
+								this._state.EditProject = TogglTrack.EditProjectState.NoProjectChange;
+							}
+						});
+
+						return true;
+					},
+				});
+
 				if (this._settings.ShowUsageTips)
 				{
 					if (!hasTimeSpanFlag)

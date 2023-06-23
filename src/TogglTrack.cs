@@ -1247,7 +1247,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 
 			var timeEntries = (await this._GetTimeEntries())?.ConvertAll(timeEntry => timeEntry.ToTimeEntry(me));
-			if (timeEntries is null)
+			var maxTimeEntries = (await this._GetMaxReportTimeEntries())?.ToSummaryReport(me);
+			if (timeEntries is null || maxTimeEntries is null)
 			{
 				return new List<Result>
 				{
@@ -1496,6 +1497,74 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					},
 				});
 
+				if (!string.IsNullOrEmpty(description))
+				{
+					var pastEntries = maxTimeEntries.Groups.Values.SelectMany(pastProject =>
+					{
+						if (pastProject.SubGroups is null)
+						{
+							return Enumerable.Empty<Result>();
+						}
+
+						return pastProject.SubGroups.Values.Select(pastTimeEntry => new Result
+						{
+							Title = pastTimeEntry.GetTitle(),
+							SubTitle = $"{pastProject.Project?.WithClientName ?? "No Project"} | {timeEntry.HumanisedElapsed} ({timeEntry.DetailedElapsed})",
+							IcoPath = this._colourIconProvider.GetColourIcon(pastProject.Project?.Colour, "edit.png"),
+							AutoCompleteText = $"{query.ActionKeyword} {pastTimeEntry.GetTitle(escapePotentialFlags: true)}",
+							Score = (int)(pastTimeEntry.LatestId ?? 0),
+							Action = c =>
+							{
+								Task.Run(async delegate
+								{
+									try
+									{
+										this._context.API.LogInfo("TogglTrack", $"past time entry {pastProject.Project?.Id}, {pastTimeEntry.Id}, {timeEntry.Duration}, {timeEntry.Start}, {this._state.SelectedIds.Project}, {timeEntry.WorkspaceId}, {description}, {pastTimeEntry.GetTitle()}");
+
+										var editedTimeEntry = (await this._client.EditTimeEntry(
+											workspaceId: timeEntry.WorkspaceId,
+											projectId: pastProject.Project?.Id,
+											id: timeEntry.Id,
+											description: pastTimeEntry.GetRawTitle(),
+											duration: timeEntry.Duration,
+											tags: timeEntry.Tags,
+											billable: timeEntry.Billable
+										))?.ToTimeEntry(me);
+
+										if (editedTimeEntry?.Id is null)
+										{
+											throw new Exception("An API error was encountered.");
+										}
+
+										this.ShowSuccessMessage($"Edited {editedTimeEntry.GetRawDescription()}", $"{pastProject.Project?.WithClientName ?? "No Project"} | {timeEntry.DetailedElapsed}", "edit.png");
+
+										// Update cached running time entry state
+										this.RefreshCache();
+									}
+									catch (Exception exception)
+									{
+										this._context.API.LogException("TogglTrack", "Failed to edit time entry", exception);
+										this.ShowErrorMessage("Failed to edit time entry.", exception.Message);
+									}
+									finally
+									{
+										this._state.SelectedIds.TimeEntry = -1;
+										this._state.SelectedIds.Project = -1;
+										this._state.EditProject = TogglTrack.EditProjectState.NoProjectChange;
+									}
+								});
+
+								return true;
+							},
+						});
+					}).ToList();
+
+					results.AddRange(pastEntries.FindAll(result =>
+					{
+						return this._context.API.FuzzySearch(description, result.Title).Score > 0;
+					}));
+				}
+
 				if (this._settings.ShowUsageTips)
 				{
 					if (!hasTimeSpanFlag)
@@ -1686,6 +1755,76 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							return true;
 						},
 					});
+
+					if (!string.IsNullOrEmpty(sanitisedDescription))
+					{
+						var pastEntries = maxTimeEntries.Groups.Values.SelectMany(pastProject =>
+						{
+							if (pastProject.SubGroups is null)
+							{
+								return Enumerable.Empty<Result>();
+							}
+
+							return pastProject.SubGroups.Values.Select(pastTimeEntry => new Result
+							{
+								Title = pastTimeEntry.GetTitle(),
+								SubTitle = $"{pastProject.Project?.WithClientName ?? "No Project"} | {newElapsed.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")})",
+								IcoPath = this._colourIconProvider.GetColourIcon(pastProject.Project?.Colour, "edit.png"),
+								AutoCompleteText = $"{query.ActionKeyword} {pastTimeEntry.GetTitle(escapePotentialFlags: true)}",
+								Score = (int)(pastTimeEntry.LatestId ?? 0),
+								Action = c =>
+								{
+									Task.Run(async delegate
+									{
+										try
+										{
+											this._context.API.LogInfo("TogglTrack", $"past time entry {pastProject.Project?.Id}, {pastTimeEntry.Id}, {timeEntry.Duration}, {timeEntry.Start}, {this._state.SelectedIds.Project}, {timeEntry.WorkspaceId}, {sanitisedDescription}, {pastTimeEntry.GetTitle()}");
+
+											var editedTimeEntry = (await this._client.EditTimeEntry(
+												workspaceId: timeEntry.WorkspaceId,
+												projectId: pastProject.Project?.Id,
+												id: timeEntry.Id,
+												description: pastTimeEntry.GetRawTitle(),
+												start: startTime,
+												stop: stopTime,
+												duration: timeEntry.Duration,
+												tags: timeEntry.Tags,
+												billable: timeEntry.Billable
+											))?.ToTimeEntry(me);
+
+											if (editedTimeEntry?.Id is null)
+											{
+												throw new Exception("An API error was encountered.");
+											}
+
+											this.ShowSuccessMessage($"Edited {editedTimeEntry.GetRawDescription()}", $"{pastProject.Project?.WithClientName ?? "No Project"} | {(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")}", "edit.png");
+
+											// Update cached running time entry state
+											this.RefreshCache();
+										}
+										catch (Exception exception)
+										{
+											this._context.API.LogException("TogglTrack", "Failed to edit time entry", exception);
+											this.ShowErrorMessage("Failed to edit time entry.", exception.Message);
+										}
+										finally
+										{
+											this._state.SelectedIds.TimeEntry = -1;
+											this._state.SelectedIds.Project = -1;
+											this._state.EditProject = TogglTrack.EditProjectState.NoProjectChange;
+										}
+									});
+
+									return true;
+								},
+							});
+						}).ToList();
+
+						results.AddRange(pastEntries.FindAll(result =>
+						{
+							return this._context.API.FuzzySearch(sanitisedDescription, result.Title).Score > 0;
+						}));
+					}
 				}
 				catch (ArgumentException exception)
 				{

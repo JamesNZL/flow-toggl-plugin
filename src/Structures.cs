@@ -191,7 +191,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			this.Project = this._me.GetProject(this.ProjectId);
 		}
 
-		public string? GetRawDescription(bool withTrailingSpace = true)
+		public string? GetRawDescription(bool withTrailingSpace = false)
 		{
 			if (string.IsNullOrEmpty(this._rawDescription))
 			{

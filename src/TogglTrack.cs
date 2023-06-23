@@ -1326,7 +1326,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				this._state.SelectedIds.Project = timeEntry.ProjectId;
 
 				// If the -p flag exists, set up next request for project selection
-				if (Array.IndexOf(query.SearchTerms, Settings.EditProjectFlag) != -1)
+				if (query.SearchTerms.Contains(Settings.EditProjectFlag))
 				{
 					this._state.SelectedIds.Project = -1;
 					this._state.EditProject = TogglTrack.EditProjectState.NoProjectSelected;
@@ -1387,6 +1387,38 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					});
 			}
 
+			var results = new List<Result>();
+
+			if (query.SearchTerms.Contains(Settings.ClearDescriptionFlag))
+			{
+				string queryToDescription = string.Join(
+					" ",
+					query.SearchTerms.Take(
+						(this._state.EditProject == TogglTrack.EditProjectState.ProjectSelected)
+							? ArgumentIndices.DescriptionWithProject
+							: ArgumentIndices.DescriptionWithoutProject
+					)
+				);
+
+				this._context.API.ChangeQuery($"{query.ActionKeyword} {queryToDescription} ");
+			}
+			else if (this._settings.ShowUsageTips)
+			{
+				results.Add(new Result
+				{
+					Title = "Usage Tip",
+					SubTitle = $"Use {Settings.ClearDescriptionFlag} to quickly clear the description",
+					IcoPath = "tip.png",
+					AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.ClearDescriptionFlag} ",
+					Score = 2,
+					Action = c =>
+					{
+						this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {Settings.ClearDescriptionFlag} ");
+						return false;
+					}
+				});
+			}
+
 			var project = me.GetProject(this._state.SelectedIds.Project);
 
 			string projectName = project?.WithClientName ?? "No Project";
@@ -1397,60 +1429,57 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					: ArgumentIndices.DescriptionWithoutProject
 			);
 
-			var results = new List<Result>
+			results.Add(new Result
 			{
-				new Result
+				Title = (string.IsNullOrEmpty(description)) ? timeEntry.Description : description,
+				SubTitle = $"{projectName} | {timeEntry.HumanisedElapsed} ({timeEntry.DetailedElapsed})",
+				IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "edit.png"),
+				AutoCompleteText = $"{query.ActionKeyword} {(string.IsNullOrEmpty(description) ? ($"{query.Search} {timeEntry.Description}") : query.Search)} ",
+				Score = 10000,
+				Action = c =>
 				{
-					Title = (string.IsNullOrEmpty(description)) ? timeEntry.Description : description,
-					SubTitle = $"{projectName} | {timeEntry.HumanisedElapsed} ({timeEntry.DetailedElapsed})",
-					IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "edit.png") ,
-					AutoCompleteText = $"{query.ActionKeyword} {(string.IsNullOrEmpty(description) ? ($"{query.Search} {timeEntry.Description}") : query.Search)} ",
-					Score = 10000,
-					Action = c =>
+					Task.Run(async delegate
 					{
-						Task.Run(async delegate
+						try
 						{
-							try
+							this._context.API.LogInfo("TogglTrack", $"{this._state.SelectedIds.Project}, {timeEntry.Id}, {timeEntry.Duration}, {timeEntry.Start}, {this._state.SelectedIds.Project}, {timeEntry.WorkspaceId}, {description}");
+
+							var editedTimeEntry = (await this._client.EditTimeEntry(
+								workspaceId: timeEntry.WorkspaceId,
+								projectId: this._state.SelectedIds.Project,
+								id: timeEntry.Id,
+								description: description,
+								duration: timeEntry.Duration,
+								tags: timeEntry.Tags,
+								billable: timeEntry.Billable
+							))?.ToTimeEntry(me);
+
+							if (editedTimeEntry?.Id is null)
 							{
-								this._context.API.LogInfo("TogglTrack", $"{this._state.SelectedIds.Project}, {timeEntry.Id}, {timeEntry.Duration}, {timeEntry.Start}, {this._state.SelectedIds.Project}, {timeEntry.WorkspaceId}, {description}");
-
-								var editedTimeEntry = (await this._client.EditTimeEntry(
-									workspaceId: timeEntry.WorkspaceId,
-									projectId: this._state.SelectedIds.Project,
-									id: timeEntry.Id,
-									description: description,
-									duration: timeEntry.Duration,
-									tags: timeEntry.Tags,
-									billable: timeEntry.Billable
-								))?.ToTimeEntry(me);
-
-								if (editedTimeEntry?.Id is null)
-								{
-									throw new Exception("An API error was encountered.");
-								}
-
-								this.ShowSuccessMessage($"Edited {editedTimeEntry.GetRawDescription()}", $"{projectName} | {timeEntry.DetailedElapsed}", "edit.png");
-
-								// Update cached running time entry state
-								this.RefreshCache();
+								throw new Exception("An API error was encountered.");
 							}
-							catch (Exception exception)
-							{
-								this._context.API.LogException("TogglTrack", "Failed to edit time entry", exception);
-								this.ShowErrorMessage("Failed to edit time entry.", exception.Message);
-							}
-							finally
-							{
-								this._state.SelectedIds.TimeEntry = -1;
-								this._state.SelectedIds.Project = -1;
-								this._state.EditProject = TogglTrack.EditProjectState.NoProjectChange;
-							}
-						});
 
-						return true;
-					},
+							this.ShowSuccessMessage($"Edited {editedTimeEntry.GetRawDescription()}", $"{projectName} | {timeEntry.DetailedElapsed}", "edit.png");
+
+							// Update cached running time entry state
+							this.RefreshCache();
+						}
+						catch (Exception exception)
+						{
+							this._context.API.LogException("TogglTrack", "Failed to edit time entry", exception);
+							this.ShowErrorMessage("Failed to edit time entry.", exception.Message);
+						}
+						finally
+						{
+							this._state.SelectedIds.TimeEntry = -1;
+							this._state.SelectedIds.Project = -1;
+							this._state.EditProject = TogglTrack.EditProjectState.NoProjectChange;
+						}
+					});
+
+					return true;
 				},
-			};
+			});
 
 			if (this._settings.ShowUsageWarnings && string.IsNullOrEmpty(description) && !string.IsNullOrEmpty(timeEntry.GetRawDescription()))
 			{

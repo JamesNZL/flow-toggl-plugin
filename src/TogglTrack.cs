@@ -1162,18 +1162,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				return this.NotifyUnknownError();
 			}
 
-			DateTimeOffset reportsNow;
-			try
-			{
-				reportsNow = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTimeOffset.UtcNow, me.ReportsTimeZoneId);
-			}
-			catch (Exception exception)
-			{
-				this._context.API.LogException("TogglTrack", $"Failed to convert time to reports time zone '{me.ReportsTimeZoneId}'", exception);
-				// Use local time instead
-				reportsNow = DateTimeOffset.Now;
-			}
-
 			var timeEntries = (await this._GetMaxReportTimeEntries())?.ToSummaryReport(me);
 
 			if (timeEntries is null)

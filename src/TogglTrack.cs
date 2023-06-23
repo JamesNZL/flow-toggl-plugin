@@ -1033,7 +1033,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				},
 			};
 
-			if (!query.SearchTerms.Contains(Settings.TimeSpanFlag))
+			if (!query.SearchTerms.Contains(Settings.TimeSpanEndFlag))
 			{
 				if (!this._settings.ShowUsageTips)
 				{
@@ -1043,13 +1043,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				results.Add(new Result
 				{
 					Title = "Usage Tip",
-					SubTitle = $"Use {Settings.TimeSpanFlag} to specify the stop time",
+					SubTitle = $"Use {Settings.TimeSpanEndFlag} to specify the stop time",
 					IcoPath = "tip.png",
-					AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ",
+					AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.TimeSpanEndFlag} ",
 					Score = 1,
 					Action = c =>
 					{
-						this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ");
+						this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {Settings.TimeSpanEndFlag} ");
 						return false;
 					}
 				});
@@ -1060,7 +1060,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			try
 			{
 				var stopTimeSpan = TimeSpanParser.Parse(
-					Main.ExtractFromQuery(query, Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag) + 1),
+					Main.ExtractFromQuery(query, Array.IndexOf(query.SearchTerms, Settings.TimeSpanEndFlag) + 1),
 					new TimeSpanParserOptions
 					{
 						UncolonedDefault = Units.Minutes,
@@ -1131,7 +1131,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					results.Add(new Result
 					{
 						Title = "Usage Example",
-						SubTitle = $"{query.ActionKeyword} {Settings.StopCommand} {Settings.TimeSpanFlag} -5 mins",
+						SubTitle = $"{query.ActionKeyword} {Settings.StopCommand} {Settings.TimeSpanEndFlag} -5 mins",
 						IcoPath = "tip.png",
 						AutoCompleteText = $"{query.ActionKeyword} {query.Search} -5 mins",
 						Score = 100000,

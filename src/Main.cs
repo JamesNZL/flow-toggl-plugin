@@ -1,4 +1,5 @@
 using System.Windows.Controls;
+using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -34,6 +35,16 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				// Expect slight performance improvement by using query.SecondToEndSearch directly
 				? query.SecondToEndSearch
 				: string.Join(" ", query.SearchTerms.Skip(index));
+		}
+
+		public static string ReplaceSearchBackslashes(string search)
+		{
+			return Regex.Replace(search, @"(\\(?!\\))", string.Empty);
+		}
+
+		public static string EscapePotentialFlags(string description)
+		{
+			return Regex.Replace(description, @" -", @" \-");
 		}
 
 		/// <summary>

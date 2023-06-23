@@ -191,24 +191,35 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			this.Project = this._me.GetProject(this.ProjectId);
 		}
 
-		public string? GetRawDescription(bool withTrailingSpace = false)
+		public string? GetRawDescription(bool withTrailingSpace = false, bool escapePotentialFlags = false)
 		{
 			if (string.IsNullOrEmpty(this._rawDescription))
 			{
 				return string.Empty;
 			}
 
+			string rawDescription = (escapePotentialFlags)
+				? Main.EscapePotentialFlags(this._rawDescription)
+				: this._rawDescription;
+
 			if (!withTrailingSpace)
 			{
-				return this._rawDescription;
+				return rawDescription;
 			}
 
-			return $"{this._rawDescription} ";
+			return $"{rawDescription} ";
 		}
 
-		public string Description
+		public string GetDescription(bool escapePotentialFlags = false)
 		{
-			get => (string.IsNullOrEmpty(this._rawDescription)) ? "(no description)" : this._rawDescription;
+			if (string.IsNullOrEmpty(this._rawDescription))
+			{
+				return "(no description)";
+			}
+
+			return (escapePotentialFlags)
+				? Main.EscapePotentialFlags(this._rawDescription)
+				: this._rawDescription;
 		}
 
 		public DateTimeOffset StartDate
@@ -527,24 +538,35 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return this.Clone();
 		}
 
-		public string? GetRawTitle(bool withTrailingSpace = false)
+		public string? GetRawTitle(bool withTrailingSpace = false, bool escapePotentialFlags = false)
 		{
 			if (string.IsNullOrEmpty(this._rawTitle))
 			{
 				return string.Empty;
 			}
 
+			string rawTitle = (escapePotentialFlags)
+				? Main.EscapePotentialFlags(this._rawTitle)
+				: this._rawTitle;
+
 			if (!withTrailingSpace)
 			{
-				return this._rawTitle;
+				return rawTitle;
 			}
 
-			return $"{this._rawTitle} ";
+			return $"{rawTitle} ";
 		}
 
-		public string Title
+		public string GetTitle(bool escapePotentialFlags = false)
 		{
-			get => (string.IsNullOrEmpty(this._rawTitle)) ? "(no description)" : this._rawTitle;
+			if (string.IsNullOrEmpty(this._rawTitle))
+			{
+				return "(no description)";
+			}
+
+			return (escapePotentialFlags)
+				? Main.EscapePotentialFlags(this._rawTitle)
+				: this._rawTitle;
 		}
 
 		public TimeSpan Elapsed

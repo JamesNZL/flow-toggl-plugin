@@ -677,7 +677,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			long workspaceId = project?.WorkspaceId ?? me.DefaultWorkspaceId;
 
 			string projectName = project?.WithClientName ?? "No Project";
-			string description = Main.ExtractFromQuery(query, ArgumentIndices.Description);
+			string description = Main.ReplaceSearchBackslashes(Main.ExtractFromQuery(query, ArgumentIndices.Description));
 
 			var results = new List<Result>
 			{
@@ -796,7 +796,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					var startTime = DateTimeOffset.UtcNow + startTimeSpan;
 
 					// Remove -t flag from description
-					string sanitisedDescription = string.Join(" ", query.SearchTerms.Take(Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag)).Skip(ArgumentIndices.Description));
+					string sanitisedDescription = Main.ReplaceSearchBackslashes(
+						string.Join(" ", query.SearchTerms.Take(Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag)).Skip(ArgumentIndices.Description))
+					);
 
 					results.Add(new Result
 					{
@@ -993,10 +995,10 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			{
 				new Result
 				{
-					Title = $"Stop {runningTimeEntry.Description} now",
+					Title = $"Stop {runningTimeEntry.GetDescription()} now",
 					SubTitle = $"{projectName} | {runningTimeEntry.HumanisedElapsed} ({runningTimeEntry.DetailedElapsed})",
 					IcoPath = this._colourIconProvider.GetColourIcon(runningTimeEntry.Project?.Colour, "stop.png") ,
-					AutoCompleteText = $"{query.ActionKeyword} {Settings.StopCommand} {runningTimeEntry.Description} ",
+					AutoCompleteText = $"{query.ActionKeyword} {Settings.StopCommand} {runningTimeEntry.GetDescription(escapePotentialFlags: true)} ",
 					Score = 10000,
 					Action = c =>
 					{
@@ -1080,7 +1082,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 				results.Add(new Result
 				{
-					Title = $"Stop {runningTimeEntry.Description} {stopTime.Humanize()} at {stopTime.ToLocalTime().ToString("t")}",
+					Title = $"Stop {runningTimeEntry.GetDescription()} {stopTime.Humanize()} at {stopTime.ToLocalTime().ToString("t")}",
 					SubTitle = $"{projectName} | {newElapsed.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")})",
 					IcoPath = this._colourIconProvider.GetColourIcon(runningTimeEntry.Project?.Colour, "stop.png"),
 					AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
@@ -1215,15 +1217,15 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 				return project.SubGroups.Values.Select(timeEntry => new Result
 				{
-					Title = timeEntry.Title,
+					Title = timeEntry.GetTitle(),
 					SubTitle = $"{project.Project?.WithClientName ?? "No Project"} | {timeEntry.HumanisedElapsed}",
 					IcoPath = this._colourIconProvider.GetColourIcon(project.Project?.Colour, "continue.png"),
-					AutoCompleteText = $"{query.ActionKeyword} {Settings.ContinueCommand} {timeEntry.Title}",
+					AutoCompleteText = $"{query.ActionKeyword} {Settings.ContinueCommand} {timeEntry.GetTitle(escapePotentialFlags: true)}",
 					Score = (int)(timeEntry.LatestId ?? 0),
 					Action = c =>
 					{
 						this._state.SelectedIds.Project = project.Project?.Id;
-						this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project.Project?.KebabName ?? "no-project"} {timeEntry.GetRawTitle(withTrailingSpace: true)}");
+						this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project.Project?.KebabName ?? "no-project"} {timeEntry.GetRawTitle(withTrailingSpace: true, escapePotentialFlags: true)}");
 						return false;
 					},
 				});
@@ -1285,15 +1287,15 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			{
 				var entries = timeEntries.ConvertAll(timeEntry => new Result
 				{
-					Title = timeEntry.Description,
+					Title = timeEntry.GetDescription(),
 					SubTitle = $"{timeEntry.Project?.WithClientName ?? "No Project"} | {timeEntry.HumanisedElapsed} ({timeEntry.HumanisedStart})",
 					IcoPath = this._colourIconProvider.GetColourIcon(timeEntry.Project?.Colour, "edit.png"),
-					AutoCompleteText = $"{query.ActionKeyword} {Settings.EditCommand} {timeEntry.Description}",
+					AutoCompleteText = $"{query.ActionKeyword} {Settings.EditCommand} {timeEntry.GetDescription(escapePotentialFlags: true)}",
 					Score = timeEntries.Count - timeEntries.IndexOf(timeEntry),
 					Action = c =>
 					{
 						this._state.SelectedIds.TimeEntry = timeEntry.Id;
-						this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.EditCommand} {timeEntry.GetRawDescription(withTrailingSpace: true)}", true);
+						this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.EditCommand} {timeEntry.GetRawDescription(withTrailingSpace: true, escapePotentialFlags: true)}", true);
 						return false;
 					},
 				});
@@ -1349,7 +1351,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						{
 							this._state.SelectedIds.Project = null;
 							this._state.EditProject = TogglTrack.EditProjectState.ProjectSelected;
-							this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.EditCommand} no-project {timeEntry.GetRawDescription(withTrailingSpace: true)}", true);
+							this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.EditCommand} no-project {timeEntry.GetRawDescription(withTrailingSpace: true, escapePotentialFlags: true)}", true);
 							return false;
 						},
 					},
@@ -1371,7 +1373,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							{
 								this._state.SelectedIds.Project = project.Id;
 								this._state.EditProject = TogglTrack.EditProjectState.ProjectSelected;
-								this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.EditCommand} {project.KebabName} {timeEntry.GetRawDescription(withTrailingSpace: true)}", true);
+								this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.EditCommand} {project.KebabName} {timeEntry.GetRawDescription(withTrailingSpace: true, escapePotentialFlags: true)}", true);
 								return false;
 							},
 						})
@@ -1422,19 +1424,19 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			var project = me.GetProject(this._state.SelectedIds.Project);
 
 			string projectName = project?.WithClientName ?? "No Project";
-			string description = Main.ExtractFromQuery(
+			string description = Main.ReplaceSearchBackslashes(Main.ExtractFromQuery(
 				query,
 				(this._state.EditProject == TogglTrack.EditProjectState.ProjectSelected)
 					? ArgumentIndices.DescriptionWithProject
 					: ArgumentIndices.DescriptionWithoutProject
-			);
+			));
 
 			results.Add(new Result
 			{
-				Title = (string.IsNullOrEmpty(description)) ? timeEntry.Description : description,
+				Title = (string.IsNullOrEmpty(description)) ? timeEntry.GetDescription() : description,
 				SubTitle = $"{projectName} | {timeEntry.HumanisedElapsed} ({timeEntry.DetailedElapsed})",
 				IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "edit.png"),
-				AutoCompleteText = $"{query.ActionKeyword} {(string.IsNullOrEmpty(description) ? ($"{query.Search} {timeEntry.Description}") : query.Search)} ",
+				AutoCompleteText = $"{query.ActionKeyword} {(string.IsNullOrEmpty(description) ? ($"{query.Search} {timeEntry.GetDescription(escapePotentialFlags: true)}") : query.Search)} ",
 				Score = 10000,
 				Action = c =>
 				{
@@ -1488,11 +1490,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					Title = "Usage Warning",
 					SubTitle = $"Time entry description will be cleared if nothing is entered!",
 					IcoPath = "tip-warning.png",
-					AutoCompleteText = $"{query.ActionKeyword} {query.Search} {timeEntry.GetRawDescription(withTrailingSpace: true)}",
+					AutoCompleteText = $"{query.ActionKeyword} {query.Search} {timeEntry.GetRawDescription(withTrailingSpace: true, escapePotentialFlags: true)}",
 					Score = 1000,
 					Action = c =>
 					{
-						this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {timeEntry.GetRawDescription(withTrailingSpace: true)}");
+						this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {timeEntry.GetRawDescription(withTrailingSpace: true, escapePotentialFlags: true)}");
 						return false;
 					}
 				});
@@ -1606,15 +1608,17 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					}
 
 					// Remove flags from description
-					string sanitisedDescription = string.Join(
-						" ",
-						query.SearchTerms
-							.Take(firstFlag)
-							.Skip(
-								(this._state.EditProject == TogglTrack.EditProjectState.ProjectSelected)
-									? ArgumentIndices.DescriptionWithProject
-									: ArgumentIndices.DescriptionWithoutProject
-							)
+					string sanitisedDescription = Main.ReplaceSearchBackslashes(
+						string.Join(
+							" ",
+							query.SearchTerms
+								.Take(firstFlag)
+								.Skip(
+									(this._state.EditProject == TogglTrack.EditProjectState.ProjectSelected)
+										? ArgumentIndices.DescriptionWithProject
+										: ArgumentIndices.DescriptionWithoutProject
+								)
+						)
 					);
 
 					if (this._settings.ShowUsageWarnings && string.IsNullOrEmpty(sanitisedDescription) && !string.IsNullOrEmpty(timeEntry.GetRawDescription()))
@@ -1624,11 +1628,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							Title = "Usage Warning",
 							SubTitle = $"Time entry description will be cleared if nothing is entered!",
 							IcoPath = "tip-warning.png",
-							AutoCompleteText = $"{query.ActionKeyword} {query.Search} {timeEntry.GetRawDescription(withTrailingSpace: true)}",
+							AutoCompleteText = $"{query.ActionKeyword} {query.Search} {timeEntry.GetRawDescription(withTrailingSpace: true, escapePotentialFlags: true)}",
 							Score = 1000,
 							Action = c =>
 							{
-								this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {timeEntry.GetRawDescription(withTrailingSpace: true)}");
+								this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {timeEntry.GetRawDescription(withTrailingSpace: true, escapePotentialFlags: true)}");
 								return false;
 							}
 						});
@@ -1640,7 +1644,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					results.Add(new Result
 					{
 						Title = (string.IsNullOrEmpty(sanitisedDescription))
-							? timeEntry.Description
+							? timeEntry.GetDescription()
 							: sanitisedDescription,
 						SubTitle = $"{projectName} | {newElapsed.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")})",
 						IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "edit.png"),
@@ -1787,10 +1791,10 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			{
 				var entries = timeEntries.ConvertAll(timeEntry => new Result
 				{
-					Title = timeEntry.Description,
+					Title = timeEntry.GetDescription(),
 					SubTitle = $"{timeEntry.Project?.WithClientName ?? "No Project"} | {timeEntry.HumanisedElapsed} ({timeEntry.HumanisedStart})",
 					IcoPath = this._colourIconProvider.GetColourIcon(timeEntry.Project?.Colour, "delete.png"),
-					AutoCompleteText = $"{query.ActionKeyword} {Settings.DeleteCommand} {timeEntry.Description}",
+					AutoCompleteText = $"{query.ActionKeyword} {Settings.DeleteCommand} {timeEntry.GetDescription(escapePotentialFlags: true)}",
 					Score = timeEntries.Count - timeEntries.IndexOf(timeEntry),
 					Action = c =>
 					{
@@ -1819,10 +1823,10 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			{
 				new Result
 				{
-					Title = $"Delete {timeEntry.Description}",
+					Title = $"Delete {timeEntry.GetDescription()}",
 					SubTitle = $"{timeEntry.Project?.WithClientName ?? "No Project"} | {timeEntry.HumanisedElapsed} ({timeEntry.DetailedElapsed})",
 					IcoPath = this._colourIconProvider.GetColourIcon(timeEntry.Project?.Colour, "delete.png") ,
-					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.DeleteCommand} {timeEntry.Description}",
+					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.DeleteCommand} {timeEntry.GetDescription(escapePotentialFlags: true)}",
 					Action = c =>
 					{
 						Task.Run(async delegate
@@ -2185,15 +2189,15 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 										return new Result
 										{
-											Title = timeEntry.Description,
+											Title = timeEntry.GetDescription(),
 											SubTitle = $"{timeEntry.DetailedElapsed} ({timeEntry.HumanisedStart} at {startDate.ToString("t")} {startDate.ToString("ddd")} {startDate.ToString("m")})",
 											IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "reports.png"),
-											AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} {project?.KebabName ?? "no-project"} {timeEntry.Description}",
+											AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} {project?.KebabName ?? "no-project"} {timeEntry.GetDescription(escapePotentialFlags: true)}",
 											Score = (int)timeEntry.Id,
 											Action = c =>
 											{
 												this._state.SelectedIds.Project = project?.Id;
-												this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project?.KebabName ?? "no-project"} {timeEntry.GetRawDescription(withTrailingSpace: true)}");
+												this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project?.KebabName ?? "no-project"} {timeEntry.GetRawDescription(withTrailingSpace: true, escapePotentialFlags: true)}");
 												return false;
 											},
 										};
@@ -2205,15 +2209,15 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						{
 							subResults = selectedProjectGroup.SubGroups.Values.Select(subGroup => new Result
 							{
-								Title = subGroup.Title,
+								Title = subGroup.GetTitle(),
 								SubTitle = $"{subGroup.HumanisedElapsed} ({subGroup.DetailedElapsed})",
 								IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "reports.png"),
-								AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} {project?.KebabName ?? "no-project"} {subGroup.Title}",
+								AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} {project?.KebabName ?? "no-project"} {subGroup.GetTitle(escapePotentialFlags: true)}",
 								Score = (int)subGroup.Elapsed.TotalSeconds,
 								Action = c =>
 								{
 									this._state.SelectedIds.Project = project?.Id;
-									this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project?.KebabName ?? "no-project"} {subGroup.GetRawTitle(withTrailingSpace: true)}");
+									this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project?.KebabName ?? "no-project"} {subGroup.GetRawTitle(withTrailingSpace: true, escapePotentialFlags: true)}");
 									return false;
 								},
 							});
@@ -2374,15 +2378,15 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 										return new Result
 										{
-											Title = timeEntry.Description,
+											Title = timeEntry.GetDescription(),
 											SubTitle = $"{timeEntry.DetailedElapsed} ({timeEntry.HumanisedStart} at {startDate.ToString("t")} {startDate.ToString("ddd")} {startDate.ToString("m")})",
 											IcoPath = this._colourIconProvider.GetColourIcon(timeEntry.Project?.Colour, "reports.png"),
-											AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} {timeEntry.Description}",
+											AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} {timeEntry.GetDescription(escapePotentialFlags: true)}",
 											Score = (int)timeEntry.Id,
 											Action = c =>
 											{
 												this._state.SelectedIds.Project = timeEntry.Project?.Id;
-												this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {timeEntry.Project?.KebabName ?? "no-project"} {timeEntry.GetRawDescription(withTrailingSpace: true)}");
+												this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {timeEntry.Project?.KebabName ?? "no-project"} {timeEntry.GetRawDescription(withTrailingSpace: true, escapePotentialFlags: true)}");
 												return false;
 											},
 										};
@@ -2402,15 +2406,15 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 									return group.SubGroups.Values.Select(subGroup => new Result
 									{
-										Title = subGroup.Title,
+										Title = subGroup.GetTitle(),
 										SubTitle = $"{group.Project?.WithClientName ?? "No Project"} | {subGroup.HumanisedElapsed} ({subGroup.DetailedElapsed})",
 										IcoPath = this._colourIconProvider.GetColourIcon(group.Project?.Colour, "reports.png"),
-										AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} {subGroup.Title}",
+										AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} {subGroup.GetTitle(escapePotentialFlags: true)}",
 										Score = (int)subGroup.Elapsed.TotalSeconds,
 										Action = c =>
 										{
 											this._state.SelectedIds.Project = group.Project?.Id;
-											this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {group.Project?.KebabName ?? "no-project"} {subGroup.GetRawTitle(withTrailingSpace: true)}");
+											this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {group.Project?.KebabName ?? "no-project"} {subGroup.GetRawTitle(withTrailingSpace: true, escapePotentialFlags: true)}");
 											return false;
 										},
 									});

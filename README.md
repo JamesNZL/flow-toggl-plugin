@@ -34,6 +34,7 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 - [Features](#features)
 - [Screenshots](#screenshots)
 - [Setup Instructions](#setup-instructions)
+- [Licence](#licence)
 
 # Commands
 
@@ -117,3 +118,6 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 
 3. Trigger the plugin with the (configurable) action keyword `tgl`.
 
+# Licence
+
+The source code for this plugin is licensed under MIT.

@@ -677,7 +677,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			long workspaceId = project?.WorkspaceId ?? me.DefaultWorkspaceId;
 
 			string projectName = project?.WithClientName ?? "No Project";
-			string description = Main.ReplaceSearchBackslashes(Main.ExtractFromQuery(query, ArgumentIndices.Description));
+			string description = Main.UnescapeSearch(Main.ExtractFromQuery(query, ArgumentIndices.Description));
 
 			var results = new List<Result>();
 
@@ -795,7 +795,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					var startTime = DateTimeOffset.UtcNow + startTimeSpan;
 
 					// Remove -t flag from description
-					string sanitisedDescription = Main.ReplaceSearchBackslashes(
+					string sanitisedDescription = Main.UnescapeSearch(
 						string.Join(" ", query.SearchTerms.Take(Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag)).Skip(ArgumentIndices.Description))
 					);
 
@@ -1415,7 +1415,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			var project = me.GetProject(this._state.SelectedIds.Project);
 
 			string projectName = project?.WithClientName ?? "No Project";
-			string description = Main.ReplaceSearchBackslashes(Main.ExtractFromQuery(
+			string description = Main.UnescapeSearch(Main.ExtractFromQuery(
 				query,
 				(this._state.EditProject == TogglTrack.EditProjectState.ProjectSelected)
 					? ArgumentIndices.DescriptionWithProject
@@ -1667,7 +1667,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					}
 
 					// Remove flags from description
-					string sanitisedDescription = Main.ReplaceSearchBackslashes(
+					string sanitisedDescription = Main.UnescapeSearch(
 						string.Join(
 							" ",
 							query.SearchTerms

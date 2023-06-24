@@ -37,14 +37,15 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				: string.Join(" ", query.SearchTerms.Skip(index));
 		}
 
-		public static string ReplaceSearchBackslashes(string search)
+		public static string UnescapeSearch(string search)
 		{
 			return Regex.Replace(search, @"(\\(?!\\))", string.Empty);
 		}
 
-		public static string EscapePotentialFlags(string description)
+		public static string EscapeDescription(string description)
 		{
-			return Regex.Replace(description, @" -", @" \-");
+			string escaped = Regex.Replace(description, @"(\\(?!\\))", @"\\");
+			return Regex.Replace(escaped, @" -", @" \-");
 		}
 
 		/// <summary>

@@ -199,7 +199,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 
 			string rawDescription = (escapePotentialFlags)
-				? Main.EscapePotentialFlags(this._rawDescription)
+				? Main.EscapeDescription(this._rawDescription)
 				: this._rawDescription;
 
 			if (!withTrailingSpace)
@@ -218,7 +218,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 
 			return (escapePotentialFlags)
-				? Main.EscapePotentialFlags(this._rawDescription)
+				? Main.EscapeDescription(this._rawDescription)
 				: this._rawDescription;
 		}
 
@@ -546,7 +546,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 
 			string rawTitle = (escapePotentialFlags)
-				? Main.EscapePotentialFlags(this._rawTitle)
+				? Main.EscapeDescription(this._rawTitle)
 				: this._rawTitle;
 
 			if (!withTrailingSpace)
@@ -565,7 +565,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 
 			return (escapePotentialFlags)
-				? Main.EscapePotentialFlags(this._rawTitle)
+				? Main.EscapeDescription(this._rawTitle)
 				: this._rawTitle;
 		}
 

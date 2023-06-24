@@ -29,12 +29,22 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			null
 		);
 
-		public static string ExtractFromQuery(Query query, int index)
+		public static string ExtractQueryTo(Query query, int index)
+		{
+			return string.Join(" ", query.SearchTerms.Take(index));
+		}
+
+		public static string ExtractQueryAfter(Query query, int index)
 		{
 			return (index == 1)
 				// Expect slight performance improvement by using query.SecondToEndSearch directly
 				? query.SecondToEndSearch
 				: string.Join(" ", query.SearchTerms.Skip(index));
+		}
+
+		public static string ExtractQueryBetween(Query query, int after, int to)
+		{
+			return string.Join(" ", query.SearchTerms.Take(to).Skip(after));
 		}
 
 		public static string UnescapeSearch(string search)

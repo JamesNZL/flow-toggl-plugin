@@ -663,7 +663,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					);
 				}
 
-				string projectQuery = Main.ExtractFromQuery(query, ArgumentIndices.Project);
+				string projectQuery = Main.ExtractQueryAfter(query, ArgumentIndices.Project);
 				return (string.IsNullOrWhiteSpace(projectQuery))
 					? projects
 					: projects.FindAll(result =>
@@ -676,7 +676,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			long workspaceId = project?.WorkspaceId ?? me.DefaultWorkspaceId;
 
 			string projectName = project?.WithClientName ?? "No Project";
-			string description = Main.UnescapeSearch(Main.ExtractFromQuery(query, ArgumentIndices.Description));
+			string description = Main.UnescapeSearch(Main.ExtractQueryAfter(query, ArgumentIndices.Description));
 
 			var results = new List<Result>();
 
@@ -782,7 +782,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				try
 				{
 					var startTimeSpan = TimeSpanParser.Parse(
-						Main.ExtractFromQuery(query, Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag) + 1),
+						Main.ExtractQueryAfter(query, Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag) + 1),
 						new TimeSpanParserOptions
 						{
 							UncolonedDefault = Units.Minutes,
@@ -795,7 +795,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 					// Remove -t flag from description
 					string sanitisedDescription = Main.UnescapeSearch(
-						string.Join(" ", query.SearchTerms.Take(Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag)).Skip(ArgumentIndices.Description))
+						Main.ExtractQueryBetween(query, ArgumentIndices.Description, Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag))
 					);
 
 					results.Add(new Result
@@ -870,7 +870,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					if (this._settings.ShowUsageExamples)
 					{
-						var queryToFlag = string.Join(" ", query.SearchTerms.Take(Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag)));
+						var queryToFlag = Main.ExtractQueryTo(query, Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag));
 
 						results.Add(new Result
 						{
@@ -1063,7 +1063,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			try
 			{
 				var stopTimeSpan = TimeSpanParser.Parse(
-					Main.ExtractFromQuery(query, Array.IndexOf(query.SearchTerms, Settings.TimeSpanEndFlag) + 1),
+					Main.ExtractQueryAfter(query, Array.IndexOf(query.SearchTerms, Settings.TimeSpanEndFlag) + 1),
 					new TimeSpanParserOptions
 					{
 						UncolonedDefault = Units.Minutes,
@@ -1220,7 +1220,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				});
 			}).ToList();
 
-			string entriesQuery = Main.ExtractFromQuery(query, ArgumentIndices.Description);
+			string entriesQuery = Main.ExtractQueryAfter(query, ArgumentIndices.Description);
 			return (string.IsNullOrWhiteSpace(entriesQuery))
 				? entries
 				: entries.FindAll(result =>
@@ -1290,7 +1290,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					},
 				});
 
-				string entriesQuery = Main.ExtractFromQuery(query, ArgumentIndices.DescriptionWithoutProject);
+				string entriesQuery = Main.ExtractQueryAfter(query, ArgumentIndices.DescriptionWithoutProject);
 				return (string.IsNullOrWhiteSpace(entriesQuery))
 					? entries
 					: entries.FindAll(result =>
@@ -1369,7 +1369,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					);
 				}
 
-				string projectQuery = Main.ExtractFromQuery(query, ArgumentIndices.Project);
+				string projectQuery = Main.ExtractQueryAfter(query, ArgumentIndices.Project);
 				return (string.IsNullOrWhiteSpace(projectQuery))
 					? projects
 					: projects.FindAll(result =>
@@ -1382,13 +1382,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			if (query.SearchTerms.Contains(Settings.ClearDescriptionFlag))
 			{
-				string queryToDescription = string.Join(
-					" ",
-					query.SearchTerms.Take(
-						(this._state.EditProject == TogglTrack.EditProjectState.ProjectSelected)
-							? ArgumentIndices.DescriptionWithProject
-							: ArgumentIndices.DescriptionWithoutProject
-					)
+				string queryToDescription = Main.ExtractQueryTo(
+					query,
+					(this._state.EditProject == TogglTrack.EditProjectState.ProjectSelected)
+						? ArgumentIndices.DescriptionWithProject
+						: ArgumentIndices.DescriptionWithoutProject
 				);
 
 				this._context.API.ChangeQuery($"{query.ActionKeyword} {queryToDescription} ");
@@ -1413,7 +1411,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			var project = me.GetProject(this._state.SelectedIds.Project);
 
 			string projectName = project?.WithClientName ?? "No Project";
-			string description = Main.UnescapeSearch(Main.ExtractFromQuery(
+			string description = Main.UnescapeSearch(Main.ExtractQueryAfter(
 				query,
 				(this._state.EditProject == TogglTrack.EditProjectState.ProjectSelected)
 					? ArgumentIndices.DescriptionWithProject
@@ -1632,7 +1630,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						try
 						{
 							startTimeSpan = TimeSpanParser.Parse(
-								Main.ExtractFromQuery(query, Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag) + 1),
+								Main.ExtractQueryAfter(query, Array.IndexOf(query.SearchTerms, Settings.TimeSpanFlag) + 1),
 								new TimeSpanParserOptions
 								{
 									UncolonedDefault = Units.Minutes,
@@ -1653,7 +1651,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						try
 						{
 							endTimeSpan = TimeSpanParser.Parse(
-								Main.ExtractFromQuery(query, Array.IndexOf(query.SearchTerms, Settings.TimeSpanEndFlag) + 1),
+								Main.ExtractQueryAfter(query, Array.IndexOf(query.SearchTerms, Settings.TimeSpanEndFlag) + 1),
 								new TimeSpanParserOptions
 								{
 									UncolonedDefault = Units.Minutes,
@@ -1671,18 +1669,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					}
 
 					// Remove flags from description
-					string sanitisedDescription = Main.UnescapeSearch(
-						string.Join(
-							" ",
-							query.SearchTerms
-								.Take(firstFlag)
-								.Skip(
-									(this._state.EditProject == TogglTrack.EditProjectState.ProjectSelected)
-										? ArgumentIndices.DescriptionWithProject
-										: ArgumentIndices.DescriptionWithoutProject
-								)
-						)
-					);
+					string sanitisedDescription = Main.UnescapeSearch(Main.ExtractQueryBetween(
+						query,
+						(this._state.EditProject == TogglTrack.EditProjectState.ProjectSelected)
+							? ArgumentIndices.DescriptionWithProject
+							: ArgumentIndices.DescriptionWithoutProject,
+						firstFlag
+					));
 
 					if (this._settings.ShowUsageWarnings && string.IsNullOrEmpty(sanitisedDescription) && !string.IsNullOrEmpty(timeEntry.GetRawDescription()))
 					{
@@ -1842,7 +1835,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					{
 						string flag = exception.Message;
 
-						var queryToFlag = string.Join(" ", query.SearchTerms.Take(Array.IndexOf(query.SearchTerms, flag)));
+						var queryToFlag = Main.ExtractQueryTo(query, Array.IndexOf(query.SearchTerms, flag));
 
 						results.Add(new Result
 						{
@@ -1943,7 +1936,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					},
 				});
 
-				string entriesQuery = Main.ExtractFromQuery(query, ArgumentIndices.Description);
+				string entriesQuery = Main.ExtractQueryAfter(query, ArgumentIndices.Description);
 				return (string.IsNullOrWhiteSpace(entriesQuery))
 					? entries
 					: entries.FindAll(result =>
@@ -2051,8 +2044,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			if ((query.SearchTerms.Length == ArgumentIndices.Span) || !Settings.ReportsSpanArguments.Exists(span => Regex.IsMatch(query.SearchTerms[ArgumentIndices.Span], $"{span.Argument}({Settings.ReportsSpanOffsetRegex})?")))
 			{
-				string spanQuery = Main.ExtractFromQuery(query, ArgumentIndices.Span);
-				string queryToSpan = string.Join(" ", query.SearchTerms.Take(ArgumentIndices.Span));
+				string spanQuery = Main.ExtractQueryAfter(query, ArgumentIndices.Span);
+				string queryToSpan = Main.ExtractQueryTo(query, ArgumentIndices.Span);
 
 				// Implementation of eg '-5' to set span to be 5 [days | weeks | months | years] ago
 				Match spanOffsetMatch = Settings.ReportsSpanOffsetRegex.Match(spanQuery);
@@ -2140,7 +2133,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			 */
 			if ((query.SearchTerms.Length == ArgumentIndices.Grouping) || !Settings.ReportsGroupingArguments.Exists(grouping => grouping.Argument == query.SearchTerms[ArgumentIndices.Grouping]))
 			{
-				string queryToGrouping = string.Join(" ", query.SearchTerms.Take(ArgumentIndices.Grouping));
+				string queryToGrouping = Main.ExtractQueryTo(query, ArgumentIndices.Grouping);
 
 				var groupings = Settings.ReportsGroupingArguments.ConvertAll(grouping => new Result
 				{
@@ -2156,7 +2149,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					},
 				});
 
-				string groupingsQuery = Main.ExtractFromQuery(query, ArgumentIndices.Grouping);
+				string groupingsQuery = Main.ExtractQueryAfter(query, ArgumentIndices.Grouping);
 				return (string.IsNullOrWhiteSpace(groupingsQuery))
 					? groupings
 					: groupings.FindAll(result =>
@@ -2385,7 +2378,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							Score = int.MaxValue - 100000,
 						});
 
-						string subNameQuery = Main.ExtractFromQuery(query, ArgumentIndices.SubGroupingName);
+						string subNameQuery = Main.ExtractQueryAfter(query, ArgumentIndices.SubGroupingName);
 						return ((string.IsNullOrWhiteSpace(subNameQuery))
 							? subResults
 							: subResults.Where(result => this._context.API.FuzzySearch(subNameQuery, result.Title).Score > 0)
@@ -2464,7 +2457,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							Score = int.MaxValue - 100000,
 						});
 
-						string subNameQuery = Main.ExtractFromQuery(query, ArgumentIndices.SubGroupingName);
+						string subNameQuery = Main.ExtractQueryAfter(query, ArgumentIndices.SubGroupingName);
 						return ((string.IsNullOrWhiteSpace(subNameQuery))
 							? subResults
 							: subResults.Where(result => this._context.API.FuzzySearch(subNameQuery, result.Title).Score > 0)
@@ -2579,7 +2572,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					}
 			}
 
-			string nameQuery = Main.ExtractFromQuery(query, ArgumentIndices.GroupingName);
+			string nameQuery = Main.ExtractQueryAfter(query, ArgumentIndices.GroupingName);
 			return (string.IsNullOrWhiteSpace(nameQuery))
 				? results
 				: results.FindAll(result =>

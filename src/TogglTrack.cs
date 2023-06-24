@@ -657,7 +657,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				if (me.ActiveProjects is not null)
 				{
 					string projectQuery = Main.ExtractQueryAfter(query, ArgumentIndices.Project);
-					var filteredProjects = (string.IsNullOrWhiteSpace(projectQuery))
+					var filteredProjects = (string.IsNullOrEmpty(projectQuery))
 						? me.ActiveProjects
 						: me.ActiveProjects.Where(project => this._context.API.FuzzySearch(projectQuery, $"{project.Name} {project.Client?.Name ?? string.Empty}").Score > 0);
 
@@ -1217,7 +1217,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					return Enumerable.Empty<Result>();
 				}
 
-				var filteredTimeEntries = (string.IsNullOrWhiteSpace(entriesQuery))
+				var filteredTimeEntries = (string.IsNullOrEmpty(entriesQuery))
 					? project.SubGroups.Values
 					: project.SubGroups.Values.Where(timeEntry => this._context.API.FuzzySearch(entriesQuery, timeEntry.GetTitle()).Score > 0);
 
@@ -1285,7 +1285,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			if (this._state.SelectedIds.TimeEntry == -1)
 			{
 				string entriesQuery = Main.ExtractQueryAfter(query, ArgumentIndices.DescriptionWithoutProject);
-				var filteredTimeEntries = (string.IsNullOrWhiteSpace(entriesQuery))
+				var filteredTimeEntries = (string.IsNullOrEmpty(entriesQuery))
 					? timeEntries
 					: timeEntries.FindAll(timeEntry => this._context.API.FuzzySearch(entriesQuery, timeEntry.GetDescription()).Score > 0);
 
@@ -1355,8 +1355,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				if (me.ActiveProjects is not null)
 				{
 					string projectQuery = Main.ExtractQueryAfter(query, ArgumentIndices.Project);
-					// TODO: get rid of these whitespace checks
-					var filteredProjects = (string.IsNullOrWhiteSpace(projectQuery))
+					var filteredProjects = (string.IsNullOrEmpty(projectQuery))
 						? me.ActiveProjects
 						: me.ActiveProjects.Where(project => this._context.API.FuzzySearch(projectQuery, $"{project.Name} {project.Client?.Name ?? string.Empty}").Score > 0);
 
@@ -1927,7 +1926,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			if (this._state.SelectedIds.TimeEntry == -1)
 			{
 				string entriesQuery = Main.ExtractQueryAfter(query, ArgumentIndices.Description);
-				var filteredTimeEntries = (string.IsNullOrWhiteSpace(entriesQuery))
+				var filteredTimeEntries = (string.IsNullOrEmpty(entriesQuery))
 					? timeEntries
 					: timeEntries.FindAll(timeEntry => this._context.API.FuzzySearch(entriesQuery, timeEntry.GetDescription()).Score > 0);
 
@@ -2056,7 +2055,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					: 0;
 
 				string sanitisedSpanQuery = Settings.ReportsSpanOffsetRegex.Replace(spanQuery, string.Empty).Replace("-", string.Empty);
-				var filteredSpans = (string.IsNullOrWhiteSpace(sanitisedSpanQuery))
+				var filteredSpans = (string.IsNullOrEmpty(sanitisedSpanQuery))
 					? Settings.ReportsSpanArguments
 					: Settings.ReportsSpanArguments.FindAll(span => this._context.API.FuzzySearch(sanitisedSpanQuery, span.Argument).Score > 0);
 
@@ -2136,7 +2135,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				string queryToGrouping = Main.ExtractQueryTo(query, ArgumentIndices.Grouping);
 
 				string groupingsQuery = Main.ExtractQueryAfter(query, ArgumentIndices.Grouping);
-				var filteredGroupings = (string.IsNullOrWhiteSpace(groupingsQuery))
+				var filteredGroupings = (string.IsNullOrEmpty(groupingsQuery))
 					? Settings.ReportsGroupingArguments
 					: Settings.ReportsGroupingArguments.FindAll(grouping => this._context.API.FuzzySearch(groupingsQuery, grouping.Argument).Score > 0);
 
@@ -2247,7 +2246,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					{
 						if (this._state.SelectedIds.Project == -1)
 						{
-							var filteredGroups = (string.IsNullOrWhiteSpace(groupQuery))
+							var filteredGroups = (string.IsNullOrEmpty(groupQuery))
 								? summary.Groups.Values
 								: summary.Groups.Values.Where(group => this._context.API.FuzzySearch(groupQuery, group.Project?.Name ?? "No Project").Score > 0);
 
@@ -2322,7 +2321,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 							subResults = subResults.Concat(report.SelectMany(timeEntryGroup =>
 							{
-								var filteredTimeEntries = (string.IsNullOrWhiteSpace(subNameQuery))
+								var filteredTimeEntries = (string.IsNullOrEmpty(subNameQuery))
 									? timeEntryGroup.TimeEntries
 									: timeEntryGroup.TimeEntries.Where(timeEntry => this._context.API.FuzzySearch(subNameQuery, timeEntry.GetDescription()).Score > 0);
 
@@ -2349,7 +2348,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						}
 						else
 						{
-							var filteredSubGroups = (string.IsNullOrWhiteSpace(subNameQuery))
+							var filteredSubGroups = (string.IsNullOrEmpty(subNameQuery))
 								? selectedProjectGroup.SubGroups.Values
 								: selectedProjectGroup.SubGroups.Values.Where(subGroup => this._context.API.FuzzySearch(subNameQuery, subGroup.GetTitle()).Score > 0);
 
@@ -2398,7 +2397,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					{
 						if (this._state.SelectedIds.Client == -1)
 						{
-							var filteredGroups = (string.IsNullOrWhiteSpace(groupQuery))
+							var filteredGroups = (string.IsNullOrEmpty(groupQuery))
 								? summary.Groups.Values
 								: summary.Groups.Values.Where(group => this._context.API.FuzzySearch(groupQuery, group.Client?.Name ?? "No Client").Score > 0);
 
@@ -2436,7 +2435,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						var client = me.GetClient(selectedClientGroup.Id);
 
 						string subNameQuery = Main.ExtractQueryAfter(query, ArgumentIndices.SubGroupingName);
-						var filteredSubGroups = (string.IsNullOrWhiteSpace(subNameQuery))
+						var filteredSubGroups = (string.IsNullOrEmpty(subNameQuery))
 							? selectedClientGroup.SubGroups.Values
 							: selectedClientGroup.SubGroups.Values.Where(subGroup =>
 							{
@@ -2524,7 +2523,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							results.AddRange(
 								report.SelectMany(timeEntryGroup =>
 									{
-										var filteredTimeEntries = (string.IsNullOrWhiteSpace(groupQuery))
+										var filteredTimeEntries = (string.IsNullOrEmpty(groupQuery))
 											? timeEntryGroup.TimeEntries
 											: timeEntryGroup.TimeEntries.FindAll(timeEntry => this._context.API.FuzzySearch(groupQuery, timeEntry.GetDescription()).Score > 0);
 
@@ -2560,7 +2559,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 										return Enumerable.Empty<Result>();
 									}
 
-									var filteredSubGroups = (string.IsNullOrWhiteSpace(groupQuery))
+									var filteredSubGroups = (string.IsNullOrEmpty(groupQuery))
 										? group.SubGroups.Values
 										: group.SubGroups.Values.Where(subGroup => this._context.API.FuzzySearch(groupQuery, subGroup.GetTitle()).Score > 0);
 

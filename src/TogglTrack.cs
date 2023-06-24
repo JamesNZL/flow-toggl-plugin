@@ -2323,9 +2323,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							{
 								var filteredTimeEntries = (string.IsNullOrEmpty(subNameQuery))
 									? timeEntryGroup.TimeEntries
-									: timeEntryGroup.TimeEntries.Where(timeEntry => this._context.API.FuzzySearch(subNameQuery, timeEntry.GetDescription()).Score > 0);
+									: timeEntryGroup.TimeEntries.FindAll(timeEntry => this._context.API.FuzzySearch(subNameQuery, timeEntry.GetDescription()).Score > 0);
 
-								return timeEntryGroup.TimeEntries.ConvertAll(timeEntry =>
+								return filteredTimeEntries.ConvertAll(timeEntry =>
 								{
 									DateTimeOffset startDate = timeEntry.StartDate.ToLocalTime();
 

@@ -555,6 +555,19 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				},
 				new Result
 				{
+					Title = Settings.HelpCommand,
+					SubTitle = "Read plugin documentation",
+					IcoPath = "tip.png",
+					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.HelpCommand} ",
+					Score = 75,
+					Action = c =>
+					{
+						this._context.API.OpenUrl(new Uri(@"https://github.com/JamesNZL/flow-toggl-plugin/blob/main/README.md"));
+						return true;
+					},
+				},
+				new Result
+				{
 					Title = Settings.RefreshCommand,
 					SubTitle = "Refresh plugin cache",
 					IcoPath = "refresh.png",

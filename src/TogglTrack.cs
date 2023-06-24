@@ -2150,7 +2150,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 				return filteredGroupings.ConvertAll(grouping => new Result
 				{
-					Title = grouping.Argument,
+					// ! see #79... also Flow-Launcher/Flow.Launcher#2201 and Flow-Launcher/Flow.Launcher#2202
+					Title = $"{grouping.Argument}{new string('\u200B', queryToGrouping.Length)}",
 					SubTitle = grouping.Interpolation,
 					IcoPath = "reports.png",
 					AutoCompleteText = $"{query.ActionKeyword} {queryToGrouping} {grouping.Argument} ",

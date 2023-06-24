@@ -1368,7 +1368,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							SubTitle = $"{((project.ClientId is not null) ? $"{project.Client!.Name} | " : string.Empty)}{project.ElapsedString}",
 							IcoPath = this._colourIconProvider.GetColourIcon(project.Colour, "edit.png"),
 							AutoCompleteText = $"{query.ActionKeyword} {Settings.EditCommand} ",
-							Score = me.ActiveProjects.Count - index,
+							Score = index,
 							Action = c =>
 							{
 								this._state.SelectedIds.Project = project.Id;

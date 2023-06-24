@@ -191,6 +191,16 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			this.Project = this._me.GetProject(this.ProjectId);
 		}
 
+		public int GetScoreByStart()
+		{
+			return (int)(this.StartDate.ToUnixTimeSeconds() >> 2);
+		}
+
+		public int GetScoreByDuration(TimeEntry? longest)
+		{
+			return (int)(this.Duration >> 2);
+		}
+
 		public string? GetRawDescription(bool withTrailingSpace = false, bool escapePotentialFlags = false)
 		{
 			if (string.IsNullOrEmpty(this._rawDescription))
@@ -467,6 +477,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return this.Clone();
 		}
 
+		public int GetScoreByDuration()
+		{
+			return (int)(this.Seconds >> 2);
+		}
+
 		public long Seconds
 		{
 			get => this?.SubGroups?.Values.Sum(subGroup => subGroup.Seconds) ?? 0;
@@ -536,6 +551,16 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		object ICloneable.Clone()
 		{
 			return this.Clone();
+		}
+
+		public int GetScoreByStart()
+		{
+			return (int)((this.LatestId ?? 0) >> 2);
+		}
+
+		public int GetScoreByDuration()
+		{
+			return (int)(this.Seconds >> 2);
 		}
 
 		public string? GetRawTitle(bool withTrailingSpace = false, bool escapePotentialFlags = false)

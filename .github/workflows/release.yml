@@ -5,11 +5,8 @@ permissions:
   
 on:
   push:
-    branches: [ "main" ]
-    paths-ignore:
-      - '**/README.md'
-      - '**/CHANGELOG.md'
-      - 'assets/**'
+    paths:
+    - 'src/plugins.json'
 
 jobs:
   publish:

@@ -2053,8 +2053,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			if ((query.SearchTerms.Length == ArgumentIndices.Span) || !Settings.ReportsSpanArguments.Exists(span => Regex.IsMatch(query.SearchTerms[ArgumentIndices.Span], $"{span.Argument}({Settings.ReportsSpanOffsetRegex})?")))
 			{
-				string spanQuery = Main.ExtractQueryAfter(query, ArgumentIndices.Span);
 				string queryToSpan = Main.ExtractQueryTo(query, ArgumentIndices.Span);
+
+				string spanQuery = Main.ExtractQueryAfter(query, ArgumentIndices.Span);
 
 				// Implementation of eg '-5' to set span to be 5 [days | weeks | months | years] ago
 				Match spanOffsetMatch = Settings.ReportsSpanOffsetRegex.Match(spanQuery);
@@ -2136,7 +2137,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 
 			/* 
-			 * Report grouping selection --- tgl view [duration] [projects | clients | entries]
+			 * Report grouping selection --- tgl view [span] [projects | clients | entries]
 			 */
 			if ((query.SearchTerms.Length == ArgumentIndices.Grouping) || !Settings.ReportsGroupingArguments.Exists(grouping => grouping.Argument == query.SearchTerms[ArgumentIndices.Grouping]))
 			{

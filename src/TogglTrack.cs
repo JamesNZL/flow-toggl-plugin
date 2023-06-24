@@ -2275,6 +2275,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									}
 								})
 							);
+
 							break;
 						}
 
@@ -2434,6 +2435,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									};
 								})
 							);
+
 							break;
 						}
 

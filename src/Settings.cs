@@ -35,6 +35,14 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		internal const string TimeSpanFlag = "-t";
 		internal const string TimeSpanEndFlag = "-T";
 
+		internal const string NoProjectName = "No Project";
+		internal const string NoClientName = "No Client";
+		internal const string EmptyDescription = "(no description)";
+
+		internal const string UsageTipTitle = "Usage Tip";
+		internal const string UsageExampleTitle = "Usage Example";
+		internal const string UsageWarningTitle = "Usage Warning";
+
 		internal enum ReportsSpanKey
 		{
 			Day,

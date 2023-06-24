@@ -224,7 +224,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		{
 			if (string.IsNullOrEmpty(this._rawDescription))
 			{
-				return "(no description)";
+				return Settings.EmptyDescription;
 			}
 
 			return (escapePotentialFlags)
@@ -586,7 +586,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		{
 			if (string.IsNullOrEmpty(this._rawTitle))
 			{
-				return "(no description)";
+				return Settings.EmptyDescription;
 			}
 
 			return (escapePotentialFlags)

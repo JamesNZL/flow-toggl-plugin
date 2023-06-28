@@ -2291,6 +2291,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						var project = me.GetProject(selectedProjectGroup.Id);
 
 						IEnumerable<Result> subResults = Enumerable.Empty<Result>();
+						var total = TimeSpan.Zero;
 
 						string subGroupQuery = Main.ExtractQueryAfter(query, ArgumentIndices.SubGroupingName);
 
@@ -2331,31 +2332,33 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								}
 							}
 
-							subResults = subResults.Concat(report.SelectMany(timeEntryGroup =>
+							var filteredTimeEntries = report.SelectMany(timeEntryGroup =>
 							{
-								var filteredTimeEntries = (string.IsNullOrEmpty(subGroupQuery))
+								return (string.IsNullOrEmpty(subGroupQuery))
 									? timeEntryGroup.TimeEntries
 									: timeEntryGroup.TimeEntries.FindAll(timeEntry => this._context.API.FuzzySearch(subGroupQuery, timeEntry.GetDescription()).Score > 0);
+							});
 
-								return filteredTimeEntries.ConvertAll(timeEntry =>
+							total = filteredTimeEntries.Aggregate(TimeSpan.Zero, (subTotal, timeEntry) => subTotal + timeEntry.Elapsed);
+
+							subResults = subResults.Concat(filteredTimeEntries.Select(timeEntry =>
+							{
+								DateTimeOffset startDate = timeEntry.StartDate.ToLocalTime();
+
+								return new Result
 								{
-									DateTimeOffset startDate = timeEntry.StartDate.ToLocalTime();
-
-									return new Result
+									Title = timeEntry.GetDescription(),
+									SubTitle = $"{timeEntry.DetailedElapsed} ({timeEntry.HumanisedStart} at {startDate.ToString("t")} {startDate.ToString("ddd")} {startDate.ToString("m")})",
+									IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "reports.png"),
+									AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} {project?.KebabName ?? "no-project"} {timeEntry.GetDescription(escapePotentialFlags: true)}",
+									Score = timeEntry.GetScoreByStart(),
+									Action = c =>
 									{
-										Title = timeEntry.GetDescription(),
-										SubTitle = $"{timeEntry.DetailedElapsed} ({timeEntry.HumanisedStart} at {startDate.ToString("t")} {startDate.ToString("ddd")} {startDate.ToString("m")})",
-										IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "reports.png"),
-										AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} {project?.KebabName ?? "no-project"} {timeEntry.GetDescription(escapePotentialFlags: true)}",
-										Score = timeEntry.GetScoreByStart(),
-										Action = c =>
-										{
-											this._state.SelectedIds.Project = project?.Id;
-											this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project?.KebabName ?? "no-project"} {timeEntry.GetRawDescription(withTrailingSpace: true, escapePotentialFlags: true)}");
-											return false;
-										},
-									};
-								});
+										this._state.SelectedIds.Project = project?.Id;
+										this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project?.KebabName ?? "no-project"} {timeEntry.GetRawDescription(withTrailingSpace: true, escapePotentialFlags: true)}");
+										return false;
+									},
+								};
 							}));
 						}
 						else
@@ -2364,7 +2367,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								? selectedProjectGroup.SubGroups.Values
 								: selectedProjectGroup.SubGroups.Values.Where(subGroup => this._context.API.FuzzySearch(subGroupQuery, subGroup.GetTitle()).Score > 0);
 
-							subResults = filteredSubGroups.Select(subGroup => new Result
+							total = filteredSubGroups.Aggregate(TimeSpan.Zero, (subTotal, subGroup) => subTotal + subGroup.Elapsed);
+
+							subResults = subResults.Concat(filteredSubGroups.Select(subGroup => new Result
 							{
 								Title = subGroup.GetTitle(),
 								SubTitle = $"{subGroup.HumanisedElapsed} ({subGroup.DetailedElapsed})",
@@ -2377,34 +2382,34 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project?.KebabName ?? "no-project"} {subGroup.GetRawTitle(withTrailingSpace: true, escapePotentialFlags: true)}");
 									return false;
 								},
-							});
+							}));
 						}
 
-						if (string.IsNullOrEmpty(subGroupQuery))
+						subResults = subResults.Append(new Result
 						{
-							subResults = subResults.Append(new Result
+							// ! see #79... also Flow-Launcher/Flow.Launcher#2201 and Flow-Launcher/Flow.Launcher#2202
+							Title = $"Display {((this._state.ReportsShowDetailed) ? "summary" : "detailed")} report{new string('\u200B', subGroupQuery.Length)}",
+							IcoPath = "reports.png",
+							AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
+							Score = int.MaxValue - 1000,
+							Action = c =>
 							{
-								Title = $"Display {((this._state.ReportsShowDetailed) ? "summary" : "detailed")} report",
-								IcoPath = "reports.png",
-								AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
-								Score = int.MaxValue - 1000,
-								Action = c =>
-								{
-									this._state.ReportsShowDetailed = !this._state.ReportsShowDetailed;
-									this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} ", true);
-									return false;
-								},
-							});
+								this._state.ReportsShowDetailed = !this._state.ReportsShowDetailed;
+								this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} ", true);
+								return false;
+							},
+						});
 
-							subResults = subResults.Append(new Result
-							{
-								Title = $"{selectedProjectGroup.HumanisedElapsed} tracked {spanConfiguration.Interpolation(spanArgumentOffset)} ({selectedProjectGroup.DetailedElapsed})",
-								SubTitle = project?.WithClientName ?? Settings.NoProjectName,
-								IcoPath = "reports.png",
-								AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
-								Score = int.MaxValue - 100000,
-							});
-						}
+						subResults = subResults.Append(new Result
+						{
+							Title = $"{total.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour)} tracked {spanConfiguration.Interpolation(spanArgumentOffset)} ({(int)total.TotalHours}:{total.ToString(@"mm\:ss")})",
+							SubTitle = (!string.IsNullOrEmpty(subGroupQuery))
+								? $"{project?.WithClientName ?? Settings.NoProjectName} | {subGroupQuery}"
+								: project?.WithClientName ?? Settings.NoProjectName,
+							IcoPath = "reports.png",
+							AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
+							Score = int.MaxValue - 100000,
+						});
 
 						return subResults.ToList();
 					}
@@ -2502,6 +2507,10 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					}
 				case (Settings.ReportsGroupingKey.Entries):
 					{
+
+						IEnumerable<Result> subResults = Enumerable.Empty<Result>();
+						var total = TimeSpan.Zero;
+
 						if (this._state.ReportsShowDetailed)
 						{
 							var report = (await this._GetDetailedReport(
@@ -2539,85 +2548,89 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								}
 							}
 
-							results.AddRange(
-								report.SelectMany(timeEntryGroup =>
+							var filteredTimeEntries = report.SelectMany(timeEntryGroup =>
+							{
+								return (string.IsNullOrEmpty(groupQuery))
+									? timeEntryGroup.TimeEntries
+									: timeEntryGroup.TimeEntries.FindAll(timeEntry => this._context.API.FuzzySearch(groupQuery, timeEntry.GetDescription()).Score > 0);
+							});
+
+							total = filteredTimeEntries.Aggregate(TimeSpan.Zero, (subTotal, timeEntry) => subTotal + timeEntry.Elapsed);
+
+							subResults = subResults.Concat(filteredTimeEntries.Select(timeEntry =>
+							{
+								DateTimeOffset startDate = timeEntry.StartDate.ToLocalTime();
+
+								return new Result
+								{
+									Title = timeEntry.GetDescription(),
+									SubTitle = $"{timeEntry.DetailedElapsed} ({timeEntry.HumanisedStart} at {startDate.ToString("t")} {startDate.ToString("ddd")} {startDate.ToString("m")})",
+									IcoPath = this._colourIconProvider.GetColourIcon(timeEntry.Project?.Colour, "reports.png"),
+									AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} {timeEntry.GetDescription(escapePotentialFlags: true)}",
+									Score = timeEntry.GetScoreByStart(),
+									Action = c =>
 									{
-										var filteredTimeEntries = (string.IsNullOrEmpty(groupQuery))
-											? timeEntryGroup.TimeEntries
-											: timeEntryGroup.TimeEntries.FindAll(timeEntry => this._context.API.FuzzySearch(groupQuery, timeEntry.GetDescription()).Score > 0);
-
-										return filteredTimeEntries.ConvertAll(timeEntry =>
-										{
-											DateTimeOffset startDate = timeEntry.StartDate.ToLocalTime();
-
-											return new Result
-											{
-												Title = timeEntry.GetDescription(),
-												SubTitle = $"{timeEntry.DetailedElapsed} ({timeEntry.HumanisedStart} at {startDate.ToString("t")} {startDate.ToString("ddd")} {startDate.ToString("m")})",
-												IcoPath = this._colourIconProvider.GetColourIcon(timeEntry.Project?.Colour, "reports.png"),
-												AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} {timeEntry.GetDescription(escapePotentialFlags: true)}",
-												Score = timeEntry.GetScoreByStart(),
-												Action = c =>
-												{
-													this._state.SelectedIds.Project = timeEntry.Project?.Id;
-													this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {timeEntry.Project?.KebabName ?? "no-project"} {timeEntry.GetRawDescription(withTrailingSpace: true, escapePotentialFlags: true)}");
-													return false;
-												},
-											};
-										});
-									})
-							);
+										this._state.SelectedIds.Project = timeEntry.Project?.Id;
+										this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {timeEntry.Project?.KebabName ?? "no-project"} {timeEntry.GetRawDescription(withTrailingSpace: true, escapePotentialFlags: true)}");
+										return false;
+									},
+								};
+							}));
 						}
 						else
 						{
-							results.AddRange(
-								summary.Groups.Values.SelectMany(group =>
-								{
-									if (group.SubGroups is null)
-									{
-										return Enumerable.Empty<Result>();
-									}
-
-									var filteredSubGroups = (string.IsNullOrEmpty(groupQuery))
-										? group.SubGroups.Values
-										: group.SubGroups.Values.Where(subGroup => this._context.API.FuzzySearch(groupQuery, subGroup.GetTitle()).Score > 0);
-
-									return filteredSubGroups.Select(subGroup => new Result
-									{
-										Title = subGroup.GetTitle(),
-										SubTitle = $"{group.Project?.WithClientName ?? Settings.NoProjectName} | {subGroup.HumanisedElapsed} ({subGroup.DetailedElapsed})",
-										IcoPath = this._colourIconProvider.GetColourIcon(group.Project?.Colour, "reports.png"),
-										AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} {subGroup.GetTitle(escapePotentialFlags: true)}",
-										Score = subGroup.GetScoreByDuration(),
-										Action = c =>
-										{
-											this._state.SelectedIds.Project = group.Project?.Id;
-											this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {group.Project?.KebabName ?? "no-project"} {subGroup.GetRawTitle(withTrailingSpace: true, escapePotentialFlags: true)}");
-											return false;
-										},
-									});
-								})
-							);
-						}
-
-						if (string.IsNullOrEmpty(groupQuery))
-						{
-							results.Add(new Result
+							var filteredSubGroups = summary.Groups.Values.SelectMany(group =>
 							{
-								Title = $"Display {((this._state.ReportsShowDetailed) ? "summary" : "detailed")} report",
-								IcoPath = "reports.png",
-								AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
-								Score = int.MaxValue - 1000,
+								var filteredSubGroups = (string.IsNullOrEmpty(groupQuery))
+									? group.SubGroups?.Values
+									: group.SubGroups?.Values.Where(subGroup => this._context.API.FuzzySearch(groupQuery, subGroup.GetTitle()).Score > 0);
+
+								return filteredSubGroups ?? Enumerable.Empty<SummaryReportSubGroup>();
+							});
+
+							total = filteredSubGroups.Aggregate(TimeSpan.Zero, (subTotal, subGroup) => subTotal + subGroup.Elapsed);
+
+							subResults = subResults.Concat(filteredSubGroups.Select(subGroup => new Result
+							{
+								Title = subGroup.GetTitle(),
+								SubTitle = $"{subGroup.Group.Project?.WithClientName ?? Settings.NoProjectName} | {subGroup.HumanisedElapsed} ({subGroup.DetailedElapsed})",
+								IcoPath = this._colourIconProvider.GetColourIcon(subGroup.Group.Project?.Colour, "reports.png"),
+								AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} {subGroup.GetTitle(escapePotentialFlags: true)}",
+								Score = subGroup.GetScoreByDuration(),
 								Action = c =>
 								{
-									this._state.ReportsShowDetailed = !this._state.ReportsShowDetailed;
-									this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} ", true);
+									this._state.SelectedIds.Project = subGroup.Group.Project?.Id;
+									this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {subGroup.Group.Project?.KebabName ?? "no-project"} {subGroup.GetRawTitle(withTrailingSpace: true, escapePotentialFlags: true)}");
 									return false;
-								}
-							});
+								},
+							}));
 						}
 
-						break;
+						subResults = subResults.Append(new Result
+						{
+							// ! see #79... also Flow-Launcher/Flow.Launcher#2201 and Flow-Launcher/Flow.Launcher#2202
+							Title = $"Display {((this._state.ReportsShowDetailed) ? "summary" : "detailed")} report{new string('\u200B', groupQuery.Length)}",
+							IcoPath = "reports.png",
+							AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
+							Score = int.MaxValue - 1000,
+							Action = c =>
+							{
+								this._state.ReportsShowDetailed = !this._state.ReportsShowDetailed;
+								this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} ", true);
+								return false;
+							},
+						});
+
+						subResults = subResults.Append(new Result
+						{
+							Title = $"{total.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour)} tracked {spanConfiguration.Interpolation(spanArgumentOffset)} ({(int)total.TotalHours}:{total.ToString(@"mm\:ss")})",
+							SubTitle = groupQuery,
+							IcoPath = "reports.png",
+							AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
+							Score = int.MaxValue - 100000,
+						});
+
+						return subResults.ToList();
 					}
 			}
 

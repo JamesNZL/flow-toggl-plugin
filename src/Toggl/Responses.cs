@@ -192,9 +192,9 @@ namespace Flow.Launcher.Plugin.TogglTrack.TogglApi
 		public long seconds { get; set; }
 		public List<long>? ids { get; set; }
 
-		public SummaryReportSubGroup ToSummaryReportSubGroup()
+		public SummaryReportSubGroup ToSummaryReportSubGroup(SummaryReportGroup group)
 		{
-			return new SummaryReportSubGroup(this);
+			return new SummaryReportSubGroup(this, group);
 		}
 	}
 

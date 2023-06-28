@@ -373,7 +373,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			if (group?.SubGroups is not null)
 			{
-				group.SubGroups.Add(group.GetSubGroupKey(newSubGroup.id, newSubGroup.title), new SummaryReportSubGroup(newSubGroup));
+				group.SubGroups.Add(group.GetSubGroupKey(newSubGroup.id, newSubGroup.title), new SummaryReportSubGroup(newSubGroup, group));
 				return clonedSummary;
 			}
 
@@ -382,7 +382,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				group.SubGroups = new Dictionary<string, SummaryReportSubGroup>
 				{
 					{
-						group.GetSubGroupKey(newSubGroup.id, newSubGroup.title), new SummaryReportSubGroup(newSubGroup)
+						group.GetSubGroupKey(newSubGroup.id, newSubGroup.title), new SummaryReportSubGroup(newSubGroup, group)
 					},
 				};
 				return clonedSummary;
@@ -447,7 +447,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			this._me = me;
 
 			this.Id = response.id;
-			this.SubGroups = response.sub_groups?.ToDictionary(keySelector: subGroupResponse => this.GetSubGroupKey(subGroupResponse.id, subGroupResponse.title), elementSelector: subGroupResponse => subGroupResponse.ToSummaryReportSubGroup());
+			this.SubGroups = response.sub_groups?.ToDictionary(keySelector: subGroupResponse => this.GetSubGroupKey(subGroupResponse.id, subGroupResponse.title), elementSelector: subGroupResponse => subGroupResponse.ToSummaryReportSubGroup(this));
 
 			this.Project = me.GetProject(this.Id);
 			this.Client = me.GetClient(this.Id);
@@ -522,22 +522,26 @@ namespace Flow.Launcher.Plugin.TogglTrack
 	{
 		private string? _rawTitle;
 
+		public readonly SummaryReportGroup Group;
 		public long? Id;
 		public long Seconds;
 		public List<long>? Ids;
 
-		public SummaryReportSubGroup(SummaryReportSubGroupResponse response)
+		public SummaryReportSubGroup(SummaryReportSubGroupResponse response, SummaryReportGroup group)
 		{
 			this._rawTitle = response.title;
 
+			this.Group = group;
 			this.Id = response.id;
 			this.Seconds = response.seconds;
 			this.Ids = response.ids;
 		}
 		public SummaryReportSubGroup(SummaryReportSubGroup subGroup)
 		{
-			this.Id = subGroup.Id;
 			this._rawTitle = subGroup._rawTitle;
+
+			this.Group = subGroup.Group;
+			this.Id = subGroup.Id;
 			this.Seconds = subGroup.Seconds;
 			this.Ids = (subGroup.Ids is not null)
 				? new List<long>(subGroup.Ids)

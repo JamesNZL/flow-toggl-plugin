@@ -1,7 +1,5 @@
 using System;
 using System.Text.RegularExpressions;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Flow.Launcher.Plugin.TogglTrack
 {
@@ -14,7 +12,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			Escaped,
 		};
 
-		public IEnumerable<string> SearchTerms;
+		public string[] SearchTerms;
 
 		public static string EscapeDescription(string description)
 		{
@@ -29,41 +27,43 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 		public int IndexOf(string value)
 		{
-			// TODO: #83
-			return Array.IndexOf(this.SearchTerms.ToArray(), value);
+			return Array.IndexOf(this.SearchTerms, value);
+		}
+
+		private TransformedQuery Slice(int? start = null, int? end = null)
+		{
+			this.SearchTerms = this.SearchTerms[(start ?? 0)..(end ?? ^0)];
+			return this;
 		}
 
 		public TransformedQuery To(int index)
 		{
-			this.SearchTerms = this.SearchTerms.Take(index);
-			return this;
+			return this.Slice(end: index);
 		}
 
 		public TransformedQuery To(string value)
 		{
-			return this.To(this.IndexOf(value));
+			return this.Slice(end: this.IndexOf(value));
 		}
 
 		public TransformedQuery After(int index)
 		{
-			this.SearchTerms = this.SearchTerms.Skip(index);
-			return this;
+			return this.Slice(start: index);
 		}
 
 		public TransformedQuery After(string value)
 		{
-			return this.After(this.IndexOf(value) + 1);
+			return this.Slice(start: this.IndexOf(value) + 1);
 		}
 
 		public TransformedQuery Between(int after, int to)
 		{
-			this.SearchTerms = this.SearchTerms.Take(to).Skip(after);
-			return this;
+			return this.Slice(start: after, end: to);
 		}
 
-		public TransformedQuery Between(int after, string to)
+		public TransformedQuery Between(int start, string to)
 		{
-			return this.Between(after, this.IndexOf(to));
+			return this.Slice(start: start, end: this.IndexOf(to));
 		}
 
 		private string UnescapeSearch()

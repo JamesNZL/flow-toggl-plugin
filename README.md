@@ -94,6 +94,8 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 | <img src="assets/tip.png" width="50px">      | [`help`](#tgl-help)         |
 | <img src="assets/refresh.png" width="50px">  | [`refresh`](#tgl-refresh)   |
 
+---
+
 ## `tgl`
 
 ### Description
@@ -109,6 +111,8 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 
 ### Screenshots
 ![Default hotkeys](./assets/screenshots/default.jpg)
+
+---
 
 ## `tgl start`
 
@@ -142,6 +146,8 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 
 ![Start time in the past](./assets/screenshots/start-past.jpg)
 
+---
+
 ## `tgl stop`
 
 ### Description
@@ -165,6 +171,8 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 ### Screenshots
 ![Stopping running time entry](./assets/screenshots/stop.jpg)
 
+---
+
 ## `tgl continue`
 
 ### Description
@@ -180,6 +188,8 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 
 ### Screenshots
 ![Continue previous time entry](./assets/screenshots/continue.jpg)
+
+---
 
 ## `tgl edit`
 
@@ -217,6 +227,8 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 ### Screenshots
 ![Editing running time entry](./assets/screenshots/edit.jpg)
 
+---
+
 ## `tgl delete`
 
 ### Description
@@ -231,6 +243,8 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 
 ### Screenshots
 ![Deleting running time entry](./assets/screenshots/delete.jpg)
+
+---
 
 ## `tgl reports`
 
@@ -278,6 +292,8 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 
 ![View tracked time report by entries](./assets/screenshots/reports-entries.jpg)
 
+---
+
 ## `tgl browser`
 
 ### Description
@@ -285,6 +301,8 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 
 ### Usage Examples
 - `tgl browser`
+
+---
 
 ## `tgl help`
 
@@ -297,6 +315,8 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 ### Notes
 > **Note**  
 > 1. This command simply opens this `README` file to [Command Reference](#command-reference).
+
+---
 
 ## `tgl refresh`
 
@@ -314,6 +334,8 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 >    2. Client names,
 >    3. Reports time zone, and
 >    4. First day of the week.
+
+---
 
 # Licence
 

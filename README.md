@@ -1,6 +1,10 @@
 <div align="center">
-   <img src="assets/header/flow.png" width="12.5%">
-   <img src="assets/header/toggl.png" width="12.5%">
+   <a href="https://flowlauncher.com/">
+      <img src="assets/header/flow.png" width="12.5%">
+   </a>
+   <a href="https://track.toggl.com/timer">
+      <img src="assets/header/toggl.png" width="12.5%">
+   </a>
    <br>
    <img src="assets/start.png" width="12.5%">
    <img src="assets/stop.png" width="12.5%">

@@ -556,13 +556,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				new Result
 				{
 					Title = Settings.HelpCommand,
-					SubTitle = "Read plugin documentation",
+					SubTitle = "Open plugin command reference",
 					IcoPath = "tip.png",
 					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.HelpCommand} ",
 					Score = 75,
 					Action = c =>
 					{
-						this._context.API.OpenUrl(new Uri(@"https://github.com/JamesNZL/flow-toggl-plugin/blob/main/README.md"));
+						this._context.API.OpenUrl(new Uri(@"https://github.com/JamesNZL/flow-toggl-plugin/blob/main/README.md#command-reference"));
 						return true;
 					},
 				},
@@ -2140,7 +2140,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						usageResult = new Result
 						{
 							Title = Settings.UsageTipTitle,
-							SubTitle = $"Use -<number> to view past reports",
+							SubTitle = $"Use -[number] to view older reports",
 							IcoPath = "tip.png",
 							AutoCompleteText = $"{query.ActionKeyword} {queryToSpan} -",
 							Score = 1,

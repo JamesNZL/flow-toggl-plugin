@@ -83,13 +83,13 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 
 | Icon                                         | Link                        |
 | -------------------------------------------- | --------------------------- |
-| <img src="assets/app.png" width="50px">      | [`tgl`](#tgl)               |
+| <img src="assets/app.png" width="50px">      | [`tgl`](#tgl-1)             |
 | <img src="assets/start.png" width="50px">    | [`start`](#tgl-start)       |
 | <img src="assets/stop.png" width="50px">     | [`stop`](#tgl-stop)         |
 | <img src="assets/continue.png" width="50px"> | [`continue`](#tgl-continue) |
 | <img src="assets/edit.png" width="50px">     | [`edit`](#tgl-edit)         |
 | <img src="assets/delete.png" width="50px">   | [`delete`](#tgl-delete)     |
-| <img src="assets/reports.png" width="50px">  | [`reports`](#tgl-reports)   |
+| <img src="assets/reports.png" width="50px">  | [`reports`](#tgl-reports-1) |
 | <img src="assets/browser.png" width="50px">  | [`browser`](#tgl-browser)   |
 | <img src="assets/tip.png" width="50px">      | [`help`](#tgl-help)         |
 | <img src="assets/refresh.png" width="50px">  | [`refresh`](#tgl-refresh)   |

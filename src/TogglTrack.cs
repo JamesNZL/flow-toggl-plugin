@@ -610,9 +610,105 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				return new List<Result>();
 			}
 
+			var me = (await this._GetMe())?.ToMe();
+			if (me is null)
+			{
+				return this.NotifyUnknownError();
+			}
+
+			var pastTimeEntries = (await this._GetMaxReportTimeEntries())?.ToSummaryReport(me);
+
+			var project = me.GetProject(this._state.SelectedIds.Project);
+			long workspaceId = project?.WorkspaceId ?? me.DefaultWorkspaceId;
+
+			string projectName = project?.WithClientName ?? Settings.NoProjectName;
+			string description = new TransformedQuery(query)
+				.ToString(TransformedQuery.Escaping.Unescaped);
+
 			var results = new List<Result>();
 
-			// TODO: Add result to start blank time entry
+			// TODO: Add result to start time entry
+			results.Add(new Result
+			{
+				Title = $"Start {description}{((string.IsNullOrEmpty(description) ? string.Empty : " "))}now",
+				SubTitle = projectName,
+				IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "start.png"),
+				AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
+				// TODO: Decide scorings
+				Score = 10000,
+				Action = _ =>
+				{
+					Task.Run(async delegate
+					{
+						try
+						{
+							this._context.API.LogInfo("TogglTrack", $"{this._state.SelectedIds.Project}, {workspaceId}, {description}");
+
+							var runningTimeEntry = (await this._GetRunningTimeEntry(true))?.ToTimeEntry(me);
+							if (runningTimeEntry is not null)
+							{
+								var stoppedTimeEntry = (await this._client.StopTimeEntry(
+									workspaceId: runningTimeEntry.WorkspaceId,
+									id: runningTimeEntry.Id
+								))?.ToTimeEntry(me);
+
+								if (stoppedTimeEntry?.Id is null)
+								{
+									throw new Exception("An API error was encountered.");
+								}
+							}
+
+							var createdTimeEntry = (await this._client.CreateTimeEntry(
+								workspaceId: workspaceId,
+								projectId: this._state.SelectedIds.Project,
+								description: description,
+								start: DateTimeOffset.UtcNow
+							))?.ToTimeEntry(me);
+
+							if (createdTimeEntry?.Id is null)
+							{
+								throw new Exception("An API error was encountered.");
+							}
+
+							this.ShowSuccessMessage($"Started {createdTimeEntry.GetRawDescription()}", projectName, "start.png");
+
+							// Update cached running time entry state
+							this.RefreshCache();
+						}
+						catch (Exception exception)
+						{
+							this._context.API.LogException("TogglTrack", "Failed to start time entry", exception);
+							this.ShowErrorMessage("Failed to start time entry.", exception.Message);
+						}
+						finally
+						{
+							this._state.SelectedIds.Project = -1;
+						}
+					});
+
+					return true;
+				},
+			});
+
+			// TODO: Parse time span flag and replace start result
+
+			// TODO: Decide usage tips/examples/warnings
+			// if (this._settings.ShowUsageTips)
+			// {
+			// 	results.Add(new Result
+			// 	{
+			// 		Title = Settings.UsageTipTitle,
+			// 		SubTitle = $"Use {Settings.TimeSpanFlag} after the description to specify the start time",
+			// 		IcoPath = "tip.png",
+			// 		AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ",
+			// 		Score = 1,
+			// 		Action = _ =>
+			// 		{
+			// 			this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ");
+			// 			return false;
+			// 		}
+			// 	});
+			// }
 
 			// TODO: Add previously matching time entries
 			// Action is to start the time entry directly?

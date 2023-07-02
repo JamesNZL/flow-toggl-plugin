@@ -890,8 +890,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					if (this._settings.ShowUsageExamples)
 					{
-						var queryToFlag = new TransformedQuery(query)
-							.To(Settings.TimeSpanFlag);
+						string queryToFlag = new TransformedQuery(query)
+							.To(Settings.TimeSpanFlag)
+							.ToString();
 
 						results.Add(new Result
 						{
@@ -1867,7 +1868,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					{
 						string flag = exception.Message;
 
-						var queryToFlag = new TransformedQuery(query)
+						string queryToFlag = new TransformedQuery(query)
 							.To(flag)
 							.ToString();
 
@@ -2077,14 +2078,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			if ((query.SearchTerms.Length == ArgumentIndices.Span) || !Settings.ReportsSpanArguments.Exists(span => Regex.IsMatch(query.SearchTerms[ArgumentIndices.Span], $"{span.Argument}({Settings.ReportsSpanOffsetRegex})?")))
 			{
-				string queryToSpan = new TransformedQuery(query)
-					.To(ArgumentIndices.Span)
-					.ToString();
-
-				// TODO: #84
-				string spanQuery = new TransformedQuery(query)
-					.After(ArgumentIndices.Span)
-					.ToString();
+				(string queryToSpan, string spanQuery) = new TransformedQuery(query)
+					.Split(ArgumentIndices.Span)
+					.ToStrings();
 
 				// Implementation of eg '-5' to set span to be 5 [days | weeks | months | years] ago
 				Match spanOffsetMatch = Settings.ReportsSpanOffsetRegex.Match(spanQuery);
@@ -2170,13 +2166,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			 */
 			if ((query.SearchTerms.Length == ArgumentIndices.Grouping) || !Settings.ReportsGroupingArguments.Exists(grouping => grouping.Argument == query.SearchTerms[ArgumentIndices.Grouping]))
 			{
-				string queryToGrouping = new TransformedQuery(query)
-					.To(ArgumentIndices.Grouping)
-					.ToString();
-
-				string groupingsQuery = new TransformedQuery(query)
-					.After(ArgumentIndices.Grouping)
-					.ToString();
+				(string queryToGrouping, string groupingsQuery) = new TransformedQuery(query)
+					.Split(ArgumentIndices.Grouping)
+					.ToStrings();
 
 				var filteredGroupings = (string.IsNullOrEmpty(groupingsQuery))
 					? Settings.ReportsGroupingArguments

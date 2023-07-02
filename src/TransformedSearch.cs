@@ -24,6 +24,10 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		{
 			this.SearchTerms = query.SearchTerms;
 		}
+		private TransformedQuery(string[] searchTerms)
+		{
+			this.SearchTerms = searchTerms;
+		}
 
 		public int IndexOf(string value)
 		{
@@ -66,6 +70,14 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return this.Slice(start: start, end: this.IndexOf(to));
 		}
 
+		public (TransformedQuery, TransformedQuery) Split(int index)
+		{
+			return (
+				new TransformedQuery(this.SearchTerms[..index]),
+				new TransformedQuery(this.SearchTerms[index..])
+			);
+		}
+
 		private string UnescapeSearch()
 		{
 			return Regex.Replace(this.ToString(), @"(\\(?!\\))", string.Empty);
@@ -85,6 +97,17 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				TransformedQuery.Escaping.Escaped => TransformedQuery.EscapeDescription(this.ToString()),
 				_ => this.ToString(),
 			};
+		}
+	}
+
+	internal static class TupleExtensions
+	{
+		public static (string, string) ToStrings(this (TransformedQuery queryOne, TransformedQuery queryTwo) tuple)
+		{
+			return (
+				tuple.queryOne.ToString(),
+				tuple.queryTwo.ToString()
+			);
 		}
 	}
 }

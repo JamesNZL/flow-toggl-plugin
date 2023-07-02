@@ -2362,6 +2362,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								}
 							}
 
+							subGroupQuery = new TransformedQuery(query)
+								.After(ArgumentIndices.SubGroupingName)
+								.RemoveAll(Settings.ShowStopFlag)
+								.ToString(TransformedQuery.Escaping.Unescaped);
+							bool hasShowStopFlag = query.SearchTerms.Contains(Settings.ShowStopFlag);
+
 							var filteredTimeEntries = report.SelectMany(timeEntryGroup =>
 							{
 								return (string.IsNullOrEmpty(subGroupQuery))
@@ -2374,11 +2380,17 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							subResults = subResults.Concat(filteredTimeEntries.Select(timeEntry =>
 							{
 								DateTimeOffset startDate = timeEntry.StartDate.ToLocalTime();
+								DateTimeOffset? stopDate = timeEntry.StopDate?.ToLocalTime();
+								string stopString = (stopDate is not null)
+									? $"{stopDate?.ToString("t")} {stopDate?.ToString("d")}"
+									: "now";
 
 								return new Result
 								{
 									Title = timeEntry.GetDescription(),
-									SubTitle = $"{timeEntry.DetailedElapsed} ({timeEntry.HumanisedStart} at {startDate.ToString("t")} {startDate.ToString("ddd")} {startDate.ToString("m")})",
+									SubTitle = (hasShowStopFlag)
+											? $"{timeEntry.DetailedElapsed} ({startDate.ToString("t")} {startDate.ToString("d")} to {stopString})"
+											: $"{timeEntry.DetailedElapsed} ({timeEntry.HumanisedStart} at {startDate.ToString("t")} {startDate.ToString("ddd")} {startDate.ToString("m")})",
 									IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "reports.png"),
 									AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} {project?.KebabName ?? "no-project"} {timeEntry.GetDescription(escapePotentialFlags: true)}",
 									Score = timeEntry.GetScoreByStart(),
@@ -2390,6 +2402,24 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									},
 								};
 							}));
+
+							if (this._settings.ShowUsageTips && !hasShowStopFlag)
+							{
+								subResults = subResults.Append(new Result
+								{
+									// ! see #79... also Flow-Launcher/Flow.Launcher#2201 and Flow-Launcher/Flow.Launcher#2202
+									Title = $"{Settings.UsageTipTitle}{new string('\u200B', subGroupQuery.Length)}",
+									SubTitle = $"Use {Settings.ShowStopFlag} to display time entry stop times",
+									IcoPath = "tip.png",
+									AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.ShowStopFlag} ",
+									Score = 1,
+									Action = c =>
+									{
+										this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {Settings.ShowStopFlag} ");
+										return false;
+									}
+								});
+							}
 						}
 						else
 						{
@@ -2581,6 +2611,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								}
 							}
 
+							groupQuery = new TransformedQuery(query)
+								.After(ArgumentIndices.GroupingName)
+								.RemoveAll(Settings.ShowStopFlag)
+								.ToString(TransformedQuery.Escaping.Unescaped);
+							bool hasShowStopFlag = query.SearchTerms.Contains(Settings.ShowStopFlag);
+
 							var filteredTimeEntries = report.SelectMany(timeEntryGroup =>
 							{
 								return (string.IsNullOrEmpty(groupQuery))
@@ -2593,11 +2629,17 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							subResults = subResults.Concat(filteredTimeEntries.Select(timeEntry =>
 							{
 								DateTimeOffset startDate = timeEntry.StartDate.ToLocalTime();
+								DateTimeOffset? stopDate = timeEntry.StopDate?.ToLocalTime();
+								string stopString = (stopDate is not null)
+									? $"{stopDate?.ToString("t")} {stopDate?.ToString("d")}"
+									: "now";
 
 								return new Result
 								{
 									Title = timeEntry.GetDescription(),
-									SubTitle = $"{timeEntry.DetailedElapsed} ({timeEntry.HumanisedStart} at {startDate.ToString("t")} {startDate.ToString("ddd")} {startDate.ToString("m")})",
+									SubTitle = (hasShowStopFlag)
+										? $"{timeEntry.DetailedElapsed} ({startDate.ToString("t")} {startDate.ToString("d")} to {stopString})"
+										: $"{timeEntry.DetailedElapsed} ({timeEntry.HumanisedStart} at {startDate.ToString("t")} {startDate.ToString("ddd")} {startDate.ToString("m")})",
 									IcoPath = this._colourIconProvider.GetColourIcon(timeEntry.Project?.Colour, "reports.png"),
 									AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} {timeEntry.GetDescription(escapePotentialFlags: true)}",
 									Score = timeEntry.GetScoreByStart(),
@@ -2609,6 +2651,24 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									},
 								};
 							}));
+
+							if (this._settings.ShowUsageTips && !hasShowStopFlag)
+							{
+								subResults = subResults.Append(new Result
+								{
+									// ! see #79... also Flow-Launcher/Flow.Launcher#2201 and Flow-Launcher/Flow.Launcher#2202
+									Title = $"{Settings.UsageTipTitle}{new string('\u200B', groupQuery.Length)}",
+									SubTitle = $"Use {Settings.ShowStopFlag} to display time entry stop times",
+									IcoPath = "tip.png",
+									AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.ShowStopFlag} ",
+									Score = 1,
+									Action = c =>
+									{
+										this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {Settings.ShowStopFlag} ");
+										return false;
+									}
+								});
+							}
 						}
 						else
 						{

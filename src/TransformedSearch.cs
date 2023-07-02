@@ -1,5 +1,6 @@
 using System;
 using System.Text.RegularExpressions;
+using System.Linq;
 
 namespace Flow.Launcher.Plugin.TogglTrack
 {
@@ -29,9 +30,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			this.SearchTerms = searchTerms;
 		}
 
-		public int IndexOf(string value)
+		public int IndexOf(string term)
 		{
-			return Array.IndexOf(this.SearchTerms, value);
+			return Array.IndexOf(this.SearchTerms, term);
 		}
 
 		private TransformedQuery Slice(int? start = null, int? end = null)
@@ -45,9 +46,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return this.Slice(end: index);
 		}
 
-		public TransformedQuery To(string value)
+		public TransformedQuery To(string term)
 		{
-			return this.Slice(end: this.IndexOf(value));
+			return this.Slice(end: this.IndexOf(term));
 		}
 
 		public TransformedQuery After(int index)
@@ -55,9 +56,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return this.Slice(start: index);
 		}
 
-		public TransformedQuery After(string value)
+		public TransformedQuery After(string term)
 		{
-			return this.Slice(start: this.IndexOf(value) + 1);
+			return this.Slice(start: this.IndexOf(term) + 1);
 		}
 
 		public TransformedQuery Between(int after, int to)
@@ -76,6 +77,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				new TransformedQuery(this.SearchTerms[..index]),
 				new TransformedQuery(this.SearchTerms[index..])
 			);
+		}
+
+		public TransformedQuery RemoveAll(string term)
+		{
+			this.SearchTerms = this.SearchTerms.Where(searchTerm => searchTerm != term).ToArray();
+			return this;
 		}
 
 		private string UnescapeSearch()

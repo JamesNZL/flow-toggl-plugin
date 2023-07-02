@@ -2,6 +2,41 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.0.0](https://github.com/JamesNZL/flow-toggl-plugin/compare/v2.10.1...v3.0.0) (2023-07-02)
+
+
+### ⚠ BREAKING CHANGES
+
+* **ux:** `-t` no longer works to specify the stop time with `tgl stop`, as this is the flag that is used to specify the start time with all other commands.
+
+Instead, `-T` will take its place to specify the stop time to match the other commands.
+
+### Features
+
+* :technologist: create `TransformedQuery` extension class ([#82](https://github.com/JamesNZL/flow-toggl-plugin/issues/82)) ([0cab081](https://github.com/JamesNZL/flow-toggl-plugin/commit/0cab081db194f024317c72990cb8be97e717153a))
+* **readme:** :memo: add command reference to `README` ([#60](https://github.com/JamesNZL/flow-toggl-plugin/issues/60)) ([9df1397](https://github.com/JamesNZL/flow-toggl-plugin/commit/9df1397857d7a44e0ff5958a4399503bacbca54a))
+* **reports:** :children_crossing: change `-E` show stop time flag to more sensible `-S` ([#81](https://github.com/JamesNZL/flow-toggl-plugin/issues/81)) ([c188242](https://github.com/JamesNZL/flow-toggl-plugin/commit/c1882423254168f5cee5b02443c61bd30654d48f))
+* **reports:** :sparkles: add `-E` to show time entry stop times ([#81](https://github.com/JamesNZL/flow-toggl-plugin/issues/81)) ([349f152](https://github.com/JamesNZL/flow-toggl-plugin/commit/349f15227d084cf44208fe669b93e434b76dd93f))
+* **reports:** :sparkles: display totals for fuzzy filtered reports ([#64](https://github.com/JamesNZL/flow-toggl-plugin/issues/64)) ([7568f2a](https://github.com/JamesNZL/flow-toggl-plugin/commit/7568f2a6bb6eab5927e1af0bcfb650b18da7e6d1))
+* **ux:** :boom: use `-T` flag to change `tgl stop` end time ([#58](https://github.com/JamesNZL/flow-toggl-plugin/issues/58)) ([2363573](https://github.com/JamesNZL/flow-toggl-plugin/commit/2363573837a7c2f35e06b7dd8bd0b0dd4186eaa6))
+* **ux:** :children_crossing: add `tgl edit` flag to clear description ([#66](https://github.com/JamesNZL/flow-toggl-plugin/issues/66)) ([d499a9b](https://github.com/JamesNZL/flow-toggl-plugin/commit/d499a9bcb10909afa11ec0c53dc4fc5c37e1e35a))
+* **ux:** :children_crossing: implement `continue`-like autofill for `tgl edit` ([#56](https://github.com/JamesNZL/flow-toggl-plugin/issues/56)) ([74f58a2](https://github.com/JamesNZL/flow-toggl-plugin/commit/74f58a2ade03d13c0db98bd0268f0d93710a986c)), closes [#28](https://github.com/JamesNZL/flow-toggl-plugin/issues/28)
+* **ux:** :lipstick: remove `start`/`stop` `now` options when time span is specified ([#68](https://github.com/JamesNZL/flow-toggl-plugin/issues/68)) ([6a742d7](https://github.com/JamesNZL/flow-toggl-plugin/commit/6a742d741d6161886d530f07ef9839f8ec041639))
+* **ux:** :sparkles: add `tgl help` command ([#65](https://github.com/JamesNZL/flow-toggl-plugin/issues/65)) ([2101067](https://github.com/JamesNZL/flow-toggl-plugin/commit/210106757c2d55a5a50c70693a615813c5f50c93))
+* **ux:** :sparkles: implement flag escaping ([#67](https://github.com/JamesNZL/flow-toggl-plugin/issues/67)) ([8a657d3](https://github.com/JamesNZL/flow-toggl-plugin/commit/8a657d36c003bcf702e1b8bb1c4211e9b2aa9713))
+
+
+### Bug Fixes
+
+* **structures:** :bug: fix default trailing space behaviour ([#62](https://github.com/JamesNZL/flow-toggl-plugin/issues/62), [#63](https://github.com/JamesNZL/flow-toggl-plugin/issues/63)) ([97b4b8a](https://github.com/JamesNZL/flow-toggl-plugin/commit/97b4b8a568d4dcaa62365f6178e42fd30755a017))
+* **ux:** :bug: fix broken fuzzy filter on detailed `tgl reports [span] projects` ([#78](https://github.com/JamesNZL/flow-toggl-plugin/issues/78)) ([9bfdb37](https://github.com/JamesNZL/flow-toggl-plugin/commit/9bfdb377e2eee3c219290312986ad17dc665e0cb))
+* **ux:** :bug: fix buggy `tgl reports span-[offset]` detection ([#79](https://github.com/JamesNZL/flow-toggl-plugin/issues/79)) ([6425713](https://github.com/JamesNZL/flow-toggl-plugin/commit/6425713de50c1b52884dd369596f7b3e9ec41a43))
+* **ux:** :bug: fix fuzzy filter of 'static' results ([#75](https://github.com/JamesNZL/flow-toggl-plugin/issues/75)) ([e1a4970](https://github.com/JamesNZL/flow-toggl-plugin/commit/e1a497009bfe91e41ece9fc242b806df45f30977))
+* **ux:** :bug: fix inverse ordering of `tgl edit` projects ([#74](https://github.com/JamesNZL/flow-toggl-plugin/issues/74)) ([03f2c78](https://github.com/JamesNZL/flow-toggl-plugin/commit/03f2c7802a2ed8d328e4d6966002a259527f7385))
+* **ux:** :bug: fix non-reversible `\` escaping ([#69](https://github.com/JamesNZL/flow-toggl-plugin/issues/69)) ([3f5a679](https://github.com/JamesNZL/flow-toggl-plugin/commit/3f5a679b6af2064d52a09b058f56d1c5b6affef5))
+* **ux:** :bug: fix result score overflow ([#71](https://github.com/JamesNZL/flow-toggl-plugin/issues/71)) ([1cc9119](https://github.com/JamesNZL/flow-toggl-plugin/commit/1cc91194ed47967a8d88d8d27b9f239e6fa4a33e))
+* **ux:** :bug: use `string.IsNullOrEmpty` everywhere ([#76](https://github.com/JamesNZL/flow-toggl-plugin/issues/76)) ([8909d97](https://github.com/JamesNZL/flow-toggl-plugin/commit/8909d9711d9d17d38795455dd76af8e6c98e185e))
+
 ### [2.10.1](https://github.com/JamesNZL/flow-toggl-plugin/compare/v2.10.0...v2.10.1) (2023-06-15)
 
 

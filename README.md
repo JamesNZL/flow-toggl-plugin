@@ -270,6 +270,8 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 
 ![View detailed tracked time report by project entries](./assets/screenshots/reports-projects-entries-detailed.jpg)
 
+![View detailed tracked time report by project entries with stop time](./assets/screenshots/reports-projects-entries-detailed-stop.jpg)
+
 ![View tracked time report by client](./assets/screenshots/reports-clients.jpg)
 
 ![View tracked time report by client projects](./assets/screenshots/reports-clients-projects.jpg)

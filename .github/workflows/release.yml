@@ -6,7 +6,7 @@ permissions:
 on:
   push:
     paths:
-    - 'src/plugins.json'
+    - 'src/plugin.json'
 
 jobs:
   publish:

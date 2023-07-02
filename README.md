@@ -134,6 +134,7 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 > **Note**  
 > 1. If a time entry is currently running, `tgl start` will first stop the running time entry before starting the new time entry.
 > 2. If a time entry is not currently running, there will be an option to start the new time entry at the previous stop time (if one exists).
+> 3. To include `'-t'` in your time entry description, you can escape it with a backslash—eg `tgl start \-t`
 
 > **Warning**  
 > 1. The `Time Span` flag must be the entered after the time entry description. Anything entered after the `-t` flag will be ignored.
@@ -216,7 +217,8 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 > 2. The `Clear Description` flag will only empty the time entry description from the Flow search bar, so a replacement can be input quickly.
 >    > **Note**  
 >    > To actually clear a time entry's description, use the `Clear Description` flag then hit the `Enter` action key to save.
-> 4. `tgl edit` will use the entered description to perform a fuzzy match against all previously tracked time entries (within the past 12 months), allowing you to quickly apply a previous time entry's description/project/etc.
+> 3. `tgl edit` will use the entered description to perform a fuzzy match against all previously tracked time entries (within the past 12 months), allowing you to quickly apply a previous time entry's description/project/etc.
+> 4. To include a flag's text in your time entry description, you can escape it with a backslash—eg `tgl edit \-t \-T \-p \-C`
 
 > **Warning**  
 > 1. The `Time Span`/`End Time Span` flags must be the entered after the time entry description. Anything entered after the flag(s) will be ignored.
@@ -270,6 +272,7 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 > **Note**  
 > 1. Reports of tracked time entries can be filtered with a fuzzy search.
 > 2. Selecting a time entry will autofill the `tgl start` command.
+> 3. To include `'-S'` in your fuzzy search, you can escape it with a backslash—eg `tgl reports day entries \-S`
 
 ### Screenshots
 ![View tracked time reports](./assets/screenshots/reports.jpg)

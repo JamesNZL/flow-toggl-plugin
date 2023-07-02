@@ -209,7 +209,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 
 			string rawDescription = (escapePotentialFlags)
-				? Main.EscapeDescription(this._rawDescription)
+				? TransformedQuery.EscapeDescription(this._rawDescription)
 				: this._rawDescription;
 
 			if (!withTrailingSpace)
@@ -228,7 +228,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 
 			return (escapePotentialFlags)
-				? Main.EscapeDescription(this._rawDescription)
+				? TransformedQuery.EscapeDescription(this._rawDescription)
 				: this._rawDescription;
 		}
 
@@ -286,6 +286,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		// Key as -1 for 'No Project' or 'No Client' cases
 		public Dictionary<long, SummaryReportGroup> Groups;
 
+		internal static long GetGroupKey(long? id)
+		{
+			return id ?? -1;
+		}
+
 		public SummaryReport(SummaryReportResponse response, Me me)
 		{
 			this._me = me;
@@ -297,11 +302,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			this._me = summary._me;
 
 			this.Groups = summary.Groups.ToDictionary(keySelector: pair => pair.Key, elementSelector: pair => pair.Value.Clone());
-		}
-
-		internal static long GetGroupKey(long? id)
-		{
-			return id ?? -1;
 		}
 
 		public SummaryReport Clone()
@@ -575,7 +575,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 
 			string rawTitle = (escapePotentialFlags)
-				? Main.EscapeDescription(this._rawTitle)
+				? TransformedQuery.EscapeDescription(this._rawTitle)
 				: this._rawTitle;
 
 			if (!withTrailingSpace)
@@ -594,7 +594,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 
 			return (escapePotentialFlags)
-				? Main.EscapeDescription(this._rawTitle)
+				? TransformedQuery.EscapeDescription(this._rawTitle)
 				: this._rawTitle;
 		}
 

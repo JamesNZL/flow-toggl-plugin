@@ -1,5 +1,4 @@
 using System.Windows.Controls;
-using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -28,35 +27,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			LastCommand: string.Empty,
 			null
 		);
-
-		public static string ExtractQueryTo(Query query, int index)
-		{
-			return string.Join(" ", query.SearchTerms.Take(index));
-		}
-
-		public static string ExtractQueryAfter(Query query, int index)
-		{
-			return (index == 1)
-				// Expect slight performance improvement by using query.SecondToEndSearch directly
-				? query.SecondToEndSearch
-				: string.Join(" ", query.SearchTerms.Skip(index));
-		}
-
-		public static string ExtractQueryBetween(Query query, int after, int to)
-		{
-			return string.Join(" ", query.SearchTerms.Take(to).Skip(after));
-		}
-
-		public static string UnescapeSearch(string search)
-		{
-			return Regex.Replace(search, @"(\\(?!\\))", string.Empty);
-		}
-
-		public static string EscapeDescription(string description)
-		{
-			string escaped = Regex.Replace(description, @"(\\(?!\\))", @"\\");
-			return Regex.Replace(escaped, @" -", @" \-");
-		}
 
 		/// <summary>
 		/// Runs on plugin initialisation.

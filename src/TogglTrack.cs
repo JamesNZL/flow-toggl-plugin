@@ -604,6 +604,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					Settings.BrowserCommand => TogglTrack.ExclusiveResultsSource.Commands,
 					Settings.HelpCommand => TogglTrack.ExclusiveResultsSource.Commands,
 					Settings.RefreshCommand => TogglTrack.ExclusiveResultsSource.Commands,
+					// TODO: hmm...
 					_ => this._state.ResultsSource,
 				};
 			}
@@ -853,23 +854,22 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			var results = new List<Result>();
 
-			// TODO: decide impl of usage tips
-			// if (this._settings.ShowUsageTips && string.IsNullOrEmpty(description))
-			// {
-			// 	results.Add(new Result
-			// 	{
-			// 		Title = Settings.UsageTipTitle,
-			// 		SubTitle = $"Keep typing to specify the time entry description",
-			// 		IcoPath = "tip.png",
-			// 		AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
-			// 		Score = 1000,
-			// 		Action = _ =>
-			// 		{
-			// 			this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} ");
-			// 			return false;
-			// 		}
-			// 	});
-			// }
+			if (this._settings.ShowUsageTips && string.IsNullOrEmpty(description))
+			{
+				results.Add(new Result
+				{
+					Title = Settings.UsageTipTitle,
+					SubTitle = $"Keep typing to add a time entry description",
+					IcoPath = "tip.png",
+					AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
+					Score = int.MaxValue - 100000,
+					Action = _ =>
+					{
+						this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search}");
+						return false;
+					}
+				});
+			}
 
 			if (!query.SearchTerms.Contains(Settings.TimeSpanFlag))
 			{
@@ -934,22 +934,22 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					},
 				});
 
-				// if (this._settings.ShowUsageTips)
-				// {
-				// 	results.Add(new Result
-				// 	{
-				// 		Title = Settings.UsageTipTitle,
-				// 		SubTitle = $"Use {Settings.TimeSpanFlag} after the description to specify the start time",
-				// 		IcoPath = "tip.png",
-				// 		AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ",
-				// 		Score = 1,
-				// 		Action = _ =>
-				// 		{
-				// 			this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ");
-				// 			return false;
-				// 		}
-				// 	});
-				// }
+				if (this._settings.ShowUsageTips)
+				{
+					results.Add(new Result
+					{
+						Title = Settings.UsageTipTitle,
+						SubTitle = $"Use {Settings.TimeSpanFlag} after the description to specify the start time",
+						IcoPath = "tip.png",
+						AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ",
+						Score = int.MaxValue - 200000,
+						Action = _ =>
+						{
+							this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ");
+							return false;
+						}
+					});
+				}
 			}
 			else
 			{

@@ -715,39 +715,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			// TODO: Parse @, open project selection screen
 			// TODO: must save previous query
 
-			// TODO: Add previously matching time entries
+			// Add previously matching time entries
 			// Action is to start the time entry directly?
 			// ? How about manipulating the start time?
 			// Scorings
-			// if ((!string.IsNullOrEmpty(description)) && (pastTimeEntries is not null))
-			// {
-			// 	results.AddRange(
-			// 		pastTimeEntries.Groups.Values.SelectMany(project =>
-			// 		{
-			// 			if (project.SubGroups is null)
-			// 			{
-			// 				return Enumerable.Empty<Result>();
-			// 			}
-
-			// 			var filteredTimeEntries = project.SubGroups.Values.Where(timeEntry => this._context.API.FuzzySearch(description, timeEntry.GetTitle()).Score > 0);
-
-			// 			return filteredTimeEntries.Select(timeEntry => new Result
-			// 			{
-			// 				Title = timeEntry.GetTitle(),
-			// 				SubTitle = $"{project.Project?.WithClientName ?? Settings.NoProjectName} | {timeEntry.HumanisedElapsed}",
-			// 				IcoPath = this._colourIconProvider.GetColourIcon(project.Project?.Colour, "continue.png"),
-			// 				AutoCompleteText = $"{query.ActionKeyword} {Settings.ContinueCommand} {timeEntry.GetTitle(escapePotentialFlags: true)}",
-			// 				Score = timeEntry.GetScoreByStart(),
-			// 				Action = _ =>
-			// 				{
-			// 					this._state.SelectedIds.Project = project.Project?.Id;
-			// 					this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project.Project?.KebabName ?? "no-project"} {timeEntry.GetRawTitle(withTrailingSpace: true, escapePotentialFlags: true)}");
-			// 					return false;
-			// 				},
-			// 			});
-			// 		})
-			// 	);
-			// }
+			results.AddRange(await this._GetContinueResults(token, query));
 
 			// TODO: Add commands
 
@@ -1321,6 +1293,14 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 		private async ValueTask<List<Result>> _GetContinueResults(CancellationToken token, Query query)
 		{
+			string entriesQuery = new TransformedQuery(query)
+				.ToString(TransformedQuery.Escaping.Unescaped);
+
+			if (string.IsNullOrEmpty(entriesQuery))
+			{
+				return new List<Result>();
+			}
+
 			var me = (await this._GetMe(token))?.ToMe();
 			if (me is null)
 			{
@@ -1328,42 +1308,39 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 
 			var timeEntries = (await this._GetMaxReportTimeEntries(token))?.ToSummaryReport(me);
-
 			if (timeEntries is null)
 			{
-				return new List<Result>
-				{
-					new Result
-					{
-						Title = $"No previous time entries",
-						SubTitle = "There are no previous time entries to continue.",
-						IcoPath = this._context.CurrentPluginMetadata.IcoPath,
-						Action = _ =>
-						{
-							return true;
-						},
-					},
-				};
+				return new List<Result>();
+				// {
+				// 	new Result
+				// 	{
+				// 		Title = $"No previous time entries",
+				// 		SubTitle = "There are no previous time entries to continue.",
+				// 		IcoPath = this._context.CurrentPluginMetadata.IcoPath,
+				// 		Action = _ =>
+				// 		{
+				// 			return true;
+				// 		},
+				// 	},
+				// };
 			}
 
-			var ArgumentIndices = new
-			{
-				Command = 0,
-				Description = 1,
-			};
+			// var ArgumentIndices = new
+			// {
+			// 	Command = 0,
+			// 	Description = 1,
+			// };
 
-			if (query.SearchTerms.Length == ArgumentIndices.Description)
-			{
-				// Start fetch for time entries asynchronously in the background
-				_ = Task.Run(() =>
-				{
-					_ = this._GetTimeEntries(token, force: true);
-				});
-			}
+			// if (query.SearchTerms.Length == ArgumentIndices.Description)
+			// {
+			// 	// Start fetch for time entries asynchronously in the background
+			// 	_ = Task.Run(() =>
+			// 	{
+			// 		_ = this._GetTimeEntries(token, force: true);
+			// 	});
+			// }
 
-			string entriesQuery = new TransformedQuery(query)
-				.After(ArgumentIndices.Description)
-				.ToString();
+			// TODO: parse time span flag
 
 			return timeEntries.Groups.Values.SelectMany(project =>
 			{
@@ -1372,9 +1349,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					return Enumerable.Empty<Result>();
 				}
 
-				var filteredTimeEntries = (string.IsNullOrEmpty(entriesQuery))
-					? project.SubGroups.Values
-					: project.SubGroups.Values.Where(timeEntry => this._context.API.FuzzySearch(entriesQuery, timeEntry.GetTitle()).Score > 0);
+				var filteredTimeEntries = project.SubGroups.Values.Where(timeEntry => this._context.API.FuzzySearch(entriesQuery, timeEntry.GetTitle()).Score > 0);
 
 				return filteredTimeEntries.Select(timeEntry => new Result
 				{
@@ -1382,10 +1357,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					SubTitle = $"{project.Project?.WithClientName ?? Settings.NoProjectName} | {timeEntry.HumanisedElapsed}",
 					IcoPath = this._colourIconProvider.GetColourIcon(project.Project?.Colour, "continue.png"),
 					AutoCompleteText = $"{query.ActionKeyword} {Settings.ContinueCommand} {timeEntry.GetTitle(escapePotentialFlags: true)}",
+					// TODO: scoring
 					Score = timeEntry.GetScoreByStart(),
 					Action = _ =>
 					{
 						this._state.SelectedIds.Project = project.Project?.Id;
+						// TODO: start time entry here
 						this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project.Project?.KebabName ?? "no-project"} {timeEntry.GetRawTitle(withTrailingSpace: true, escapePotentialFlags: true)}");
 						return false;
 					},

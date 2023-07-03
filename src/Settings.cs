@@ -33,7 +33,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		internal const string ProjectPrefix = "@";
 		internal const string EscapeCharacter = @"\";
 
-		internal const string EditProjectFlag = "-p";
 		internal const string ClearDescriptionFlag = "-C";
 		internal const string TimeSpanFlag = "-t";
 		internal const string TimeSpanEndFlag = "-T";

@@ -113,10 +113,10 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				: null;
 		}
 
-		public string ReplaceProject(string replacement)
+		public string ReplaceProject(string replacement, bool escapeIfEmpty = true)
 		{
 			string search = Settings.UnescapedProjectPrefixRegex.Replace(this.ToString(), replacement);
-			return (string.IsNullOrEmpty(search))
+			return (escapeIfEmpty && string.IsNullOrEmpty(search))
 				? $"{Settings.EscapeCharacter} "
 				: search;
 		}

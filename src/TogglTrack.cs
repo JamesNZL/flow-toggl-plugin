@@ -724,12 +724,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				this._state.ReportsShowDetailed = false;
 			}
 
-			var results = new List<Result>();
+			var resultTasks = new List<Task<List<Result>>>();
 
 			// * Add results to start time entry
 			if (this._state.ResultsSource is null || this._state.ResultsSource == TogglTrack.ExclusiveResultsSource.Start)
 			{
-				results.AddRange(await this._GetStartResults(token, query));
+				resultTasks.Add(Task.Run(async () => await this._GetStartResults(token, query)));
 			}
 			// TODO: Decide usage tips/examples/warnings
 
@@ -739,14 +739,16 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			// Scorings
 			if (this._state.ResultsSource is null)
 			{
-				results.AddRange(await this._GetContinueResults(token, query));
+				resultTasks.Add(Task.Run(async () => await this._GetContinueResults(token, query)));
 			}
 
 			// TODO: Add commands
 
 			// TODO: Different behaviour depending on Ctrl modifier (use ActionContext)
 
-			return results;
+			return (await Task.WhenAll(resultTasks))
+				.SelectMany(results => results)
+				.ToList();
 		}
 
 		private async ValueTask<List<Result>> _GetStartResults(CancellationToken token, Query query)

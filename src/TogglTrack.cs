@@ -68,7 +68,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		) _state = (
 			(false, string.Empty),
 			null,
-			(-1, null, -1),
+			(-1, -1, -1),
 			TogglTrack.EditProjectState.NoProjectChange,
 			false
 		);
@@ -582,7 +582,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			if (emptyQuery)
 			{
 				this._state.ResultsSource = null;
-				this._state.SelectedIds = (-1, null, -1);
+				this._state.SelectedIds = (-1, -1, -1);
 				this._state.EditProject = TogglTrack.EditProjectState.NoProjectChange;
 				this._state.ReportsShowDetailed = false;
 			}
@@ -817,7 +817,10 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				return projects;
 			}
 
-			var project = me.GetProject(this._state.SelectedIds.Project);
+			long? projectId = (this._state.SelectedIds.Project == -1)
+				? null
+				: this._state.SelectedIds.Project;
+			var project = me.GetProject(projectId);
 			long workspaceId = project?.WorkspaceId ?? me.DefaultWorkspaceId;
 
 			string projectName = project?.WithClientName ?? Settings.NoProjectName;
@@ -825,21 +828,41 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			var results = new List<Result>();
 
-			if (this._settings.ShowUsageTips && string.IsNullOrEmpty(description))
+			if (this._settings.ShowUsageTips)
 			{
-				results.Add(new Result
+				if (this._state.SelectedIds.Project == -1)
 				{
-					Title = Settings.UsageTipTitle,
-					SubTitle = $"Keep typing to add a time entry description",
-					IcoPath = "tip.png",
-					AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
-					Score = int.MaxValue - 100000,
-					Action = _ =>
+					results.Add(new Result
 					{
-						this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search}");
-						return false;
-					}
-				});
+						Title = Settings.UsageTipTitle,
+						SubTitle = $"Use {Settings.ProjectPrefix} to set the project for this time entry",
+						IcoPath = "tip.png",
+						AutoCompleteText = $"{query.ActionKeyword} {query.Search}{Settings.ProjectPrefix}",
+						Score = int.MaxValue - 150000,
+						Action = _ =>
+						{
+							this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search}{Settings.ProjectPrefix}");
+							return false;
+						}
+					});
+				}
+
+				if (string.IsNullOrEmpty(description))
+				{
+					results.Add(new Result
+					{
+						Title = Settings.UsageTipTitle,
+						SubTitle = $"Keep typing to add a time entry description",
+						IcoPath = "tip.png",
+						AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
+						Score = int.MaxValue - 100000,
+						Action = _ =>
+						{
+							this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search}");
+							return false;
+						}
+					});
+				}
 			}
 
 			if (!query.SearchTerms.Contains(Settings.TimeSpanFlag))
@@ -857,7 +880,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						{
 							try
 							{
-								this._context.API.LogInfo("TogglTrack", $"{this._state.SelectedIds.Project}, {workspaceId}, {description}");
+								this._context.API.LogInfo("TogglTrack", $"{projectId}, {workspaceId}, {description}");
 
 								var runningTimeEntry = (await this._GetRunningTimeEntry(CancellationToken.None, force: true))?.ToTimeEntry(me);
 								if (runningTimeEntry is not null)
@@ -875,7 +898,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 								var createdTimeEntry = (await this._client.CreateTimeEntry(
 									workspaceId: workspaceId,
-									projectId: this._state.SelectedIds.Project,
+									projectId: projectId,
 									description: description,
 									start: DateTimeOffset.UtcNow
 								))?.ToTimeEntry(me);
@@ -897,7 +920,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							}
 							finally
 							{
-								this._state.SelectedIds.Project = null;
+								this._state.SelectedIds.Project = -1;
 							}
 						});
 
@@ -958,7 +981,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							{
 								try
 								{
-									this._context.API.LogInfo("TogglTrack", $"{this._state.SelectedIds.Project}, {workspaceId}, {sanitisedDescription}, {startTimeSpan.ToString()}, time span flag");
+									this._context.API.LogInfo("TogglTrack", $"{projectId}, {workspaceId}, {sanitisedDescription}, {startTimeSpan.ToString()}, time span flag");
 
 									var runningTimeEntry = (await this._GetRunningTimeEntry(CancellationToken.None, force: true))?.ToTimeEntry(me);
 									if (runningTimeEntry is not null)
@@ -981,7 +1004,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 									var createdTimeEntry = (await this._client.CreateTimeEntry(
 										workspaceId: workspaceId,
-										projectId: this._state.SelectedIds.Project,
+										projectId: projectId,
 										description: sanitisedDescription,
 										start: startTime
 									))?.ToTimeEntry(me);
@@ -1003,7 +1026,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								}
 								finally
 								{
-									this._state.SelectedIds.Project = null;
+									this._state.SelectedIds.Project = -1;
 								}
 							});
 
@@ -1060,7 +1083,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					{
 						try
 						{
-							this._context.API.LogInfo("TogglTrack", $"{this._state.SelectedIds.Project}, {workspaceId}, {description}, at previous stop time");
+							this._context.API.LogInfo("TogglTrack", $"{projectId}, {workspaceId}, {description}, at previous stop time");
 
 							// Force a new fetch to ensure correctness
 							// User input has ended at this point so no responsiveness concerns
@@ -1076,7 +1099,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 							var createdTimeEntry = (await this._client.CreateTimeEntry(
 								workspaceId: workspaceId,
-								projectId: this._state.SelectedIds.Project,
+								projectId: projectId,
 								description: description,
 								start: (DateTimeOffset)lastTimeEntry.StopDate
 							))?.ToTimeEntry(me);
@@ -1098,7 +1121,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						}
 						finally
 						{
-							this._state.SelectedIds.Project = null;
+							this._state.SelectedIds.Project = -1;
 						}
 					});
 

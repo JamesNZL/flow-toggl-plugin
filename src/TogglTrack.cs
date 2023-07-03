@@ -825,6 +825,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				this._state.ResultsSource = TogglTrack.ExclusiveResultsSource.Start;
 
 				string currentSearch = new TransformedQuery(query)
+					.RemoveAll(Settings.EscapeCharacter)
 					.RemoveAll(Settings.UnescapedProjectPrefixRegex)
 					.Trim();
 				this._state.LastSearch = (string.IsNullOrEmpty(currentSearch))

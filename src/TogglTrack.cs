@@ -869,8 +869,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					SubTitle = projectName,
 					IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "start.png"),
 					AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
-					// TODO:
-					Score = 10000,
+					Score = int.MaxValue - 10000,
 					Action = _ =>
 					{
 						Task.Run(async delegate
@@ -917,7 +916,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							}
 							finally
 							{
-								this._state.SelectedIds.Project = -1;
+								this._state.SelectedIds.Project = null;
 							}
 						});
 
@@ -971,8 +970,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						SubTitle = projectName,
 						IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "start.png"),
 						AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
-						// TODO:
-						Score = 100000,
+						Score = int.MaxValue - 1000,
 						Action = _ =>
 						{
 							Task.Run(async delegate
@@ -1024,7 +1022,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								}
 								finally
 								{
-									this._state.SelectedIds.Project = -1;
+									this._state.SelectedIds.Project = null;
 								}
 							});
 
@@ -1048,7 +1046,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							SubTitle = $"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} -5 mins",
 							IcoPath = "tip.png",
 							AutoCompleteText = $"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} -5 mins",
-							Score = 100000,
+							Score = int.MaxValue - 1000,
 							Action = _ =>
 							{
 								this._context.API.ChangeQuery($"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} -5 mins");
@@ -1074,8 +1072,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				SubTitle = projectName,
 				IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "start.png"),
 				AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
-				// TODO: 
-				Score = 10000,
+				Score = int.MaxValue - 10000,
 				Action = _ =>
 				{
 					Task.Run(async delegate
@@ -1120,7 +1117,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						}
 						finally
 						{
-							this._state.SelectedIds.Project = -1;
+							this._state.SelectedIds.Project = null;
 						}
 					});
 

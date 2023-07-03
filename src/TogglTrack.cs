@@ -46,6 +46,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 		private enum ExclusiveResultsSource
 		{
+			Commands,
 			Start,
 			Stop,
 			Edit,
@@ -588,38 +589,53 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				this._state.EditProject = TogglTrack.EditProjectState.NoProjectChange;
 				this._state.ReportsShowDetailed = false;
 			}
+			else if (query.FirstSearch.StartsWith(Settings.EscapeCharacter))
+			{
+				// TODO: `tgl @` -> `tgl \@` ???
+				this._state.ResultsSource = null;
+			}
+			else
+			{
+				this._state.ResultsSource = (query.FirstSearch.ToLower()) switch
+				{
+					Settings.StopCommand => TogglTrack.ExclusiveResultsSource.Stop,
+					Settings.EditCommand => TogglTrack.ExclusiveResultsSource.Edit,
+					Settings.DeleteCommand => TogglTrack.ExclusiveResultsSource.Delete,
+					Settings.ReportsCommand => TogglTrack.ExclusiveResultsSource.Reports,
+					Settings.BrowserCommand => TogglTrack.ExclusiveResultsSource.Commands,
+					Settings.HelpCommand => TogglTrack.ExclusiveResultsSource.Commands,
+					Settings.RefreshCommand => TogglTrack.ExclusiveResultsSource.Commands,
+					_ => this._state.ResultsSource,
+				};
+			}
 
 			bool includeAllResults = (this._state.ResultsSource is null);
 
 			if (includeAllResults)
 			{
-				var resultTasks = new List<Task<List<Result>>>();
+				var results = new List<Result>();
 
 				// Add commands
-				// TODO: fuzzy search, priorities
-				resultTasks.Add(Task.Run(async () => await this._GetDefaultHotKeys(token, query)));
+				results.AddRange(await this._GetCommands(token, query));
 
 				// Add results to start time entry
-				resultTasks.Add(Task.Run(async () => await this._GetStartResults(token, query)));
+				results.AddRange(await this._GetStartResults(token, query));
 
 				if (emptyQuery)
 				{
-					return (await Task.WhenAll(resultTasks))
-						.SelectMany(results => results)
-						.ToList();
+					return results;
 				}
 
 				// Add previously matching time entries
 				// TODO: Different behaviour depending on Ctrl modifier (use ActionContext)
-				resultTasks.Add(Task.Run(async () => await this._GetContinueResults(token, query)));
+				results.AddRange(await this._GetContinueResults(token, query));
 
-				return (await Task.WhenAll(resultTasks))
-					.SelectMany(results => results)
-					.ToList();
+				return results;
 			}
 
 			return (this._state.ResultsSource) switch
 			{
+				TogglTrack.ExclusiveResultsSource.Commands => await this._GetCommands(token, query),
 				TogglTrack.ExclusiveResultsSource.Start => await this._GetStartResults(token, query),
 				TogglTrack.ExclusiveResultsSource.Stop => await this._GetStopResults(token, query),
 				TogglTrack.ExclusiveResultsSource.Edit => await this._GetEditResults(token, query),
@@ -629,7 +645,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			};
 		}
 
-		internal async ValueTask<List<Result>> _GetDefaultHotKeys(CancellationToken token, Query query)
+		internal async ValueTask<List<Result>> _GetCommands(CancellationToken token, Query query)
 		{
 			var results = new List<Result>
 			{
@@ -638,12 +654,10 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					Title = Settings.EditCommand,
 					SubTitle = "Edit a previous time entry",
 					IcoPath = "edit.png",
-					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} ",
+					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.EditCommand} ",
 					Score = 6000,
 					Action = _ =>
 					{
-						this._state.ResultsSource = TogglTrack.ExclusiveResultsSource.Edit;
-
 						this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.EditCommand} ");
 						return false;
 					}
@@ -653,12 +667,10 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					Title = Settings.DeleteCommand,
 					SubTitle = "Delete a previous time entry",
 					IcoPath = "delete.png",
-					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} ",
+					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.DeleteCommand} ",
 					Score = 4000,
 					Action = _ =>
 					{
-						this._state.ResultsSource = TogglTrack.ExclusiveResultsSource.Delete;
-
 						this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.DeleteCommand} ");
 						return false;
 					}
@@ -668,12 +680,10 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					Title = Settings.ReportsCommand,
 					SubTitle = "View tracked time reports",
 					IcoPath = "reports.png",
-					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} ",
+					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.ReportsCommand} ",
 					Score = 2000,
 					Action = _ =>
 					{
-						this._state.ResultsSource = TogglTrack.ExclusiveResultsSource.Reports;
-
 						this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.ReportsCommand} ");
 						return false;
 					},
@@ -683,7 +693,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					Title = Settings.BrowserCommand,
 					SubTitle = "Open Toggl Track in browser",
 					IcoPath = "browser.png",
-					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} ",
+					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.BrowserCommand} ",
 					Score = 100,
 					Action = _ =>
 					{
@@ -696,7 +706,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					Title = Settings.HelpCommand,
 					SubTitle = "Open plugin command reference",
 					IcoPath = "tip.png",
-					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} ",
+					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.HelpCommand} ",
 					Score = 75,
 					Action = _ =>
 					{
@@ -709,7 +719,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					Title = Settings.RefreshCommand,
 					SubTitle = "Refresh plugin cache",
 					IcoPath = "refresh.png",
-					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} ",
+					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.RefreshCommand} ",
 					Score = 5,
 					Action = _ =>
 					{
@@ -721,7 +731,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			if (await this._GetRunningTimeEntry(token) is null)
 			{
-				return results;
+				return (string.IsNullOrEmpty(query.FirstSearch))
+					? results
+					: results.FindAll(result => this._context.API.FuzzySearch(query.FirstSearch, result.Title).Score > 0);
 			}
 
 			results.Add(new Result
@@ -729,18 +741,18 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				Title = Settings.StopCommand,
 				SubTitle = "Stop the current time entry",
 				IcoPath = "stop.png",
-				AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} ",
+				AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StopCommand} ",
 				Score = 15050,
 				Action = _ =>
 				{
-					this._state.ResultsSource = TogglTrack.ExclusiveResultsSource.Stop;
-
 					this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StopCommand} ");
 					return false;
 				}
 			});
 
-			return results;
+			return (string.IsNullOrEmpty(query.FirstSearch))
+				? results
+				: results.FindAll(result => this._context.API.FuzzySearch(query.FirstSearch, result.Title).Score > 0);
 		}
 
 		private async ValueTask<List<Result>> _GetStartResults(CancellationToken token, Query query)

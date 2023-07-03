@@ -626,7 +626,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				}
 
 				// Add previously matching time entries
-				// TODO: Different behaviour depending on Ctrl modifier (use ActionContext)
 				results.AddRange(await this._GetContinueResults(token, query));
 
 				return results;
@@ -805,7 +804,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						IcoPath = "start.png",
 						AutoCompleteText = $"{query.ActionKeyword} {TransformedQuery.PrefixProject(Settings.NoProjectName)} ",
 						Score = int.MaxValue - 1000,
-						// TODO: ActionContext Ctrl modifier to start immediately
 						Action = _ =>
 						{
 							this._state.SelectedIds.Project = null;
@@ -1327,10 +1325,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return results;
 		}
 
-		/* 
-		 * Normal action => set _state.SelectedIds and change query (so user can select eg last stop time)
-		 * TODO: Ctrl action => start now
-		 */
 		private async ValueTask<List<Result>> _GetContinueResults(CancellationToken token, Query query)
 		{
 			var me = (await this._GetMe(token))?.ToMe();
@@ -1364,14 +1358,64 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					IcoPath = this._colourIconProvider.GetColourIcon(project.Project?.Colour, "continue.png"),
 					AutoCompleteText = $"{query.ActionKeyword} {timeEntry.GetTitle(escapePotentialFlags: true)}",
 					Score = timeEntry.GetScoreByStart(),
-					Action = _ =>
+					Action = context =>
 					{
-						// TODO: Add Ctrl modifier
+						if (!context.SpecialKeyState.AltPressed)
+						{
+							this._state.SelectedIds.Project = project.Project?.Id;
+							this._context.API.ChangeQuery($"{query.ActionKeyword} {timeEntry.GetRawTitle(withTrailingSpace: true, escapePotentialFlags: true)}");
+							return false;
+						}
 
-						this._state.SelectedIds.Project = project.Project?.Id;
-						this._context.API.ChangeQuery($"{query.ActionKeyword} {timeEntry.GetRawTitle(withTrailingSpace: true, escapePotentialFlags: true)}");
-						return false;
-					},
+						// Alt key modifier will continue the time entry now
+						Task.Run(async delegate
+						{
+							long workspaceId = project.Project?.WorkspaceId ?? me.DefaultWorkspaceId;
+
+							try
+							{
+								this._context.API.LogInfo("TogglTrack", $"{project.Id}, {workspaceId}, {timeEntry.GetRawTitle()}");
+
+								var runningTimeEntry = (await this._GetRunningTimeEntry(CancellationToken.None, force: true))?.ToTimeEntry(me);
+								if (runningTimeEntry is not null)
+								{
+									var stoppedTimeEntry = (await this._client.StopTimeEntry(
+										workspaceId: runningTimeEntry.WorkspaceId,
+										id: runningTimeEntry.Id
+									))?.ToTimeEntry(me);
+
+									if (stoppedTimeEntry?.Id is null)
+									{
+										throw new Exception("An API error was encountered.");
+									}
+								}
+
+								var createdTimeEntry = (await this._client.CreateTimeEntry(
+									workspaceId: workspaceId,
+									projectId: project.Project?.Id,
+									description: timeEntry.GetRawTitle(),
+									start: DateTimeOffset.UtcNow
+								))?.ToTimeEntry(me);
+
+								if (createdTimeEntry?.Id is null)
+								{
+									throw new Exception("An API error was encountered.");
+								}
+
+								this.ShowSuccessMessage($"Continued {createdTimeEntry.GetRawDescription()}", project.Project?.WithClientName ?? Settings.NoProjectName, "start.png");
+
+								// Update cached running time entry state
+								this.RefreshCache();
+							}
+							catch (Exception exception)
+							{
+								this._context.API.LogException("TogglTrack", "Failed to continue time entry", exception);
+								this.ShowErrorMessage("Failed to continue time entry.", exception.Message);
+							}
+						});
+
+						return true;
+					}
 				});
 			}).ToList();
 		}

@@ -20,9 +20,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return $"{Settings.ProjectPrefix}{project}";
 		}
 
-		public static string EscapeDescription(string description)
+		public static string EscapeCommand(string description)
 		{
-			// TODO: need to escape commands
+			return $"{Settings.EscapeCharacter}{description}";
+		}
+
+		public static string EscapeFlags(string description)
+		{
 			string escaped = Settings.QueryEscapingRegex.Replace(description, @$"\{Settings.EscapeCharacter}");
 			return Settings.UnescapedFlagRegex.Replace(escaped, @$" {Settings.EscapeCharacter}-");
 		}
@@ -133,7 +137,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			{
 				TransformedQuery.Escaping.Raw => this.ToString(),
 				TransformedQuery.Escaping.Unescaped => this.UnescapeSearch(),
-				TransformedQuery.Escaping.Escaped => TransformedQuery.EscapeDescription(this.ToString()),
+				TransformedQuery.Escaping.Escaped => TransformedQuery.EscapeFlags(this.ToString()),
 				_ => this.ToString(),
 			};
 		}

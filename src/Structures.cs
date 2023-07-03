@@ -209,7 +209,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 
 			string rawDescription = (escapePotentialFlags)
-				? TransformedQuery.EscapeDescription(this._rawDescription)
+				? TransformedQuery.EscapeFlags(this._rawDescription)
 				: this._rawDescription;
 
 			if (!withTrailingSpace)
@@ -228,7 +228,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 
 			return (escapePotentialFlags)
-				? TransformedQuery.EscapeDescription(this._rawDescription)
+				? TransformedQuery.EscapeFlags(this._rawDescription)
 				: this._rawDescription;
 		}
 
@@ -567,16 +567,24 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return (int)(this.Seconds >> 2);
 		}
 
-		public string? GetRawTitle(bool withTrailingSpace = false, bool escapePotentialFlags = false)
+		public string? GetRawTitle(bool withTrailingSpace = false, bool escapePotentialCommands = false, bool escapePotentialFlags = false)
 		{
 			if (string.IsNullOrEmpty(this._rawTitle))
 			{
 				return string.Empty;
 			}
 
-			string rawTitle = (escapePotentialFlags)
-				? TransformedQuery.EscapeDescription(this._rawTitle)
-				: this._rawTitle;
+			string rawTitle = this._rawTitle;
+
+			if (escapePotentialFlags)
+			{
+				rawTitle = TransformedQuery.EscapeFlags(rawTitle);
+			}
+			// ! This must be applied after escaping flags (or we will get double escaping)
+			if (escapePotentialCommands)
+			{
+				rawTitle = TransformedQuery.EscapeCommand(rawTitle);
+			}
 
 			if (!withTrailingSpace)
 			{
@@ -586,16 +594,25 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return $"{rawTitle} ";
 		}
 
-		public string GetTitle(bool escapePotentialFlags = false)
+		public string GetTitle(bool escapePotentialCommands = false, bool escapePotentialFlags = false)
 		{
 			if (string.IsNullOrEmpty(this._rawTitle))
 			{
 				return Settings.EmptyDescription;
 			}
 
-			return (escapePotentialFlags)
-				? TransformedQuery.EscapeDescription(this._rawTitle)
-				: this._rawTitle;
+			string title = this._rawTitle;
+			if (escapePotentialFlags)
+			{
+				title = TransformedQuery.EscapeFlags(title);
+			}
+			// ! This must be applied after escaping flags (or we will get double escaping)
+			if (escapePotentialCommands)
+			{
+				title = TransformedQuery.EscapeCommand(title);
+			}
+
+			return title;
 		}
 
 		public TimeSpan Elapsed

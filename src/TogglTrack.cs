@@ -1327,14 +1327,14 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					Title = timeEntry.GetTitle(),
 					SubTitle = $"{project.Project?.WithClientName ?? Settings.NoProjectName} | {timeEntry.HumanisedElapsed}",
 					IcoPath = this._colourIconProvider.GetColourIcon(project.Project?.Colour, "continue.png"),
-					AutoCompleteText = $"{query.ActionKeyword} {timeEntry.GetTitle(escapePotentialFlags: true)}",
+					AutoCompleteText = $"{query.ActionKeyword} {timeEntry.GetTitle(escapePotentialCommands: true, escapePotentialFlags: true)}",
 					Score = timeEntry.GetScoreByStart(),
 					Action = context =>
 					{
 						if (!context.SpecialKeyState.AltPressed)
 						{
 							this._state.SelectedIds.Project = project.Project?.Id;
-							this._context.API.ChangeQuery($"{query.ActionKeyword} {timeEntry.GetRawTitle(withTrailingSpace: true, escapePotentialFlags: true)}");
+							this._context.API.ChangeQuery($"{query.ActionKeyword} {timeEntry.GetRawTitle(withTrailingSpace: true, escapePotentialCommands: true, escapePotentialFlags: true)}");
 							return false;
 						}
 

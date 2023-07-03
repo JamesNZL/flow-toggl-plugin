@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.0.1](https://github.com/JamesNZL/flow-toggl-plugin/compare/v3.0.0...v3.0.1) (2023-07-03)
+
+
+### Performance
+
+* :zap: implement `CancellationToken` properly ([#87](https://github.com/JamesNZL/flow-toggl-plugin/issues/87)) ([9c88afa](https://github.com/JamesNZL/flow-toggl-plugin/commit/9c88afa23da5051715a8608d0bbe225c8732a130))
+
 ## [3.0.0](https://github.com/JamesNZL/flow-toggl-plugin/compare/v2.10.1...v3.0.0) (2023-07-02)
 
 

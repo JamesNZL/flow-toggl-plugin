@@ -22,6 +22,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 		public static string EscapeDescription(string description)
 		{
+			// TODO: need to escape commands
 			string escaped = Settings.QueryEscapingRegex.Replace(description, @$"\{Settings.EscapeCharacter}");
 			return Settings.UnescapedFlagRegex.Replace(escaped, @$" {Settings.EscapeCharacter}-");
 		}
@@ -100,14 +101,20 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return Settings.UnescapedProjectPrefixRegex.IsMatch(this.ToString());
 		}
 
-		public bool IsProjectSelection()
+		public string? ExtractProject()
 		{
-			return Settings.ProjectSelectionRegex.IsMatch(this.ToString());
+			Match projectMatch = Settings.UnescapedProjectPrefixRegex.Match(this.ToString());
+			return (projectMatch.Success)
+				? projectMatch.Groups[1].Value.Trim()
+				: null;
 		}
 
-		public string UnprefixProject()
+		public string ReplaceProject(string replacement)
 		{
-			return Settings.ProjectSelectionRegex.Replace(this.ToString(), string.Empty).Trim();
+			string search = Settings.UnescapedProjectPrefixRegex.Replace(this.ToString(), replacement);
+			return (string.IsNullOrEmpty(search))
+				? $"{Settings.EscapeCharacter} "
+				: search;
 		}
 
 		private string UnescapeSearch()

@@ -62,15 +62,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		private (
 			(bool IsValid, string Token) LastToken,
 			ExclusiveResultsSource? ResultsSource,
-			string LastSearch,
 			(long TimeEntry, long? Project, long? Client) SelectedIds,
 			EditProjectState EditProject,
 			bool ReportsShowDetailed
 		) _state = (
 			(false, string.Empty),
 			null,
-			string.Empty,
-			(-1, -1, -1),
+			(-1, null, -1),
 			TogglTrack.EditProjectState.NoProjectChange,
 			false
 		);
@@ -584,7 +582,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			if (emptyQuery)
 			{
 				this._state.ResultsSource = null;
-				this._state.LastSearch = string.Empty;
 				this._state.SelectedIds = (-1, null, -1);
 				this._state.EditProject = TogglTrack.EditProjectState.NoProjectChange;
 				this._state.ReportsShowDetailed = false;
@@ -604,8 +601,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					Settings.BrowserCommand => TogglTrack.ExclusiveResultsSource.Commands,
 					Settings.HelpCommand => TogglTrack.ExclusiveResultsSource.Commands,
 					Settings.RefreshCommand => TogglTrack.ExclusiveResultsSource.Commands,
-					// TODO: hmm...
-					_ => this._state.ResultsSource,
+					_ => null,
 				};
 			}
 
@@ -764,38 +760,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			var transformedQuery = new TransformedQuery(query);
 
-			if (transformedQuery.HasProjectPrefix() && this._state.SelectedIds.Project != -1)
+			if (transformedQuery.HasProjectPrefix())
 			{
-				this._state.SelectedIds.Project = -1;
-
 				this._state.ResultsSource = TogglTrack.ExclusiveResultsSource.Start;
-
-				string currentSearch = new TransformedQuery(query)
-					.RemoveAll(Settings.EscapeCharacter)
-					.RemoveAll(Settings.UnescapedProjectPrefixRegex)
-					.Trim();
-				this._state.LastSearch = (string.IsNullOrEmpty(currentSearch))
-					? Settings.EscapeCharacter
-					: currentSearch;
-
-				this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.ProjectPrefix}", true);
-				return new List<Result>();
-			}
-
-			if (this._state.SelectedIds.Project == -1)
-			{
-				if (!transformedQuery.IsProjectSelection())
-				{
-					this._state.SelectedIds.Project = null;
-					this._state.ResultsSource = null;
-
-					this._context.API.ChangeQuery($"{query.ActionKeyword} {this._state.LastSearch} ", true);
-					return new List<Result>();
-				}
 
 				var projects = new List<Result>();
 
-				string projectQuery = transformedQuery.UnprefixProject();
+				string? projectQuery = transformedQuery.ExtractProject();
 
 				if (string.IsNullOrEmpty(projectQuery) || this._context.API.FuzzySearch(projectQuery, Settings.NoProjectName).Score > 0)
 				{
@@ -803,14 +774,14 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					{
 						Title = Settings.NoProjectName,
 						IcoPath = "start.png",
-						AutoCompleteText = $"{query.ActionKeyword} {TransformedQuery.PrefixProject(Settings.NoProjectName)} ",
+						AutoCompleteText = $"{query.ActionKeyword} {transformedQuery.ReplaceProject(TransformedQuery.PrefixProject(Settings.NoProjectName))}",
 						Score = int.MaxValue - 1000,
 						Action = _ =>
 						{
 							this._state.SelectedIds.Project = null;
 							this._state.ResultsSource = null;
 
-							this._context.API.ChangeQuery($"{query.ActionKeyword} {this._state.LastSearch} ", true);
+							this._context.API.ChangeQuery($"{query.ActionKeyword} {transformedQuery.ReplaceProject(string.Empty)}", true);
 							return false;
 						},
 					});
@@ -829,14 +800,14 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							Title = project.Name,
 							SubTitle = $"{((project.ClientId is not null) ? $"{project.Client!.Name} | " : string.Empty)}{project.ElapsedString}",
 							IcoPath = this._colourIconProvider.GetColourIcon(project.Colour, "start.png"),
-							AutoCompleteText = $"{query.ActionKeyword} {TransformedQuery.PrefixProject(project.Name)} ",
+							AutoCompleteText = $"{query.ActionKeyword} {transformedQuery.ReplaceProject(TransformedQuery.PrefixProject(project.Name))}",
 							Score = index,
 							Action = _ =>
 							{
 								this._state.SelectedIds.Project = project.Id;
 								this._state.ResultsSource = null;
 
-								this._context.API.ChangeQuery($"{query.ActionKeyword} {this._state.LastSearch} ", true);
+								this._context.API.ChangeQuery($"{query.ActionKeyword} {transformedQuery.ReplaceProject(string.Empty)}", true);
 								return false;
 							},
 						})
@@ -1420,6 +1391,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}).ToList();
 		}
 
+		// TODO: @ for project selection
 		private async ValueTask<List<Result>> _GetEditResults(CancellationToken token, Query query)
 		{
 			var me = (await this._GetMe(token))?.ToMe();
@@ -2216,6 +2188,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			else if (query.SearchTerms.Length == ArgumentIndices.GroupingName)
 			{
+				// TODO: check these
 				this._state.SelectedIds.Project = -1;
 				this._state.SelectedIds.Client = -1;
 			}

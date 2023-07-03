@@ -67,12 +67,18 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			this._colourIconProvider = new ColourIconProvider(this._context);
 		}
 
-		private async ValueTask<MeResponse?> _GetMe(bool force = false)
+		private async ValueTask<MeResponse?> _GetMe(CancellationToken token, bool force = false)
 		{
 			const string cacheKey = "Me";
 
 			bool hasWaited = (this._semaphores.Me.CurrentCount == 0);
 			await this._semaphores.Me.WaitAsync();
+
+			if (token.IsCancellationRequested)
+			{
+				this._semaphores.Me.Release();
+				token.ThrowIfCancellationRequested();
+			}
 
 			if ((!force || hasWaited) && this._cache.Contains(cacheKey))
 			{
@@ -88,11 +94,19 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 				this._cache.Set(cacheKey, me, DateTimeOffset.Now.AddDays(3));
 
+				if (token.IsCancellationRequested)
+				{
+					this._semaphores.Me.Release();
+					token.ThrowIfCancellationRequested();
+				}
+
 				this._semaphores.Me.Release();
 				return me;
 			}
 			catch (Exception exception)
 			{
+				token.ThrowIfCancellationRequested();
+
 				this._context.API.LogException("TogglTrack", "Failed to fetch me", exception);
 
 				this._semaphores.Me.Release();
@@ -100,12 +114,18 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 		}
 
-		private async ValueTask<TimeEntryResponse?> _GetRunningTimeEntry(bool force = false)
+		private async ValueTask<TimeEntryResponse?> _GetRunningTimeEntry(CancellationToken token, bool force = false)
 		{
 			const string cacheKey = "RunningTimeEntry";
 
 			bool hasWaited = (this._semaphores.RunningTimeEntries.CurrentCount == 0);
 			await this._semaphores.RunningTimeEntries.WaitAsync();
+
+			if (token.IsCancellationRequested)
+			{
+				this._semaphores.RunningTimeEntries.Release();
+				token.ThrowIfCancellationRequested();
+			}
 
 			if ((!force || hasWaited) && this._cache.Contains(cacheKey))
 			{
@@ -121,11 +141,19 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 				this._cache.Set(cacheKey, runningTimeEntry, DateTimeOffset.Now.AddSeconds(60));
 
+				if (token.IsCancellationRequested)
+				{
+					this._semaphores.RunningTimeEntries.Release();
+					token.ThrowIfCancellationRequested();
+				}
+
 				this._semaphores.RunningTimeEntries.Release();
 				return runningTimeEntry;
 			}
 			catch (Exception exception)
 			{
+				token.ThrowIfCancellationRequested();
+
 				this._context.API.LogException("TogglTrack", "Failed to fetch running time entry", exception);
 
 				this._semaphores.RunningTimeEntries.Release();
@@ -133,12 +161,18 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 		}
 
-		private async ValueTask<List<TimeEntryResponse>?> _GetTimeEntries(bool force = false)
+		private async ValueTask<List<TimeEntryResponse>?> _GetTimeEntries(CancellationToken token, bool force = false)
 		{
 			const string cacheKey = "TimeEntries";
 
 			bool hasWaited = (this._semaphores.TimeEntries.CurrentCount == 0);
 			await this._semaphores.TimeEntries.WaitAsync();
+
+			if (token.IsCancellationRequested)
+			{
+				this._semaphores.TimeEntries.Release();
+				token.ThrowIfCancellationRequested();
+			}
 
 			if ((!force || hasWaited) && this._cache.Contains(cacheKey))
 			{
@@ -154,11 +188,19 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 				this._cache.Set(cacheKey, timeEntries, DateTimeOffset.Now.AddSeconds(60));
 
+				if (token.IsCancellationRequested)
+				{
+					this._semaphores.TimeEntries.Release();
+					token.ThrowIfCancellationRequested();
+				}
+
 				this._semaphores.TimeEntries.Release();
 				return timeEntries;
 			}
 			catch (Exception exception)
 			{
+				token.ThrowIfCancellationRequested();
+
 				this._context.API.LogException("TogglTrack", "Failed to fetch time entries", exception);
 
 				this._semaphores.TimeEntries.Release();
@@ -167,6 +209,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		}
 
 		private async ValueTask<SummaryReportResponse?> _GetSummaryReport(
+			CancellationToken token,
 			long workspaceId,
 			long userId,
 			Settings.ReportsGroupingKey reportGrouping,
@@ -197,10 +240,14 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				this._cache.Set(cacheKey, summary, DateTimeOffset.Now.AddSeconds(60));
 				this._cacheKeys.Summary.Add(cacheKey);
 
+				token.ThrowIfCancellationRequested();
+
 				return summary;
 			}
 			catch (Exception exception)
 			{
+				token.ThrowIfCancellationRequested();
+
 				this._context.API.LogException("TogglTrack", "Failed to fetch summary reports", exception);
 				return null;
 			}
@@ -215,6 +262,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		}
 
 		private async ValueTask<List<DetailedReportTimeEntryGroupResponse>?> _GetDetailedReport(
+			CancellationToken token,
 			long workspaceId,
 			long userId,
 			List<long?>? projectIds,
@@ -245,10 +293,14 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				this._cache.Set(cacheKey, report, DateTimeOffset.Now.AddSeconds(60));
 				this._cacheKeys.Detailed.Add(cacheKey);
 
+				token.ThrowIfCancellationRequested();
+
 				return report;
 			}
 			catch (Exception exception)
 			{
+				token.ThrowIfCancellationRequested();
+
 				this._context.API.LogException("TogglTrack", "Failed to fetch detailed reports", exception);
 				return null;
 			}
@@ -261,9 +313,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			this._cacheKeys.Detailed.ForEach(key => this._cache.Remove(key));
 			this._cacheKeys.Detailed.Clear();
 		}
-		private async ValueTask<SummaryReportResponse?> _GetMaxReportTimeEntries(bool force = false, bool refreshMe = false)
+		private async ValueTask<SummaryReportResponse?> _GetMaxReportTimeEntries(
+			CancellationToken token,
+			bool force = false,
+			bool refreshMe = false
+		)
 		{
-			var me = (await this._GetMe(refreshMe))?.ToMe();
+			var me = (await this._GetMe(token, refreshMe))?.ToMe();
 			if (me is null)
 			{
 				return null;
@@ -281,6 +337,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				reportsNow = DateTimeOffset.Now;
 			}
 			return await this._GetSummaryReport(
+				token,
 				workspaceId: me.DefaultWorkspaceId,
 				userId: me.Id,
 				reportGrouping: Settings.ReportsGroupingKey.Entries,
@@ -297,9 +354,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				this._context.API.LogInfo("TogglTrack", $"Refreshing cache, {force}, {refreshMe}");
 
 				// This is the main one that needs to be run
-				_ = this._GetMe(force: refreshMe);
-				_ = this._GetRunningTimeEntry(force: force);
-				_ = this._GetTimeEntries(force: force);
+				_ = this._GetMe(CancellationToken.None, force: refreshMe);
+				_ = this._GetRunningTimeEntry(CancellationToken.None, force: force);
+				_ = this._GetTimeEntries(CancellationToken.None, force: force);
 
 				if (force)
 				{
@@ -307,11 +364,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					this._ClearDetailedReportCache();
 				}
 
-				_ = this._GetMaxReportTimeEntries(force: force, refreshMe: refreshMe);
+				_ = this._GetMaxReportTimeEntries(CancellationToken.None, force: force, refreshMe: refreshMe);
 			});
 		}
 
-		internal async ValueTask<bool> VerifyApiToken()
+		internal async ValueTask<bool> VerifyApiToken(CancellationToken token)
 		{
 			if (!InternetAvailability.IsInternetAvailable())
 			{
@@ -319,6 +376,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 
 			await this._semaphores.Token.WaitAsync();
+
+			if (token.IsCancellationRequested)
+			{
+				this._semaphores.Token.Release();
+				token.ThrowIfCancellationRequested();
+			}
 
 			if (this._settings.ApiToken.Equals(this._state.LastToken.Token))
 			{
@@ -337,7 +400,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			this._client.UpdateToken(this._settings.ApiToken);
 
-			this._state.LastToken.IsValid = (await this._GetMe(true))?.ToMe().ApiToken?.Equals(this._settings.ApiToken) ?? false;
+			// ! This must be CancellationToken.None as internal state has already been changed by the call to TogglClient#UpdateToken() above
+			this._state.LastToken.IsValid = (await this._GetMe(CancellationToken.None, true))?.ToMe().ApiToken?.Equals(this._settings.ApiToken) ?? false;
 			this._state.LastToken.Token = this._settings.ApiToken;
 
 			this._semaphores.Token.Release();
@@ -462,7 +526,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			};
 		}
 
-		internal async ValueTask<List<Result>> GetDefaultHotKeys(bool prefetch = false)
+		internal async ValueTask<List<Result>> GetDefaultHotKeys(CancellationToken token, bool prefetch = false)
 		{
 			this._state.SelectedIds = (-1, -1, -1);
 			this._state.EditProject = TogglTrack.EditProjectState.NoProjectChange;
@@ -581,7 +645,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				},
 			};
 
-			if (await this._GetRunningTimeEntry() is null)
+			if (await this._GetRunningTimeEntry(token) is null)
 			{
 				return results;
 			}
@@ -605,13 +669,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 		internal async ValueTask<List<Result>> RequestStartEntry(CancellationToken token, Query query)
 		{
-			if (token.IsCancellationRequested)
-			{
-				this._state.SelectedIds.Project = -1;
-				return new List<Result>();
-			}
-
-			var me = (await this._GetMe())?.ToMe();
+			var me = (await this._GetMe(token))?.ToMe();
 			if (me is null)
 			{
 				return this.NotifyUnknownError();
@@ -631,7 +689,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				// Start fetch for time entries asynchronously in the background
 				_ = Task.Run(() =>
 				{
-					_ = this._GetTimeEntries(true);
+					_ = this._GetTimeEntries(token, force: true);
 				});
 			}
 
@@ -732,7 +790,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							{
 								this._context.API.LogInfo("TogglTrack", $"{this._state.SelectedIds.Project}, {workspaceId}, {description}");
 
-								var runningTimeEntry = (await this._GetRunningTimeEntry(true))?.ToTimeEntry(me);
+								var runningTimeEntry = (await this._GetRunningTimeEntry(CancellationToken.None, force: true))?.ToTimeEntry(me);
 								if (runningTimeEntry is not null)
 								{
 									var stoppedTimeEntry = (await this._client.StopTimeEntry(
@@ -833,7 +891,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								{
 									this._context.API.LogInfo("TogglTrack", $"{this._state.SelectedIds.Project}, {workspaceId}, {sanitisedDescription}, {startTimeSpan.ToString()}, time span flag");
 
-									var runningTimeEntry = (await this._GetRunningTimeEntry(true))?.ToTimeEntry(me);
+									var runningTimeEntry = (await this._GetRunningTimeEntry(CancellationToken.None, force: true))?.ToTimeEntry(me);
 									if (runningTimeEntry is not null)
 									{
 										var stoppedTimeEntry = (await this._client.EditTimeEntry(
@@ -914,7 +972,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 
 			// Use cached time entries here to ensure responsiveness
-			var likelyPastTimeEntry = (await this._GetTimeEntries())?.FirstOrDefault()?.ToTimeEntry(me);
+			var likelyPastTimeEntry = (await this._GetTimeEntries(token))?.FirstOrDefault()?.ToTimeEntry(me);
 			if ((likelyPastTimeEntry is null) || (likelyPastTimeEntry.Stop is null))
 			{
 				return results;
@@ -937,7 +995,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 							// Force a new fetch to ensure correctness
 							// User input has ended at this point so no responsiveness concerns
-							var lastTimeEntry = (await this._GetTimeEntries(true))?.FirstOrDefault()?.ToTimeEntry(me);
+							var lastTimeEntry = (await this._GetTimeEntries(CancellationToken.None, force: true))?.FirstOrDefault()?.ToTimeEntry(me);
 							if (lastTimeEntry is null)
 							{
 								throw new Exception("There is no previous time entry.");
@@ -984,18 +1042,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 		internal async ValueTask<List<Result>> RequestStopEntry(CancellationToken token, Query query)
 		{
-			if (token.IsCancellationRequested)
-			{
-				return new List<Result>();
-			}
-
-			var me = (await this._GetMe())?.ToMe();
+			var me = (await this._GetMe(token))?.ToMe();
 			if (me is null)
 			{
 				return this.NotifyUnknownError();
 			}
 
-			var runningTimeEntry = (await this._GetRunningTimeEntry())?.ToTimeEntry(me);
+			var runningTimeEntry = (await this._GetRunningTimeEntry(token))?.ToTimeEntry(me);
 			if (runningTimeEntry is null)
 			{
 				return new List<Result>
@@ -1176,18 +1229,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 		internal async ValueTask<List<Result>> RequestContinueEntry(CancellationToken token, Query query)
 		{
-			if (token.IsCancellationRequested)
-			{
-				return new List<Result>();
-			}
-
-			var me = (await this._GetMe())?.ToMe();
+			var me = (await this._GetMe(token))?.ToMe();
 			if (me is null)
 			{
 				return this.NotifyUnknownError();
 			}
 
-			var timeEntries = (await this._GetMaxReportTimeEntries())?.ToSummaryReport(me);
+			var timeEntries = (await this._GetMaxReportTimeEntries(token))?.ToSummaryReport(me);
 
 			if (timeEntries is null)
 			{
@@ -1217,7 +1265,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				// Start fetch for time entries asynchronously in the background
 				_ = Task.Run(() =>
 				{
-					_ = this._GetTimeEntries(true);
+					_ = this._GetTimeEntries(token, force: true);
 				});
 			}
 
@@ -1255,22 +1303,14 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 		internal async ValueTask<List<Result>> RequestEditEntry(CancellationToken token, Query query)
 		{
-			if (token.IsCancellationRequested)
-			{
-				this._state.SelectedIds.TimeEntry = -1;
-				this._state.SelectedIds.Project = -1;
-				this._state.EditProject = TogglTrack.EditProjectState.NoProjectChange;
-				return new List<Result>();
-			}
-
-			var me = (await this._GetMe())?.ToMe();
+			var me = (await this._GetMe(token))?.ToMe();
 			if (me is null)
 			{
 				return this.NotifyUnknownError();
 			}
 
-			var timeEntries = (await this._GetTimeEntries())?.ConvertAll(timeEntry => timeEntry.ToTimeEntry(me));
-			var maxTimeEntries = (await this._GetMaxReportTimeEntries())?.ToSummaryReport(me);
+			var timeEntries = (await this._GetTimeEntries(token))?.ConvertAll(timeEntry => timeEntry.ToTimeEntry(me));
+			var maxTimeEntries = (await this._GetMaxReportTimeEntries(token))?.ToSummaryReport(me);
 			if (timeEntries is null || maxTimeEntries is null)
 			{
 				return new List<Result>
@@ -1918,19 +1958,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 		internal async ValueTask<List<Result>> RequestDeleteEntry(CancellationToken token, Query query)
 		{
-			if (token.IsCancellationRequested)
-			{
-				this._state.SelectedIds.TimeEntry = -1;
-				return new List<Result>();
-			}
-
-			var me = (await this._GetMe())?.ToMe();
+			var me = (await this._GetMe(token))?.ToMe();
 			if (me is null)
 			{
 				return this.NotifyUnknownError();
 			}
 
-			var timeEntries = (await this._GetTimeEntries())?.ConvertAll(timeEntry => timeEntry.ToTimeEntry(me));
+			var timeEntries = (await this._GetTimeEntries(token))?.ConvertAll(timeEntry => timeEntry.ToTimeEntry(me));
 			if (timeEntries is null)
 			{
 				return new List<Result>
@@ -2035,14 +2069,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 		internal async ValueTask<List<Result>> RequestViewReports(CancellationToken token, Query query)
 		{
-			if (token.IsCancellationRequested)
-			{
-				this._state.SelectedIds.Project = -1;
-				this._state.SelectedIds.Client = -1;
-				return new List<Result>();
-			}
-
-			var me = (await this._GetMe())?.ToMe();
+			var me = (await this._GetMe(token))?.ToMe();
 			if (me is null)
 			{
 				return this.NotifyUnknownError();
@@ -2062,7 +2089,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				// Start fetch for running time entries asynchronously in the background
 				_ = Task.Run(() =>
 				{
-					_ = this._GetRunningTimeEntry(true);
+					_ = this._GetRunningTimeEntry(token, force: true);
 				});
 			}
 
@@ -2224,6 +2251,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			this._context.API.LogInfo("TogglTrack", $"{spanArgument}, {groupingArgument}, {start.ToString("yyyy-MM-dd")}, {end.ToString("yyyy-MM-dd")}");
 
 			var summary = (await this._GetSummaryReport(
+				token,
 				workspaceId: me.DefaultWorkspaceId,
 				userId: me.Id,
 				reportGrouping: groupingConfiguration.Grouping,
@@ -2232,7 +2260,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			))?.ToSummaryReport(me);
 
 			// Use cached time entry here to improve responsiveness
-			var runningTimeEntry = (await this._GetRunningTimeEntry())?.ToTimeEntry(me);
+			var runningTimeEntry = (await this._GetRunningTimeEntry(token))?.ToTimeEntry(me);
 			if (runningTimeEntry is not null)
 			{
 				DateTimeOffset runningEntryStart;
@@ -2328,6 +2356,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						if (this._state.ReportsShowDetailed)
 						{
 							var report = (await this._GetDetailedReport(
+								token,
 								workspaceId: me.DefaultWorkspaceId,
 								userId: me.Id,
 								projectIds: new List<long?> { this._state.SelectedIds.Project },
@@ -2577,6 +2606,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						if (this._state.ReportsShowDetailed)
 						{
 							var report = (await this._GetDetailedReport(
+								token,
 								workspaceId: me.DefaultWorkspaceId,
 								userId: me.Id,
 								projectIds: null,

@@ -46,7 +46,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 		private enum ExclusiveResultsSource
 		{
-			None,
 			Start,
 		}
 		private enum EditProjectState
@@ -57,15 +56,14 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		}
 		private (
 			(bool IsValid, string Token) LastToken,
-			// TODO: bitfield
-			ExclusiveResultsSource ResultsSource,
+			ExclusiveResultsSource? ResultsSource,
 			string LastSearch,
 			(long TimeEntry, long? Project, long? Client) SelectedIds,
 			EditProjectState EditProject,
 			bool ReportsShowDetailed
 		) _state = (
 			(false, string.Empty),
-			TogglTrack.ExclusiveResultsSource.None,
+			null,
 			string.Empty,
 			(-1, -1, -1),
 			TogglTrack.EditProjectState.NoProjectChange,
@@ -719,7 +717,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		{
 			if (string.IsNullOrEmpty(query.Search))
 			{
-				this._state.ResultsSource = TogglTrack.ExclusiveResultsSource.None;
+				this._state.ResultsSource = null;
 				this._state.LastSearch = string.Empty;
 				this._state.SelectedIds = (-1, null, -1);
 				this._state.EditProject = TogglTrack.EditProjectState.NoProjectChange;
@@ -729,7 +727,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			var results = new List<Result>();
 
 			// * Add results to start time entry
-			if (this._state.ResultsSource == TogglTrack.ExclusiveResultsSource.None || this._state.ResultsSource == TogglTrack.ExclusiveResultsSource.Start)
+			if (this._state.ResultsSource is null || this._state.ResultsSource == TogglTrack.ExclusiveResultsSource.Start)
 			{
 				results.AddRange(await this._GetStartResults(token, query));
 			}
@@ -739,7 +737,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			// Action is to start the time entry directly?
 			// ? How about manipulating the start time?
 			// Scorings
-			if (this._state.ResultsSource == TogglTrack.ExclusiveResultsSource.None)
+			if (this._state.ResultsSource is null)
 			{
 				results.AddRange(await this._GetContinueResults(token, query));
 			}
@@ -779,8 +777,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						Action = _ =>
 						{
 							this._state.SelectedIds.Project = null;
-
-							this._state.ResultsSource = TogglTrack.ExclusiveResultsSource.None;
+							this._state.ResultsSource = null;
 
 							this._context.API.ChangeQuery($"{query.ActionKeyword} {this._state.LastSearch} ", true);
 							return false;
@@ -806,8 +803,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							Action = _ =>
 							{
 								this._state.SelectedIds.Project = project.Id;
-
-								this._state.ResultsSource = TogglTrack.ExclusiveResultsSource.None;
+								this._state.ResultsSource = null;
 
 								this._context.API.ChangeQuery($"{query.ActionKeyword} {this._state.LastSearch} ", true);
 								return false;

@@ -50,6 +50,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 		internal static readonly Regex QueryEscapingRegex = new Regex(@$"(\{Settings.EscapeCharacter}(?!\{Settings.EscapeCharacter}))");
 		internal static readonly Regex UnescapedProjectPrefixRegex = new Regex(@$"(?<!\{Settings.EscapeCharacter}){Settings.ProjectPrefix}");
+		internal static readonly Regex ProjectSelectionRegex = new Regex(@$"^{Settings.ProjectPrefix}");
 		internal static readonly Regex UnescapedFlagRegex = new Regex(@" -");
 		internal static readonly Regex ReportsSpanOffsetRegex = new Regex(@"-(\d+)");
 

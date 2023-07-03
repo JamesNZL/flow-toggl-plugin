@@ -591,7 +591,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 			else if (query.FirstSearch.StartsWith(Settings.EscapeCharacter))
 			{
-				// TODO: `tgl @` -> `tgl \@` ???
 				this._state.ResultsSource = null;
 			}
 			else
@@ -765,8 +764,35 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			var transformedQuery = new TransformedQuery(query);
 
+			if (transformedQuery.HasProjectPrefix() && this._state.SelectedIds.Project != -1)
+			{
+				this._state.SelectedIds.Project = -1;
+
+				this._state.ResultsSource = TogglTrack.ExclusiveResultsSource.Start;
+
+				string currentSearch = new TransformedQuery(query)
+					.RemoveAll(Settings.EscapeCharacter)
+					.RemoveAll(Settings.UnescapedProjectPrefixRegex)
+					.Trim();
+				this._state.LastSearch = (string.IsNullOrEmpty(currentSearch))
+					? Settings.EscapeCharacter
+					: currentSearch;
+
+				this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.ProjectPrefix}", true);
+				return new List<Result>();
+			}
+
 			if (this._state.SelectedIds.Project == -1)
 			{
+				if (!transformedQuery.IsProjectSelection())
+				{
+					this._state.SelectedIds.Project = null;
+					this._state.ResultsSource = null;
+
+					this._context.API.ChangeQuery($"{query.ActionKeyword} {this._state.LastSearch} ", true);
+					return new List<Result>();
+				}
+
 				var projects = new List<Result>();
 
 				string projectQuery = transformedQuery.UnprefixProject();
@@ -819,22 +845,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				}
 
 				return projects;
-			}
-			else if (transformedQuery.HasProjectPrefix())
-			{
-				this._state.SelectedIds.Project = -1;
-
-				this._state.ResultsSource = TogglTrack.ExclusiveResultsSource.Start;
-
-				string currentSearch = new TransformedQuery(query)
-					.RemoveAll(Settings.EscapeCharacter)
-					.RemoveAll(Settings.UnescapedProjectPrefixRegex)
-					.Trim();
-				this._state.LastSearch = (string.IsNullOrEmpty(currentSearch))
-					? Settings.EscapeCharacter
-					: currentSearch;
-
-				this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.ProjectPrefix}", true);
 			}
 
 			var project = me.GetProject(this._state.SelectedIds.Project);
@@ -1451,6 +1461,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					this._state.SelectedIds.Project = -1;
 					this._state.EditProject = TogglTrack.EditProjectState.NoProjectSelected;
 					this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.EditCommand} ");
+					return new List<Result>();
 				}
 			}
 
@@ -1521,6 +1532,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					.ToString();
 
 				this._context.API.ChangeQuery($"{query.ActionKeyword} {queryToDescription} ");
+				return new List<Result>();
 			}
 			else if (this._settings.ShowUsageTips)
 			{

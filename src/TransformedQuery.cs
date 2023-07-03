@@ -100,9 +100,14 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return Settings.UnescapedProjectPrefixRegex.IsMatch(this.ToString());
 		}
 
+		public bool IsProjectSelection()
+		{
+			return Settings.ProjectSelectionRegex.IsMatch(this.ToString());
+		}
+
 		public string UnprefixProject()
 		{
-			return Regex.Replace(this.ToString(), @$"^{Settings.ProjectPrefix}", string.Empty).Trim();
+			return Settings.ProjectSelectionRegex.Replace(this.ToString(), string.Empty).Trim();
 		}
 
 		private string UnescapeSearch()

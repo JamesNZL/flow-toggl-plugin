@@ -1315,6 +1315,10 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return results;
 		}
 
+		/* 
+		 * Normal action => set _state.SelectedIds and change query (so user can select eg last stop time)
+		 * TODO: Ctrl action => start now
+		 */
 		private async ValueTask<List<Result>> _GetContinueResults(CancellationToken token, Query query)
 		{
 			string entriesQuery = new TransformedQuery(query)
@@ -1335,36 +1339,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			if (timeEntries is null)
 			{
 				return new List<Result>();
-				// {
-				// 	new Result
-				// 	{
-				// 		Title = $"No previous time entries",
-				// 		SubTitle = "There are no previous time entries to continue.",
-				// 		IcoPath = this._context.CurrentPluginMetadata.IcoPath,
-				// 		Action = _ =>
-				// 		{
-				// 			return true;
-				// 		},
-				// 	},
-				// };
 			}
-
-			// var ArgumentIndices = new
-			// {
-			// 	Command = 0,
-			// 	Description = 1,
-			// };
-
-			// if (query.SearchTerms.Length == ArgumentIndices.Description)
-			// {
-			// 	// Start fetch for time entries asynchronously in the background
-			// 	_ = Task.Run(() =>
-			// 	{
-			// 		_ = this._GetTimeEntries(token, force: true);
-			// 	});
-			// }
-
-			// TODO: parse time span flag
 
 			return timeEntries.Groups.Values.SelectMany(project =>
 			{
@@ -1380,14 +1355,14 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					Title = timeEntry.GetTitle(),
 					SubTitle = $"{project.Project?.WithClientName ?? Settings.NoProjectName} | {timeEntry.HumanisedElapsed}",
 					IcoPath = this._colourIconProvider.GetColourIcon(project.Project?.Colour, "continue.png"),
-					AutoCompleteText = $"{query.ActionKeyword} {Settings.ContinueCommand} {timeEntry.GetTitle(escapePotentialFlags: true)}",
-					// TODO: scoring
+					AutoCompleteText = $"{query.ActionKeyword} {timeEntry.GetTitle(escapePotentialFlags: true)}",
 					Score = timeEntry.GetScoreByStart(),
 					Action = _ =>
 					{
+						// TODO: Add Ctrl modifier
+
 						this._state.SelectedIds.Project = project.Project?.Id;
-						// TODO: start time entry here
-						this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project.Project?.KebabName ?? "no-project"} {timeEntry.GetRawTitle(withTrailingSpace: true, escapePotentialFlags: true)}");
+						this._context.API.ChangeQuery($"{query.ActionKeyword} {timeEntry.GetRawTitle(withTrailingSpace: true, escapePotentialFlags: true)}");
 						return false;
 					},
 				});

@@ -44,6 +44,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			new List<string>()
 		);
 
+		private enum ExclusiveResultsSource
+		{
+			None,
+			Start,
+		}
 		private enum EditProjectState
 		{
 			NoProjectChange,
@@ -52,11 +57,16 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		}
 		private (
 			(bool IsValid, string Token) LastToken,
+			// TODO: bitfield
+			ExclusiveResultsSource ResultsSource,
+			string LastSearch,
 			(long TimeEntry, long? Project, long? Client) SelectedIds,
 			EditProjectState EditProject,
 			bool ReportsShowDetailed
 		) _state = (
 			(false, string.Empty),
+			TogglTrack.ExclusiveResultsSource.None,
+			string.Empty,
 			(-1, -1, -1),
 			TogglTrack.EditProjectState.NoProjectChange,
 			false
@@ -709,7 +719,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		{
 			if (string.IsNullOrEmpty(query.Search))
 			{
-				this._state.SelectedIds = (-1, -1, -1);
+				this._state.ResultsSource = TogglTrack.ExclusiveResultsSource.None;
+				this._state.LastSearch = string.Empty;
+				this._state.SelectedIds = (-1, null, -1);
 				this._state.EditProject = TogglTrack.EditProjectState.NoProjectChange;
 				this._state.ReportsShowDetailed = false;
 			}
@@ -717,16 +729,20 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			var results = new List<Result>();
 
 			// * Add results to start time entry
-			results.AddRange(await this._GetStartResults(token, query));
+			if (this._state.ResultsSource == TogglTrack.ExclusiveResultsSource.None || this._state.ResultsSource == TogglTrack.ExclusiveResultsSource.Start)
+			{
+				results.AddRange(await this._GetStartResults(token, query));
+			}
 			// TODO: Decide usage tips/examples/warnings
-			// TODO: Parse @, open project selection screen
-			// TODO: must save previous query
 
 			// Add previously matching time entries
 			// Action is to start the time entry directly?
 			// ? How about manipulating the start time?
 			// Scorings
-			results.AddRange(await this._GetContinueResults(token, query));
+			if (this._state.ResultsSource == TogglTrack.ExclusiveResultsSource.None)
+			{
+				results.AddRange(await this._GetContinueResults(token, query));
+			}
 
 			// TODO: Add commands
 
@@ -743,87 +759,90 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				return this.NotifyUnknownError();
 			}
 
-			// var ArgumentIndices = new
-			// {
-			// 	Command = 0,
-			// 	Project = 1,
-			// 	Description = 2,
-			// };
+			var transformedQuery = new TransformedQuery(query);
 
-			// if (query.SearchTerms.Length == ArgumentIndices.Project)
-			// {
-			// 	this._state.SelectedIds.Project = -1;
+			if (this._state.SelectedIds.Project == -1)
+			{
+				var projects = new List<Result>();
 
-			// 	// Start fetch for time entries asynchronously in the background
-			// 	_ = Task.Run(() =>
-			// 	{
-			// 		_ = this._GetTimeEntries(token, force: true);
-			// 	});
-			// }
+				string projectQuery = transformedQuery.UnprefixProject();
 
-			// if (this._state.SelectedIds.Project == -1)
-			// {
-			// 	var projects = new List<Result>();
+				if (string.IsNullOrEmpty(projectQuery) || this._context.API.FuzzySearch(projectQuery, Settings.NoProjectName).Score > 0)
+				{
+					projects.Add(new Result
+					{
+						Title = Settings.NoProjectName,
+						IcoPath = "start.png",
+						AutoCompleteText = $"{query.ActionKeyword} {TransformedQuery.PrefixProject(Settings.NoProjectName)} ",
+						Score = int.MaxValue - 1000,
+						// TODO: ActionContext Ctrl modifier to start immediately
+						Action = _ =>
+						{
+							this._state.SelectedIds.Project = null;
 
-			// 	string projectQuery = new TransformedQuery(query)
-			// 		.After(ArgumentIndices.Project)
-			// 		.ToString();
+							this._state.ResultsSource = TogglTrack.ExclusiveResultsSource.None;
 
-			// 	if (string.IsNullOrEmpty(projectQuery) || this._context.API.FuzzySearch(projectQuery, "No Project").Score > 0)
-			// 	{
-			// 		projects.Add(new Result
-			// 		{
-			// 			Title = Settings.NoProjectName,
-			// 			IcoPath = "start.png",
-			// 			AutoCompleteText = $"{query.ActionKeyword} {Settings.StartCommand} ",
-			// 			Score = int.MaxValue - 1000,
-			// 			Action = _ =>
-			// 			{
-			// 				this._state.SelectedIds.Project = null;
-			// 				this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} no-project ", true);
-			// 				return false;
-			// 			},
-			// 		});
-			// 	};
+							this._context.API.ChangeQuery($"{query.ActionKeyword} {this._state.LastSearch} ", true);
+							return false;
+						},
+					});
+				};
 
-			// 	if (me.ActiveProjects is not null)
-			// 	{
-			// 		var filteredProjects = (string.IsNullOrEmpty(projectQuery))
-			// 			? me.ActiveProjects
-			// 			: me.ActiveProjects.Where(project => this._context.API.FuzzySearch(projectQuery, $"{project.Name} {project.Client?.Name ?? string.Empty}").Score > 0);
+				if (me.ActiveProjects is not null)
+				{
+					var filteredProjects = (string.IsNullOrEmpty(projectQuery))
+						? me.ActiveProjects
+						: me.ActiveProjects.Where(project => this._context.API.FuzzySearch(projectQuery, $"{project.Name} {project.Client?.Name ?? string.Empty}").Score > 0);
 
-			// 		projects.AddRange(filteredProjects
-			// 			.OrderBy(project => project.ActualHours ?? 0)
-			// 			.Select((project, index) => new Result
-			// 			{
-			// 				Title = project.Name,
-			// 				SubTitle = $"{((project.ClientId is not null) ? $"{project.Client!.Name} | " : string.Empty)}{project.ElapsedString}",
-			// 				IcoPath = this._colourIconProvider.GetColourIcon(project.Colour, "start.png"),
-			// 				AutoCompleteText = $"{query.ActionKeyword} {Settings.StartCommand} ",
-			// 				Score = index,
-			// 				Action = _ =>
-			// 				{
-			// 					this._state.SelectedIds.Project = project.Id;
-			// 					this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project.KebabName} ", true);
-			// 					return false;
-			// 				},
-			// 			})
-			// 		);
-			// 	}
+					projects.AddRange(filteredProjects
+						.OrderBy(project => project.ActualHours ?? 0)
+						.Select((project, index) => new Result
+						{
+							Title = project.Name,
+							SubTitle = $"{((project.ClientId is not null) ? $"{project.Client!.Name} | " : string.Empty)}{project.ElapsedString}",
+							IcoPath = this._colourIconProvider.GetColourIcon(project.Colour, "start.png"),
+							AutoCompleteText = $"{query.ActionKeyword} {TransformedQuery.PrefixProject(project.Name)} ",
+							Score = index,
+							Action = _ =>
+							{
+								this._state.SelectedIds.Project = project.Id;
 
-			// 	return projects;
-			// }
+								this._state.ResultsSource = TogglTrack.ExclusiveResultsSource.None;
+
+								this._context.API.ChangeQuery($"{query.ActionKeyword} {this._state.LastSearch} ", true);
+								return false;
+							},
+						})
+					);
+				}
+
+				return projects;
+			}
+			else if (transformedQuery.HasProjectPrefix())
+			{
+				this._state.SelectedIds.Project = -1;
+
+				this._state.ResultsSource = TogglTrack.ExclusiveResultsSource.Start;
+
+				string currentSearch = new TransformedQuery(query)
+					.RemoveAll(Settings.UnescapedProjectPrefixRegex)
+					.Trim();
+				this._state.LastSearch = (string.IsNullOrEmpty(currentSearch))
+					? Settings.EscapeCharacter
+					: currentSearch;
+
+				this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.ProjectPrefix}", true);
+			}
 
 			var project = me.GetProject(this._state.SelectedIds.Project);
 			long workspaceId = project?.WorkspaceId ?? me.DefaultWorkspaceId;
 
 			string projectName = project?.WithClientName ?? Settings.NoProjectName;
-			string description = new TransformedQuery(query)
-				// .After(ArgumentIndices.Description)
-				.ToString(TransformedQuery.Escaping.Unescaped);
+			string description = transformedQuery.ToString(TransformedQuery.Escaping.Unescaped);
 
 			var results = new List<Result>();
 
+			// TODO: decide impl of usage tips
 			// if (this._settings.ShowUsageTips && string.IsNullOrEmpty(description))
 			// {
 			// 	results.Add(new Result

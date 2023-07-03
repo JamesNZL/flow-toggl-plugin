@@ -30,6 +30,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			HelpCommand,
 		};
 
+		internal const string ProjectPrefix = "@";
+		internal const string EscapeCharacter = @"\";
+
 		internal const string EditProjectFlag = "-p";
 		internal const string ClearDescriptionFlag = "-C";
 		internal const string TimeSpanFlag = "-t";
@@ -45,6 +48,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		internal const string UsageExampleTitle = "Usage Example";
 		internal const string UsageWarningTitle = "Usage Warning";
 
+		internal static readonly Regex QueryEscapingRegex = new Regex(@$"(\{Settings.EscapeCharacter}(?!\{Settings.EscapeCharacter}))");
+		internal static readonly Regex UnescapedProjectPrefixRegex = new Regex(@$"(?<!\{Settings.EscapeCharacter}){Settings.ProjectPrefix}");
+		internal static readonly Regex UnescapedFlagRegex = new Regex(@" -");
+		internal static readonly Regex ReportsSpanOffsetRegex = new Regex(@"-(\d+)");
+
 		internal enum ReportsSpanKey
 		{
 			Day,
@@ -52,7 +60,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			Month,
 			Year,
 		}
-		internal static readonly Regex ReportsSpanOffsetRegex = new Regex(@"-(\d+)");
 		internal static readonly List<ReportsSpanCommandArgument> ReportsSpanArguments = new List<ReportsSpanCommandArgument>
 		{
 			new ReportsSpanCommandArgument

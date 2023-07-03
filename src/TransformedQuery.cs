@@ -15,10 +15,15 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 		public string[] SearchTerms;
 
+		public static string PrefixProject(string project)
+		{
+			return $"{Settings.ProjectPrefix}{project}";
+		}
+
 		public static string EscapeDescription(string description)
 		{
-			string escaped = Regex.Replace(description, @"(\\(?!\\))", @"\\");
-			return Regex.Replace(escaped, @" -", @" \-");
+			string escaped = Settings.QueryEscapingRegex.Replace(description, @$"\{Settings.EscapeCharacter}");
+			return Settings.UnescapedFlagRegex.Replace(escaped, @$" {Settings.EscapeCharacter}-");
 		}
 
 		internal TransformedQuery(Query query)
@@ -85,9 +90,24 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return this;
 		}
 
+		public string RemoveAll(Regex regex)
+		{
+			return regex.Replace(this.ToString(), string.Empty);
+		}
+
+		public bool HasProjectPrefix()
+		{
+			return Settings.UnescapedProjectPrefixRegex.IsMatch(this.ToString());
+		}
+
+		public string UnprefixProject()
+		{
+			return Regex.Replace(this.ToString(), @$"^{Settings.ProjectPrefix}", string.Empty).Trim();
+		}
+
 		private string UnescapeSearch()
 		{
-			return Regex.Replace(this.ToString(), @"(\\(?!\\))", string.Empty);
+			return Settings.QueryEscapingRegex.Replace(this.ToString(), string.Empty).Trim();
 		}
 
 		public override string ToString()

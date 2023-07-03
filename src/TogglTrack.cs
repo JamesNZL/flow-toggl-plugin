@@ -707,118 +707,47 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 		internal async ValueTask<List<Result>> RequestResults(CancellationToken token, Query query)
 		{
-			if (token.IsCancellationRequested)
-			{
-				return new List<Result>();
-			}
-
-			var me = (await this._GetMe())?.ToMe();
-			if (me is null)
-			{
-				return this.NotifyUnknownError();
-			}
-
-			var pastTimeEntries = (await this._GetMaxReportTimeEntries())?.ToSummaryReport(me);
-
-			var project = me.GetProject(this._state.SelectedIds.Project);
-			long workspaceId = project?.WorkspaceId ?? me.DefaultWorkspaceId;
-
-			string projectName = project?.WithClientName ?? Settings.NoProjectName;
-			string description = new TransformedQuery(query)
-				.ToString(TransformedQuery.Escaping.Unescaped);
-
 			var results = new List<Result>();
 
-			// TODO: Add result to start time entry
-			results.Add(new Result
-			{
-				Title = $"Start {description}{((string.IsNullOrEmpty(description) ? string.Empty : " "))}now",
-				SubTitle = projectName,
-				IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "start.png"),
-				AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
-				// TODO: Decide scorings
-				Score = 10000,
-				Action = _ =>
-				{
-					Task.Run(async delegate
-					{
-						try
-						{
-							this._context.API.LogInfo("TogglTrack", $"{this._state.SelectedIds.Project}, {workspaceId}, {description}");
-
-							var runningTimeEntry = (await this._GetRunningTimeEntry(true))?.ToTimeEntry(me);
-							if (runningTimeEntry is not null)
-							{
-								var stoppedTimeEntry = (await this._client.StopTimeEntry(
-									workspaceId: runningTimeEntry.WorkspaceId,
-									id: runningTimeEntry.Id
-								))?.ToTimeEntry(me);
-
-								if (stoppedTimeEntry?.Id is null)
-								{
-									throw new Exception("An API error was encountered.");
-								}
-							}
-
-							var createdTimeEntry = (await this._client.CreateTimeEntry(
-								workspaceId: workspaceId,
-								projectId: this._state.SelectedIds.Project,
-								description: description,
-								start: DateTimeOffset.UtcNow
-							))?.ToTimeEntry(me);
-
-							if (createdTimeEntry?.Id is null)
-							{
-								throw new Exception("An API error was encountered.");
-							}
-
-							this.ShowSuccessMessage($"Started {createdTimeEntry.GetRawDescription()}", projectName, "start.png");
-
-							// Update cached running time entry state
-							this.RefreshCache();
-						}
-						catch (Exception exception)
-						{
-							this._context.API.LogException("TogglTrack", "Failed to start time entry", exception);
-							this.ShowErrorMessage("Failed to start time entry.", exception.Message);
-						}
-						finally
-						{
-							this._state.SelectedIds.Project = -1;
-						}
-					});
-
-					return true;
-				},
-			});
-
-			// TODO: Parse time span flag and replace start result
-
+			// * Add results to start time entry
+			results.AddRange(await this._GetStartResults(token, query));
 			// TODO: Decide usage tips/examples/warnings
-			// if (this._settings.ShowUsageTips)
-			// {
-			// 	results.Add(new Result
-			// 	{
-			// 		Title = Settings.UsageTipTitle,
-			// 		SubTitle = $"Use {Settings.TimeSpanFlag} after the description to specify the start time",
-			// 		IcoPath = "tip.png",
-			// 		AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ",
-			// 		Score = 1,
-			// 		Action = _ =>
-			// 		{
-			// 			this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ");
-			// 			return false;
-			// 		}
-			// 	});
-			// }
+			// TODO: Parse @, open project selection screen
+			// TODO: must save previous query
 
 			// TODO: Add previously matching time entries
 			// Action is to start the time entry directly?
 			// ? How about manipulating the start time?
-			// TODO: Scorings
+			// Scorings
+			// if ((!string.IsNullOrEmpty(description)) && (pastTimeEntries is not null))
+			// {
+			// 	results.AddRange(
+			// 		pastTimeEntries.Groups.Values.SelectMany(project =>
+			// 		{
+			// 			if (project.SubGroups is null)
+			// 			{
+			// 				return Enumerable.Empty<Result>();
+			// 			}
 
-			// TODO: Parse @, open project selection screen
-			// TODO: must save previous query
+			// 			var filteredTimeEntries = project.SubGroups.Values.Where(timeEntry => this._context.API.FuzzySearch(description, timeEntry.GetTitle()).Score > 0);
+
+			// 			return filteredTimeEntries.Select(timeEntry => new Result
+			// 			{
+			// 				Title = timeEntry.GetTitle(),
+			// 				SubTitle = $"{project.Project?.WithClientName ?? Settings.NoProjectName} | {timeEntry.HumanisedElapsed}",
+			// 				IcoPath = this._colourIconProvider.GetColourIcon(project.Project?.Colour, "continue.png"),
+			// 				AutoCompleteText = $"{query.ActionKeyword} {Settings.ContinueCommand} {timeEntry.GetTitle(escapePotentialFlags: true)}",
+			// 				Score = timeEntry.GetScoreByStart(),
+			// 				Action = _ =>
+			// 				{
+			// 					this._state.SelectedIds.Project = project.Project?.Id;
+			// 					this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project.Project?.KebabName ?? "no-project"} {timeEntry.GetRawTitle(withTrailingSpace: true, escapePotentialFlags: true)}");
+			// 					return false;
+			// 				},
+			// 			});
+			// 		})
+			// 	);
+			// }
 
 			// TODO: Add commands
 
@@ -827,7 +756,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return results;
 		}
 
-		internal async ValueTask<List<Result>> RequestStartEntry(CancellationToken token, Query query)
+		private async ValueTask<List<Result>> _GetStartResults(CancellationToken token, Query query)
 		{
 			var me = (await this._GetMe(token))?.ToMe();
 			if (me is null)
@@ -835,112 +764,113 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				return this.NotifyUnknownError();
 			}
 
-			var ArgumentIndices = new
-			{
-				Command = 0,
-				Project = 1,
-				Description = 2,
-			};
+			// var ArgumentIndices = new
+			// {
+			// 	Command = 0,
+			// 	Project = 1,
+			// 	Description = 2,
+			// };
 
-			if (query.SearchTerms.Length == ArgumentIndices.Project)
-			{
-				this._state.SelectedIds.Project = -1;
+			// if (query.SearchTerms.Length == ArgumentIndices.Project)
+			// {
+			// 	this._state.SelectedIds.Project = -1;
 
-				// Start fetch for time entries asynchronously in the background
-				_ = Task.Run(() =>
-				{
-					_ = this._GetTimeEntries(token, force: true);
-				});
-			}
+			// 	// Start fetch for time entries asynchronously in the background
+			// 	_ = Task.Run(() =>
+			// 	{
+			// 		_ = this._GetTimeEntries(token, force: true);
+			// 	});
+			// }
 
-			if (this._state.SelectedIds.Project == -1)
-			{
-				var projects = new List<Result>();
+			// if (this._state.SelectedIds.Project == -1)
+			// {
+			// 	var projects = new List<Result>();
 
-				string projectQuery = new TransformedQuery(query)
-					.After(ArgumentIndices.Project)
-					.ToString();
+			// 	string projectQuery = new TransformedQuery(query)
+			// 		.After(ArgumentIndices.Project)
+			// 		.ToString();
 
-				if (string.IsNullOrEmpty(projectQuery) || this._context.API.FuzzySearch(projectQuery, "No Project").Score > 0)
-				{
-					projects.Add(new Result
-					{
-						Title = Settings.NoProjectName,
-						IcoPath = "start.png",
-						AutoCompleteText = $"{query.ActionKeyword} {Settings.StartCommand} ",
-						Score = int.MaxValue - 1000,
-						Action = _ =>
-						{
-							this._state.SelectedIds.Project = null;
-							this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} no-project ", true);
-							return false;
-						},
-					});
-				};
+			// 	if (string.IsNullOrEmpty(projectQuery) || this._context.API.FuzzySearch(projectQuery, "No Project").Score > 0)
+			// 	{
+			// 		projects.Add(new Result
+			// 		{
+			// 			Title = Settings.NoProjectName,
+			// 			IcoPath = "start.png",
+			// 			AutoCompleteText = $"{query.ActionKeyword} {Settings.StartCommand} ",
+			// 			Score = int.MaxValue - 1000,
+			// 			Action = _ =>
+			// 			{
+			// 				this._state.SelectedIds.Project = null;
+			// 				this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} no-project ", true);
+			// 				return false;
+			// 			},
+			// 		});
+			// 	};
 
-				if (me.ActiveProjects is not null)
-				{
-					var filteredProjects = (string.IsNullOrEmpty(projectQuery))
-						? me.ActiveProjects
-						: me.ActiveProjects.Where(project => this._context.API.FuzzySearch(projectQuery, $"{project.Name} {project.Client?.Name ?? string.Empty}").Score > 0);
+			// 	if (me.ActiveProjects is not null)
+			// 	{
+			// 		var filteredProjects = (string.IsNullOrEmpty(projectQuery))
+			// 			? me.ActiveProjects
+			// 			: me.ActiveProjects.Where(project => this._context.API.FuzzySearch(projectQuery, $"{project.Name} {project.Client?.Name ?? string.Empty}").Score > 0);
 
-					projects.AddRange(filteredProjects
-						.OrderBy(project => project.ActualHours ?? 0)
-						.Select((project, index) => new Result
-						{
-							Title = project.Name,
-							SubTitle = $"{((project.ClientId is not null) ? $"{project.Client!.Name} | " : string.Empty)}{project.ElapsedString}",
-							IcoPath = this._colourIconProvider.GetColourIcon(project.Colour, "start.png"),
-							AutoCompleteText = $"{query.ActionKeyword} {Settings.StartCommand} ",
-							Score = index,
-							Action = _ =>
-							{
-								this._state.SelectedIds.Project = project.Id;
-								this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project.KebabName} ", true);
-								return false;
-							},
-						})
-					);
-				}
+			// 		projects.AddRange(filteredProjects
+			// 			.OrderBy(project => project.ActualHours ?? 0)
+			// 			.Select((project, index) => new Result
+			// 			{
+			// 				Title = project.Name,
+			// 				SubTitle = $"{((project.ClientId is not null) ? $"{project.Client!.Name} | " : string.Empty)}{project.ElapsedString}",
+			// 				IcoPath = this._colourIconProvider.GetColourIcon(project.Colour, "start.png"),
+			// 				AutoCompleteText = $"{query.ActionKeyword} {Settings.StartCommand} ",
+			// 				Score = index,
+			// 				Action = _ =>
+			// 				{
+			// 					this._state.SelectedIds.Project = project.Id;
+			// 					this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project.KebabName} ", true);
+			// 					return false;
+			// 				},
+			// 			})
+			// 		);
+			// 	}
 
-				return projects;
-			}
+			// 	return projects;
+			// }
 
 			var project = me.GetProject(this._state.SelectedIds.Project);
 			long workspaceId = project?.WorkspaceId ?? me.DefaultWorkspaceId;
 
 			string projectName = project?.WithClientName ?? Settings.NoProjectName;
 			string description = new TransformedQuery(query)
-				.After(ArgumentIndices.Description)
+				// .After(ArgumentIndices.Description)
 				.ToString(TransformedQuery.Escaping.Unescaped);
 
 			var results = new List<Result>();
 
-			if (this._settings.ShowUsageTips && string.IsNullOrEmpty(description))
-			{
-				results.Add(new Result
-				{
-					Title = Settings.UsageTipTitle,
-					SubTitle = $"Keep typing to specify the time entry description",
-					IcoPath = "tip.png",
-					AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
-					Score = 1000,
-					Action = _ =>
-					{
-						this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} ");
-						return false;
-					}
-				});
-			}
+			// if (this._settings.ShowUsageTips && string.IsNullOrEmpty(description))
+			// {
+			// 	results.Add(new Result
+			// 	{
+			// 		Title = Settings.UsageTipTitle,
+			// 		SubTitle = $"Keep typing to specify the time entry description",
+			// 		IcoPath = "tip.png",
+			// 		AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
+			// 		Score = 1000,
+			// 		Action = _ =>
+			// 		{
+			// 			this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} ");
+			// 			return false;
+			// 		}
+			// 	});
+			// }
 
 			if (!query.SearchTerms.Contains(Settings.TimeSpanFlag))
 			{
 				results.Add(new Result
 				{
-					Title = $"Start {description}{((string.IsNullOrEmpty(description) ? string.Empty : " "))}now",
+					Title = $"Start {((string.IsNullOrEmpty(description) ? Settings.EmptyTimeEntry : description))} now",
 					SubTitle = projectName,
 					IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "start.png"),
 					AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
+					// TODO:
 					Score = 10000,
 					Action = _ =>
 					{
@@ -996,22 +926,22 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					},
 				});
 
-				if (this._settings.ShowUsageTips)
-				{
-					results.Add(new Result
-					{
-						Title = Settings.UsageTipTitle,
-						SubTitle = $"Use {Settings.TimeSpanFlag} after the description to specify the start time",
-						IcoPath = "tip.png",
-						AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ",
-						Score = 1,
-						Action = _ =>
-						{
-							this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ");
-							return false;
-						}
-					});
-				}
+				// if (this._settings.ShowUsageTips)
+				// {
+				// 	results.Add(new Result
+				// 	{
+				// 		Title = Settings.UsageTipTitle,
+				// 		SubTitle = $"Use {Settings.TimeSpanFlag} after the description to specify the start time",
+				// 		IcoPath = "tip.png",
+				// 		AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ",
+				// 		Score = 1,
+				// 		Action = _ =>
+				// 		{
+				// 			this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ");
+				// 			return false;
+				// 		}
+				// 	});
+				// }
 			}
 			else
 			{
@@ -1033,15 +963,16 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 					// Remove -t flag from description
 					string sanitisedDescription = new TransformedQuery(query)
-						.Between(ArgumentIndices.Description, Settings.TimeSpanFlag)
+						.To(Settings.TimeSpanFlag)
 						.ToString(TransformedQuery.Escaping.Unescaped);
 
 					results.Add(new Result
 					{
-						Title = $"Start {sanitisedDescription}{((string.IsNullOrEmpty(sanitisedDescription) ? string.Empty : " "))}{startTime.Humanize()} at {startTime.ToLocalTime().ToString("t")}",
+						Title = $"Start {((string.IsNullOrEmpty(sanitisedDescription) ? Settings.EmptyTimeEntry : sanitisedDescription))} {startTime.Humanize()} at {startTime.ToLocalTime().ToString("t")}",
 						SubTitle = projectName,
 						IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "start.png"),
 						AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
+						// TODO:
 						Score = 100000,
 						Action = _ =>
 						{
@@ -1140,10 +1071,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			results.Add(new Result
 			{
-				Title = $"Start {description}{((string.IsNullOrEmpty(description) ? string.Empty : " "))}{likelyPastTimeEntry.HumanisedStop} at previous stop time",
+				Title = $"Start {((string.IsNullOrEmpty(description) ? Settings.EmptyTimeEntry : description))} {likelyPastTimeEntry.HumanisedStop} at previous stop time",
 				SubTitle = projectName,
 				IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "start.png"),
 				AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
+				// TODO: 
 				Score = 10000,
 				Action = _ =>
 				{
@@ -1200,7 +1132,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return results;
 		}
 
-		internal async ValueTask<List<Result>> RequestStopEntry(CancellationToken token, Query query)
+		private async ValueTask<List<Result>> _GetStopResults(CancellationToken token, Query query)
 		{
 			var me = (await this._GetMe(token))?.ToMe();
 			if (me is null)
@@ -1387,7 +1319,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return results;
 		}
 
-		internal async ValueTask<List<Result>> RequestContinueEntry(CancellationToken token, Query query)
+		private async ValueTask<List<Result>> _GetContinueResults(CancellationToken token, Query query)
 		{
 			var me = (await this._GetMe(token))?.ToMe();
 			if (me is null)
@@ -1461,7 +1393,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}).ToList();
 		}
 
-		internal async ValueTask<List<Result>> RequestEditEntry(CancellationToken token, Query query)
+		private async ValueTask<List<Result>> _GetEditResults(CancellationToken token, Query query)
 		{
 			var me = (await this._GetMe(token))?.ToMe();
 			if (me is null)
@@ -2116,7 +2048,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return results;
 		}
 
-		internal async ValueTask<List<Result>> RequestDeleteEntry(CancellationToken token, Query query)
+		private async ValueTask<List<Result>> _GetDeleteResults(CancellationToken token, Query query)
 		{
 			var me = (await this._GetMe(token))?.ToMe();
 			if (me is null)
@@ -2212,7 +2144,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							}
 							catch (Exception exception)
 							{
-								this._context.API.LogException("TogglTrack", "Failed to delete time entry", exception, "RequestDeleteEntry");
+								this._context.API.LogException("TogglTrack", "Failed to delete time entry", exception);
 								this.ShowErrorMessage("Failed to delete time entry.", exception.Message);
 							}
 							finally
@@ -2227,7 +2159,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			};
 		}
 
-		internal async ValueTask<List<Result>> RequestViewReports(CancellationToken token, Query query)
+		private async ValueTask<List<Result>> _GetReportsResults(CancellationToken token, Query query)
 		{
 			var me = (await this._GetMe(token))?.ToMe();
 			if (me is null)

@@ -39,6 +39,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		internal const string NoProjectName = "No Project";
 		internal const string NoClientName = "No Client";
 		internal const string EmptyDescription = "(no description)";
+		internal const string EmptyTimeEntry = "an empty time entry";
 
 		internal const string UsageTipTitle = "Usage Tip";
 		internal const string UsageExampleTitle = "Usage Example";

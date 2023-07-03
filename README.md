@@ -228,7 +228,7 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 > 1. The `Time Span`/`End Time Span` flags must be the entered after the time entry description. Anything entered after the flag(s) will be ignored.
 > 2. Project selection cannot be `Tab` auto-completed; selection must be made with the `Enter` action key due to Flow limitations.
 > 3. The list of editable time entries is only guaranteed to contain the `1000` most recent time entries due to Toggl limitations.
-<!-- TODO: not true in v3.0.1 -->
+<!-- TODO: not true in v4.0.0 -->
 > 4. The `Edit Project` flag will reset the Flow search bar (ie other flags/the new description will be lost), so use this before typing anything else.
 
 ### Screenshots

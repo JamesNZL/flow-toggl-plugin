@@ -23,8 +23,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			SemaphoreSlim Token,
 			SemaphoreSlim Me,
 			SemaphoreSlim RunningTimeEntries,
-			SemaphoreSlim TimeEntries
+			SemaphoreSlim TimeEntries,
+			SemaphoreSlim SummaryReports,
+			SemaphoreSlim DetailedReports
 		) _semaphores = (
+			new SemaphoreSlim(1, 1),
+			new SemaphoreSlim(1, 1),
 			new SemaphoreSlim(1, 1),
 			new SemaphoreSlim(1, 1),
 			new SemaphoreSlim(1, 1),
@@ -220,8 +224,18 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		{
 			string cacheKey = $"SummaryReport{workspaceId}{userId}{(int)reportGrouping}{start.ToString("yyyy-MM-dd")}{end?.ToString("yyyy-MM-dd")}";
 
-			if (!force && this._cache.Contains(cacheKey))
+			bool hasWaited = (this._semaphores.SummaryReports.CurrentCount == 0);
+			await this._semaphores.SummaryReports.WaitAsync();
+
+			if (token.IsCancellationRequested)
 			{
+				this._semaphores.SummaryReports.Release();
+				token.ThrowIfCancellationRequested();
+			}
+
+			if ((!force || hasWaited) && this._cache.Contains(cacheKey))
+			{
+				this._semaphores.SummaryReports.Release();
 				return (SummaryReportResponse?)this._cache.Get(cacheKey);
 			}
 
@@ -240,8 +254,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				this._cache.Set(cacheKey, summary, DateTimeOffset.Now.AddSeconds(60));
 				this._cacheKeys.Summary.Add(cacheKey);
 
-				token.ThrowIfCancellationRequested();
+				if (token.IsCancellationRequested)
+				{
+					this._semaphores.SummaryReports.Release();
+					token.ThrowIfCancellationRequested();
+				}
 
+				this._semaphores.SummaryReports.Release();
 				return summary;
 			}
 			catch (Exception exception)
@@ -249,6 +268,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				token.ThrowIfCancellationRequested();
 
 				this._context.API.LogException("TogglTrack", "Failed to fetch summary reports", exception);
+
+				this._semaphores.SummaryReports.Release();
 				return null;
 			}
 		}
@@ -273,8 +294,18 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		{
 			string cacheKey = $"DetailedReport{workspaceId}{userId}{string.Join(",", projectIds ?? new List<long?>())}{start.ToString("yyyy-MM-dd")}{end?.ToString("yyyy-MM-dd")}";
 
-			if (!force && this._cache.Contains(cacheKey))
+			bool hasWaited = (this._semaphores.DetailedReports.CurrentCount == 0);
+			await this._semaphores.DetailedReports.WaitAsync();
+
+			if (token.IsCancellationRequested)
 			{
+				this._semaphores.DetailedReports.Release();
+				token.ThrowIfCancellationRequested();
+			}
+
+			if ((!force || hasWaited) && this._cache.Contains(cacheKey))
+			{
+				this._semaphores.DetailedReports.Release();
 				return (List<DetailedReportTimeEntryGroupResponse>?)this._cache.Get(cacheKey);
 			}
 
@@ -293,8 +324,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				this._cache.Set(cacheKey, report, DateTimeOffset.Now.AddSeconds(60));
 				this._cacheKeys.Detailed.Add(cacheKey);
 
-				token.ThrowIfCancellationRequested();
+				if (token.IsCancellationRequested)
+				{
+					this._semaphores.DetailedReports.Release();
+					token.ThrowIfCancellationRequested();
+				}
 
+				this._semaphores.DetailedReports.Release();
 				return report;
 			}
 			catch (Exception exception)
@@ -302,6 +338,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				token.ThrowIfCancellationRequested();
 
 				this._context.API.LogException("TogglTrack", "Failed to fetch detailed reports", exception);
+
+				this._semaphores.DetailedReports.Release();
 				return null;
 			}
 		}

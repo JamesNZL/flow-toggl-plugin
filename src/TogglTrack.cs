@@ -707,6 +707,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 		internal async ValueTask<List<Result>> RequestResults(CancellationToken token, Query query)
 		{
+			if (string.IsNullOrEmpty(query.Search))
+			{
+				this._state.SelectedIds = (-1, -1, -1);
+				this._state.EditProject = TogglTrack.EditProjectState.NoProjectChange;
+				this._state.ReportsShowDetailed = false;
+			}
+
 			var results = new List<Result>();
 
 			// * Add results to start time entry

@@ -83,7 +83,7 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 # Command Reference
 
 > **Note**  
-> This command reference applies to version `v3.0.0`.
+> This command reference applies to version `v3.0.1`.
 
 | Icon                                         | Link                        |
 | -------------------------------------------- | --------------------------- |

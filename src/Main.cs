@@ -47,7 +47,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			{
 				_ = Task.Run(async () =>
 				{
-					if (!await this._togglTrack!.VerifyApiToken())
+					if (!await this._togglTrack!.VerifyApiToken(CancellationToken.None))
 					{
 						return;
 					}
@@ -72,7 +72,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			{
 				return this._togglTrack!.NotifyNetworkUnavailable();
 			}
-			else if (!await this._togglTrack!.VerifyApiToken())
+			else if (!await this._togglTrack!.VerifyApiToken(token))
 			{
 				return this._togglTrack.NotifyInvalidToken();
 			}
@@ -83,13 +83,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			// if (string.IsNullOrWhiteSpace(query.Search))
 			// {
-			// 	return await this._togglTrack.GetDefaultHotKeys(prefetch: true);
+			// 	return await this._togglTrack.GetDefaultHotKeys(token, prefetch: true);
 			// }
 
 			// string command = query.FirstSearch;
 			// if (!Settings.Commands.Contains(command) && command == this._state.LastCommand)
 			// {
-			// 	command = (await this._togglTrack.GetDefaultHotKeys())
+			// 	command = (await this._togglTrack.GetDefaultHotKeys(token))
 			// 		.GroupBy(result => this._context!.API.FuzzySearch(query.FirstSearch, result.Title).Score)
 			// 		.MaxBy(group => group.Key)
 			// 		?.MaxBy(result => result.Score)
@@ -107,7 +107,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			// 	Settings.EditCommand => await this._togglTrack.RequestEditEntry(token, query),
 			// 	Settings.DeleteCommand => await this._togglTrack.RequestDeleteEntry(token, query),
 			// 	Settings.ReportsCommand => await this._togglTrack.RequestViewReports(token, query),
-			// 	_ => (await this._togglTrack.GetDefaultHotKeys())
+			// 	_ => (await this._togglTrack.GetDefaultHotKeys(token))
 			// 		.FindAll(result =>
 			// 		{
 			// 			return this._context!.API.FuzzySearch(query.Search, result.Title).Score > 0;

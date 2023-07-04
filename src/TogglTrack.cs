@@ -1536,74 +1536,82 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					return Enumerable.Empty<Result>();
 				}
 
-				var filteredTimeEntries = project.SubGroups.Values.Where(timeEntry => this._context.API.FuzzySearch(entriesQuery, timeEntry.GetTitle()).Score > 0);
-
-				return filteredTimeEntries.Select(timeEntry => new Result
-				{
-					Title = timeEntry.GetTitle(),
-					SubTitle = $"{project.Project?.WithClientName ?? Settings.NoProjectName} | {timeEntry.HumanisedElapsed}",
-					IcoPath = this._colourIconProvider.GetColourIcon(project.Project?.Colour, "continue.png"),
-					AutoCompleteText = $"{query.ActionKeyword} {timeEntry.GetTitle(escapeCommands: true, escapePotentialSymbols: true)}",
-					Score = timeEntry.GetScoreByStart(),
-					Action = context =>
+				return project.SubGroups.Values
+					.Where(timeEntry => (
+						(
+							project.Project?.Id != this._state.SelectedIds.Project ||
+							timeEntry.GetRawTitle() != entriesQuery
+						) &&
+						(
+							this._context.API.FuzzySearch(entriesQuery, timeEntry.GetTitle()).Score > 0)
+						)
+					)
+					.Select(timeEntry => new Result
 					{
-						if (!context.SpecialKeyState.AltPressed)
+						Title = timeEntry.GetTitle(),
+						SubTitle = $"{project.Project?.WithClientName ?? Settings.NoProjectName} | {timeEntry.HumanisedElapsed}",
+						IcoPath = this._colourIconProvider.GetColourIcon(project.Project?.Colour, "continue.png"),
+						AutoCompleteText = $"{query.ActionKeyword} {timeEntry.GetTitle(escapeCommands: true, escapePotentialSymbols: true)}",
+						Score = timeEntry.GetScoreByStart(),
+						Action = context =>
 						{
-							this._state.SelectedIds.Project = project.Project?.Id;
-							this._context.API.ChangeQuery($"{query.ActionKeyword} {timeEntry.GetRawTitle(withTrailingSpace: true, escapeCommands: true, escapePotentialSymbols: true)}");
-							return false;
-						}
-
-						// Alt key modifier will continue the time entry now
-						Task.Run(async delegate
-						{
-							long workspaceId = project.Project?.WorkspaceId ?? me.DefaultWorkspaceId;
-
-							try
+							if (!context.SpecialKeyState.AltPressed)
 							{
-								this._context.API.LogInfo("TogglTrack", $"{project.Id}, {workspaceId}, {timeEntry.GetRawTitle()}");
+								this._state.SelectedIds.Project = project.Project?.Id;
+								this._context.API.ChangeQuery($"{query.ActionKeyword} {timeEntry.GetRawTitle(withTrailingSpace: true, escapeCommands: true, escapePotentialSymbols: true)}");
+								return false;
+							}
 
-								var runningTimeEntry = (await this._GetRunningTimeEntry(CancellationToken.None, force: true))?.ToTimeEntry(me);
-								if (runningTimeEntry is not null)
+							// Alt key modifier will continue the time entry now
+							Task.Run(async delegate
+							{
+								long workspaceId = project.Project?.WorkspaceId ?? me.DefaultWorkspaceId;
+
+								try
 								{
-									var stoppedTimeEntry = (await this._client.StopTimeEntry(
-										workspaceId: runningTimeEntry.WorkspaceId,
-										id: runningTimeEntry.Id
+									this._context.API.LogInfo("TogglTrack", $"{project.Id}, {workspaceId}, {timeEntry.GetRawTitle()}");
+
+									var runningTimeEntry = (await this._GetRunningTimeEntry(CancellationToken.None, force: true))?.ToTimeEntry(me);
+									if (runningTimeEntry is not null)
+									{
+										var stoppedTimeEntry = (await this._client.StopTimeEntry(
+											workspaceId: runningTimeEntry.WorkspaceId,
+											id: runningTimeEntry.Id
+										))?.ToTimeEntry(me);
+
+										if (stoppedTimeEntry?.Id is null)
+										{
+											throw new Exception("An API error was encountered.");
+										}
+									}
+
+									var createdTimeEntry = (await this._client.CreateTimeEntry(
+										workspaceId: workspaceId,
+										projectId: project.Project?.Id,
+										description: timeEntry.GetRawTitle(),
+										start: DateTimeOffset.UtcNow
 									))?.ToTimeEntry(me);
 
-									if (stoppedTimeEntry?.Id is null)
+									if (createdTimeEntry?.Id is null)
 									{
 										throw new Exception("An API error was encountered.");
 									}
+
+									this.ShowSuccessMessage($"Continued {createdTimeEntry.GetRawDescription()}", project.Project?.WithClientName ?? Settings.NoProjectName, "start.png");
+
+									// Update cached running time entry state
+									this.RefreshCache();
 								}
-
-								var createdTimeEntry = (await this._client.CreateTimeEntry(
-									workspaceId: workspaceId,
-									projectId: project.Project?.Id,
-									description: timeEntry.GetRawTitle(),
-									start: DateTimeOffset.UtcNow
-								))?.ToTimeEntry(me);
-
-								if (createdTimeEntry?.Id is null)
+								catch (Exception exception)
 								{
-									throw new Exception("An API error was encountered.");
+									this._context.API.LogException("TogglTrack", "Failed to continue time entry", exception);
+									this.ShowErrorMessage("Failed to continue time entry.", exception.Message);
 								}
+							});
 
-								this.ShowSuccessMessage($"Continued {createdTimeEntry.GetRawDescription()}", project.Project?.WithClientName ?? Settings.NoProjectName, "start.png");
-
-								// Update cached running time entry state
-								this.RefreshCache();
-							}
-							catch (Exception exception)
-							{
-								this._context.API.LogException("TogglTrack", "Failed to continue time entry", exception);
-								this.ShowErrorMessage("Failed to continue time entry.", exception.Message);
-							}
-						});
-
-						return true;
-					}
-				});
+							return true;
+						}
+					});
 			}).ToList();
 		}
 

@@ -787,16 +787,50 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								long workspaceId = me.DefaultWorkspaceId;
 								string description = transformedQuery.ReplaceProject(string.Empty, unescape: true);
 
+								// Attempt to parse the time span flag if it exists
+								TimeSpan startTimeSpan = TimeSpan.Zero;
+								if (query.SearchTerms.Contains(Settings.TimeSpanFlag))
+								{
+									try
+									{
+										startTimeSpan = TimeSpanParser.Parse(
+											new TransformedQuery(query)
+												.After(Settings.TimeSpanFlag)
+												.ToString(),
+											new TimeSpanParserOptions
+											{
+												UncolonedDefault = Units.Minutes,
+												ColonedDefault = Units.Minutes,
+											}
+										);
+
+										description = new TransformedQuery(query)
+											.To(Settings.TimeSpanFlag)
+											.ReplaceProject(string.Empty, unescape: true);
+									}
+									catch (ArgumentException)
+									{
+										// Invalid time span; so continue to create the time entry now
+									}
+								}
+
+								var startTime = DateTimeOffset.UtcNow + startTimeSpan;
+
 								try
 								{
-									this._context.API.LogInfo("TogglTrack", $"{projectId}, {workspaceId}, {description}");
+									this._context.API.LogInfo("TogglTrack", $"{projectId}, {workspaceId}, {description}, {startTimeSpan.ToString()}, from project selection");
 
 									var runningTimeEntry = (await this._GetRunningTimeEntry(CancellationToken.None, force: true))?.ToTimeEntry(me);
 									if (runningTimeEntry is not null)
 									{
-										var stoppedTimeEntry = (await this._client.StopTimeEntry(
+										var stoppedTimeEntry = (await this._client.EditTimeEntry(
 											workspaceId: runningTimeEntry.WorkspaceId,
-											id: runningTimeEntry.Id
+											projectId: runningTimeEntry.ProjectId,
+											id: runningTimeEntry.Id,
+											stop: startTime,
+											duration: runningTimeEntry.Duration,
+											tags: runningTimeEntry.Tags,
+											billable: runningTimeEntry.Billable
 										))?.ToTimeEntry(me);
 
 										if (stoppedTimeEntry?.Id is null)
@@ -809,7 +843,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 										workspaceId: workspaceId,
 										projectId: projectId,
 										description: description,
-										start: DateTimeOffset.UtcNow
+										start: startTime
 									))?.ToTimeEntry(me);
 
 									if (createdTimeEntry?.Id is null)
@@ -817,7 +851,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 										throw new Exception("An API error was encountered.");
 									}
 
-									this.ShowSuccessMessage($"Started {createdTimeEntry.GetRawDescription()}", Settings.NoProjectName, "start.png");
+									this.ShowSuccessMessage(
+										(startTimeSpan == TimeSpan.Zero)
+											? $"Started {createdTimeEntry.GetRawDescription()}"
+											: $"Started {createdTimeEntry.GetRawDescription(withTrailingSpace: true)}{startTime.Humanize()}",
+										Settings.NoProjectName,
+										"start.png"
+									);
 
 									// Update cached running time entry state
 									this.RefreshCache();
@@ -872,16 +912,50 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									long workspaceId = project.WorkspaceId;
 									string description = transformedQuery.ReplaceProject(string.Empty, unescape: true);
 
+									// Attempt to parse the time span flag if it exists
+									TimeSpan startTimeSpan = TimeSpan.Zero;
+									if (query.SearchTerms.Contains(Settings.TimeSpanFlag))
+									{
+										try
+										{
+											startTimeSpan = TimeSpanParser.Parse(
+												new TransformedQuery(query)
+													.After(Settings.TimeSpanFlag)
+													.ToString(),
+												new TimeSpanParserOptions
+												{
+													UncolonedDefault = Units.Minutes,
+													ColonedDefault = Units.Minutes,
+												}
+											);
+
+											description = new TransformedQuery(query)
+												.To(Settings.TimeSpanFlag)
+												.ReplaceProject(string.Empty, unescape: true);
+										}
+										catch (ArgumentException)
+										{
+											// Invalid time span; so continue to create the time entry now
+										}
+									}
+
+									var startTime = DateTimeOffset.UtcNow + startTimeSpan;
+
 									try
 									{
-										this._context.API.LogInfo("TogglTrack", $"{projectId}, {workspaceId}, {description}");
+										this._context.API.LogInfo("TogglTrack", $"{projectId}, {workspaceId}, {description}, {startTimeSpan.ToString()}, from project selection");
 
 										var runningTimeEntry = (await this._GetRunningTimeEntry(CancellationToken.None, force: true))?.ToTimeEntry(me);
 										if (runningTimeEntry is not null)
 										{
-											var stoppedTimeEntry = (await this._client.StopTimeEntry(
+											var stoppedTimeEntry = (await this._client.EditTimeEntry(
 												workspaceId: runningTimeEntry.WorkspaceId,
-												id: runningTimeEntry.Id
+												projectId: runningTimeEntry.ProjectId,
+												id: runningTimeEntry.Id,
+												stop: startTime,
+												duration: runningTimeEntry.Duration,
+												tags: runningTimeEntry.Tags,
+												billable: runningTimeEntry.Billable
 											))?.ToTimeEntry(me);
 
 											if (stoppedTimeEntry?.Id is null)
@@ -894,7 +968,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 											workspaceId: workspaceId,
 											projectId: projectId,
 											description: description,
-											start: DateTimeOffset.UtcNow
+											start: startTime
 										))?.ToTimeEntry(me);
 
 										if (createdTimeEntry?.Id is null)
@@ -902,7 +976,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 											throw new Exception("An API error was encountered.");
 										}
 
-										this.ShowSuccessMessage($"Started {createdTimeEntry.GetRawDescription()}", project.WithClientName, "start.png");
+										this.ShowSuccessMessage(
+											(startTimeSpan == TimeSpan.Zero)
+												? $"Started {createdTimeEntry.GetRawDescription()}"
+												: $"Started {createdTimeEntry.GetRawDescription(withTrailingSpace: true)}{startTime.Humanize()}",
+											project.WithClientName,
+											"start.png"
+										);
 
 										// Update cached running time entry state
 										this.RefreshCache();

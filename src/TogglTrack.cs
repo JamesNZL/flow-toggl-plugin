@@ -2609,7 +2609,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									Action = _ =>
 									{
 										this._state.SelectedIds.Project = project?.Id;
-										this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project?.KebabName ?? "no-project"} {timeEntry.GetRawDescription(withTrailingSpace: true, escapePotentialSymbols: true)}");
+										this._context.API.ChangeQuery($"{query.ActionKeyword} {timeEntry.GetRawDescription(withTrailingSpace: true, escapePotentialCommands: true, escapePotentialSymbols: true)}");
 										return false;
 									},
 								};
@@ -2651,7 +2651,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								Action = _ =>
 								{
 									this._state.SelectedIds.Project = project?.Id;
-									this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {project?.KebabName ?? "no-project"} {subGroup.GetRawTitle(withTrailingSpace: true, escapePotentialSymbols: true)}");
+									this._context.API.ChangeQuery($"{query.ActionKeyword} {subGroup.GetRawTitle(withTrailingSpace: true, escapePotentialCommands: true, escapePotentialSymbols: true)}");
 									return false;
 								},
 							}));
@@ -2859,7 +2859,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									Action = _ =>
 									{
 										this._state.SelectedIds.Project = timeEntry.Project?.Id;
-										this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {timeEntry.Project?.KebabName ?? "no-project"} {timeEntry.GetRawDescription(withTrailingSpace: true, escapePotentialSymbols: true)}");
+										this._context.API.ChangeQuery($"{query.ActionKeyword} {timeEntry.GetRawDescription(withTrailingSpace: true, escapePotentialCommands: true, escapePotentialSymbols: true)}");
 										return false;
 									},
 								};
@@ -2906,7 +2906,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								Action = _ =>
 								{
 									this._state.SelectedIds.Project = subGroup.Group.Project?.Id;
-									this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.StartCommand} {subGroup.Group.Project?.KebabName ?? "no-project"} {subGroup.GetRawTitle(withTrailingSpace: true, escapePotentialSymbols: true)}");
+									this._context.API.ChangeQuery($"{query.ActionKeyword} {subGroup.GetRawTitle(withTrailingSpace: true, escapePotentialCommands: true, escapePotentialSymbols: true)}");
 									return false;
 								},
 							}));

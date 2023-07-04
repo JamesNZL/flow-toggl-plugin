@@ -9,11 +9,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 	/// </Summary>
 	public class Settings
 	{
-		// TODO: need to remove this
-		internal const string StartCommand = "start";
 		internal const string StopCommand = "stop";
-		// TODO: need to remove this
-		internal const string ContinueCommand = "continue";
 		internal const string EditCommand = "edit";
 		internal const string DeleteCommand = "delete";
 		internal const string ReportsCommand = "reports";
@@ -22,11 +18,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		internal const string HelpCommand = "help";
 		// TODO: oh, I forgot I had this array—use in RequestResults/EscapeCommands?
 		internal static readonly string[] Commands = new string[] {
-			// TODO: need to remove this
-			StartCommand,
 			StopCommand,
-			// TODO: need to remove this
-			ContinueCommand,
 			EditCommand,
 			DeleteCommand,
 			ReportsCommand,

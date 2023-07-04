@@ -1781,7 +1781,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 
 			long? projectId = (this._state.SelectedIds.Project == -1)
-				? null
+				? timeEntry.ProjectId
 				: this._state.SelectedIds.Project;
 			var project = me.GetProject(projectId);
 

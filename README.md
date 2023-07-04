@@ -43,7 +43,7 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 
 # Features
 
-- Simple, user-friendly interface
+- Powerful, speed-optimised interface
 - Support for projects, clients, and workspaces
 - Coloured icons for projects
 - Human-friendly date and time display
@@ -53,8 +53,8 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 # Commands
 
 - `Start` new time entries
-- `Stop` currently running time entries
 - `Continue` a previously tracked time entry
+- `Stop` currently running time entries
 - `Edit` a previously tracked time entry
 - `Delete` a previously tracked time entry 
 - `Reports` of tracked time by projects, clients, and entries
@@ -63,10 +63,10 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 # Demos
 
 ## `tgl`
-![Plugin demo](./assets/demos/tgl.gif)
+![Plugin demo](assets/demos/tgl.gif)
 
 ## `tgl reports`
-![View tracked time reports](./assets/demos/reports.gif)
+![View tracked time reports](assets/demos/reports.gif)
 
 # Setup Instructions
 
@@ -83,14 +83,14 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 # Command Reference
 
 > **Note**  
-> This command reference applies to version `v3.0.1`.
+> This command reference applies to version `v4.0.0`.
 
 | Icon                                         | Link                        |
 | -------------------------------------------- | --------------------------- |
 | <img src="assets/app.png" width="50px">      | [`tgl`](#tgl-1)             |
 | <img src="assets/start.png" width="50px">    | [`start`](#tgl-start)       |
-| <img src="assets/stop.png" width="50px">     | [`stop`](#tgl-stop)         |
 | <img src="assets/continue.png" width="50px"> | [`continue`](#tgl-continue) |
+| <img src="assets/stop.png" width="50px">     | [`stop`](#tgl-stop)         |
 | <img src="assets/edit.png" width="50px">     | [`edit`](#tgl-edit)         |
 | <img src="assets/delete.png" width="50px">   | [`delete`](#tgl-delete)     |
 | <img src="assets/reports.png" width="50px">  | [`reports`](#tgl-reports-1) |
@@ -103,18 +103,58 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 ## `tgl`
 
 ### Description
-> :memo: The action keyword lists all currently executable plugin commands.
+> :memo: The action keyword lists:
+>    1. the result(s) to start a new time entry,
+>    2. past time entries that fuzzy match the current input, and
+>    3. all currently executable plugin commands.
+
+#### `tgl` with no further input
+When the plugin is triggered with no further input, the list of results will contain:
+1. `Start an empty time entry now`,
+2. `Start an empty time entry [x time] ago at previous stop time`, and
+3. A list of currently executable commands.
+
+> **Note**  
+> The `previous stop time` action is only available if:
+> 1. There is a past time entry, and
+> 2. There is no currently running time entry.
+
+> **Note**  
+> Relevant `Usage Tip`s will also be displayed if `Show Usage Results: Tips` is enabled in the plugin settings.
+
+![`tgl` with no input](assets/screenshots/tgl/empty-query.png)
+
+#### `tgl [command name]`
+When followed by a recognised command name, the respective command will be auto-triggered and the list of results will contain its respective actions.
+
+![`tgl` with a command name](assets/screenshots/tgl/command-name.png)
+
+> **Note**  
+> To create a new time entry that starts with a command name, you may escape the command with a backslash (`\`) character.
+> ![`tgl` with an escaped command name](assets/screenshots/tgl/escaped-command-name.png)
+
+#### `tgl ...`
+When followed by anything other than a command name, the list of results will contain:
+1. `Start ... now`,
+2. `Start ... [x time] ago at previous stop time`,
+3. A list of past time entries whose descriptions fuzzy match the `...` query, and
+4. A list of currently executable commands that fuzzy match the `...` query.
+
+> **Note**  
+> The `previous stop time` action is only available if:
+> 1. There is a past time entry, and
+> 2. There is no currently running time entry.
+
+> **Note**  
+> Relevant `Usage Tip`s will also be displayed if `Show Usage Results: Tips` is enabled in the plugin settings.
+
+![`tgl` with a fuzzy query](assets/screenshots/tgl/fuzzy-query.png)
 
 ### Usage Examples
-- `tgl a` > `tgl start`
-- `tgl o` > `tgl stop`
-- `tgl c` > `tgl continue`
-- `tgl ed` > `tgl edit`
-- `tgl de` > `tgl delete`
-- `tgl re` > `tgl reports`
-
-### Screenshots
-![Default hotkeys](./assets/screenshots/default.jpg)
+- `tgl`
+- `tgl stop`
+- `tgl edit`
+- `tgl reports`
 
 ---
 
@@ -123,33 +163,78 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 ### Description
 > :memo: Start a new time entry.
 
-### Usage Examples
-- `tgl start no-project`
-- `tgl start project-one Start project one`
-- `tgl start flow-toggl-plugin Release v1.2.1 -t -10`
-- `tgl start no-project New time entry -t 30s`
+> **Note**  
+> This command exists at the top-level and does not require a command prefix (ie no `tgl start`).
 
-### Flags
+### Usage Examples
+- `tgl`
+- `tgl new time entry`
+- `tgl @[project]`
+- `tgl new time entry@[project]`
+- `tgl Release v1.2.1 -t -10`
+- `tgl New time entry -t 30s @[project]`
+
+### Symbols, Flags, and Key Modifiers
+| Name                     | Symbol | Description                          | Example              |
+| ------------------------ | ------ | ------------------------------------ | -------------------- |
+| Project Selection Prefix | `@`    | Set a project for the new time entry | `@flow-toggl-plugin` |
+
 | Name      | Flag | Description                                                               | Example          |
 | --------- | ---- | ------------------------------------------------------------------------- | ---------------- |
 | Time Span | `-t` | Offset the starting time of the new time entry with a specified time span | `-t -30 seconds` |
 
+| Name                               | Key Modifier | Description                                                                   | Example                                           |
+| ---------------------------------- | ------------ | ----------------------------------------------------------------------------- | ------------------------------------------------- |
+| Quick-Start from Project Selection | `Alt`        | Instantly start the new time entry directly from the project selection screen | `tgl Release v4.0.0@flow-toggl` > `Alt` + `Enter` |
+
 ### Notes and Warnings
 > **Note**  
-> 1. If a time entry is currently running, `tgl start` will first stop the running time entry before starting the new time entry.
+> 1. Any currently running time entry will first be stopped before starting the new time entry to prevent overlapping entries (mimics Toggl Track behaviour)
 > 2. If a time entry is not currently running, there will be an option to start the new time entry at the previous stop time (if one exists).
-> 3. To include `'-t'` in your time entry description, you can escape it with a backslash—eg `tgl start \-t`
+> 3. To include a command symbol/flag in your time entry description, you can escape it with a backslash (`\`), eg `tgl Email james\@jamesnzl.xyz \-t -t -5`
 
 > **Warning**  
 > 1. The `Time Span` flag must be the entered after the time entry description. Anything entered after the `-t` flag will be ignored.
-> 2. Project selection cannot be `Tab` auto-completed; selection must be made with the `Enter` action key due to Flow limitations.
+> 2. Due to a current [Flow Launcher bug](https://github.com/Flow-Launcher/Flow.Launcher/issues/2191), the `Alt` quick-start will execute if you use the `Alt` + `number` hotkey to select a project. This can be circumvented for the time being by changing your `Open Result Modifier Key` to `Ctrl` in the Flow `Hotkey` settings.
 
 ### Screenshots
-![Project selection](./assets/screenshots/start.jpg)
+![Project selection](assets/screenshots/start/projects.png)
 
-![Start time options](./assets/screenshots/start-options.jpg)
+![Creating a new time entry](assets/screenshots/start/new.png)
 
-![Start time in the past](./assets/screenshots/start-past.jpg)
+![Selecting a project for new time entry](assets/screenshots/start/new-selecting.png)
+
+![Creating a new time entry with a selected project](assets/screenshots/start/new-selected.png)
+
+![Creating a new time entry in the past](assets/screenshots/start/new-past.png)
+
+---
+
+## `tgl continue`
+
+### Description
+> :memo: Continue a previous time entry.
+
+> **Note**  
+> This command exists at the top-level and does not require a command prefix (ie no `tgl continue`).
+
+### Usage Examples
+- `tgl [previous time entry description]`
+
+### Key Modifiers
+| Name                        | Key Modifier | Description                                            | Example                                                      |
+| --------------------------- | ------------ | ------------------------------------------------------ | ------------------------------------------------------------ |
+| Quick-Start without editing | `Alt`        | Instantly continue the time entry without confirmation | `tgl [past time entry]` > Highlight result > `Alt` + `Enter` |
+
+### Notes
+> **Note**  
+> 1. The default behaviour is to autofill the time entry description/project for `start`.
+> 2. The list is guaranteed to contain all time entries tracked within the preceeding 12 months.
+
+### Screenshots
+![Selecting a previous time entry to continue](assets/screenshots/continue/selecting.png)
+
+![Selected a previous time entry to continue](assets/screenshots/continue/selected.png)
 
 ---
 
@@ -174,25 +259,7 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 > 2. Typing the time entry name (or anything else, other than the `End Time Span` flag) has no effect.
 
 ### Screenshots
-![Stopping running time entry](./assets/screenshots/stop.jpg)
-
----
-
-## `tgl continue`
-
-### Description
-> :memo: Continue a previous time entry.
-
-### Usage Examples
-- `tgl continue [previous time entry description]`
-
-### Notes
-> **Note**  
-> 1. `tgl continue` is a short-hand command to autofill the `tgl start` command, which is used for the actual time entry creation.
-> 1. The list is guaranteed to contain all time entries tracked within the preceeding 12 months.
-
-### Screenshots
-![Continue previous time entry](./assets/screenshots/continue.jpg)
+![Stopping the running time entry in the future](assets/screenshots/stop/future.jpg)
 
 ---
 
@@ -204,15 +271,17 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 ### Usage Examples
 - `tgl edit [previous time entry description]` > `tgl edit -C` > `tgl edit New time entry description`
 - `tgl edit [previous time entry description]` > `tgl edit -t 20s -T 1h`
-- `tgl edit [previous time entry description]` > `tgl edit -p` > `tgl edit no-project [previous time entry description]`
-- `tgl edit [previous time entry description]` > `tgl edit -p` > `tgl edit project-one New time entry description`
+- `tgl edit [previous time entry description]` > `tgl edit [previous time entry description]@no-project`
 
-### Flags
+### Symbols and Flags
+| Name                     | Symbol | Description                                 | Example        |
+| ------------------------ | ------ | ------------------------------------------- | -------------- |
+| Project Selection Prefix | `@`    | Edit the project of the selected time entry | `@new-project` |
+
 | Name              | Flag | Description                                                                    | Example          |
 | ----------------- | ---- | ------------------------------------------------------------------------------ | ---------------- |
 | Time Span         | `-t` | Offset the starting time of the selected time entry with a specified time span | `-t -30 seconds` |
 | End Time Span     | `-T` | Offset the stopping time of the selected time entry with a specified time span | `-T -30 seconds` |
-| Edit Project      | `-p` | Edit the project of the selected time entry                                    | `-p new-project` |
 | Clear Description | `-C` | Empty the time entry description from the Flow search bar                      | `-C`             |
 
 ### Notes and Warnings
@@ -222,17 +291,20 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 >    > **Note**  
 >    > To actually clear a time entry's description, use the `Clear Description` flag then hit the `Enter` action key to save.
 > 3. `tgl edit` will use the entered description to perform a fuzzy match against all previously tracked time entries (within the past 12 months), allowing you to quickly apply a previous time entry's description/project/etc.
-> 4. To include a flag's text in your time entry description, you can escape it with a backslash—eg `tgl edit \-t \-T \-p \-C`
+> 4. To include a command symbol/flag in your time entry description, you can escape it with a backslash (`\`), eg `tgl edit Email james\@jamesnzl.xyz \-t \-T \-C`
 
 > **Warning**  
 > 1. The `Time Span`/`End Time Span` flags must be the entered after the time entry description. Anything entered after the flag(s) will be ignored.
-> 2. Project selection cannot be `Tab` auto-completed; selection must be made with the `Enter` action key due to Flow limitations.
-> 3. The list of editable time entries is only guaranteed to contain the `1000` most recent time entries due to Toggl limitations.
-<!-- TODO: not true in v4.0.0 -->
-> 4. The `Edit Project` flag will reset the Flow search bar (ie other flags/the new description will be lost), so use this before typing anything else.
+> 2. The list of editable time entries will only contain up to `1000` of the most-recent time entries due to Toggl limitations.
 
 ### Screenshots
-![Editing running time entry](./assets/screenshots/edit.jpg)
+![Selecting a time entry to edit](assets/screenshots/edit/selecting.png)
+
+![Fuzzy query of other time entries to which to match](assets/screenshots/edit/fuzzy-query.png)
+
+![Selecting a new project for the time entry](assets/screenshots/edit/selecting-project.png)
+
+![Selected a new project for the time entry](assets/screenshots/edit/selected-project.png)
 
 ---
 
@@ -249,7 +321,7 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 > 1. Typing anything on the deletion confirmation page (ie after selecting a time entry) has no effect.
 
 ### Screenshots
-![Deleting running time entry](./assets/screenshots/delete.jpg)
+![Deleting running time entry](assets/screenshots/delete/selected.jpg)
 
 ---
 
@@ -264,12 +336,12 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 - `tgl reports month entries [time entry description search query]`
 - `tgl reports week-3 projects no-project [time entry description search query]`
 
-### Flags and Modifiers
+### Flags and Options
 | Name           | Flag | Description                                                  | Example |
 | -------------- | ---- | ------------------------------------------------------------ | ------- |
 | Show Stop Time | `-S` | Show time entry stop times when displaying a detailed report | `-S`    |
 
-| Name               | Modifier          | Description                                  | Example   |
+| Name               | Option            | Description                                  | Example   |
 | ------------------ | ----------------- | -------------------------------------------- | --------- |
 | Report Span Offset | `[span]-[offset]` | Offset the report span by a specified offset | `month-1` |
 
@@ -280,25 +352,25 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 > 3. To include `'-S'` in your fuzzy search, you can escape it with a backslash—eg `tgl reports day entries \-S`
 
 ### Screenshots
-![View tracked time reports](./assets/screenshots/reports.jpg)
+![Tracked time report span selection](assets/screenshots/reports/spans.jpg)
 
-![View tracked time report from yesterday](./assets/screenshots/reports-yesterday.jpg)
+![View tracked time report from yesterday](assets/screenshots/reports/span-offset.jpg)
 
-![Tracked time report grouping options](./assets/screenshots/reports-groupings.jpg)
+![Tracked time report grouping options](assets/screenshots/reports/groupings-with-span-offset.jpg)
 
-![View tracked time report by project](./assets/screenshots/reports-projects.jpg)
+![View tracked time report by project](assets/screenshots/reports/projects.jpg)
 
-![View tracked time report by project entries](./assets/screenshots/reports-projects-entries.jpg)
+![View tracked time report by project entries](assets/screenshots/reports/projects-entries.jpg)
 
-![View detailed tracked time report by project entries](./assets/screenshots/reports-projects-entries-detailed.jpg)
+![View detailed tracked time report by project entries](assets/screenshots/reports/projects-entries-detailed.jpg)
 
-![View detailed tracked time report by project entries with stop time](./assets/screenshots/reports-projects-entries-detailed-stop.jpg)
+![View detailed tracked time report by project entries with stop time](assets/screenshots/reports/projects-entries-detailed-with-stop.jpg)
 
-![View tracked time report by client](./assets/screenshots/reports-clients.jpg)
+![View tracked time report by client](assets/screenshots/reports/clients.jpg)
 
-![View tracked time report by client projects](./assets/screenshots/reports-clients-projects.jpg)
+![View tracked time report by client projects](assets/screenshots/reports/clients-projects.jpg)
 
-![View tracked time report by entries](./assets/screenshots/reports-entries.jpg)
+![View tracked time report by entries with fuzzy filter](assets/screenshots/reports/entries-fuzzy.jpg)
 
 ---
 

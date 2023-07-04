@@ -9,8 +9,10 @@ namespace Flow.Launcher.Plugin.TogglTrack
 	/// </Summary>
 	public class Settings
 	{
+		// TODO: need to remove this
 		internal const string StartCommand = "start";
 		internal const string StopCommand = "stop";
+		// TODO: need to remove this
 		internal const string ContinueCommand = "continue";
 		internal const string EditCommand = "edit";
 		internal const string DeleteCommand = "delete";
@@ -18,9 +20,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		internal const string BrowserCommand = "browser";
 		internal const string RefreshCommand = "refresh";
 		internal const string HelpCommand = "help";
+		// TODO: oh, I forgot I had this array—use in RequestResults/EscapeCommands?
 		internal static readonly string[] Commands = new string[] {
+			// TODO: need to remove this
 			StartCommand,
 			StopCommand,
+			// TODO: need to remove this
 			ContinueCommand,
 			EditCommand,
 			DeleteCommand,
@@ -48,8 +53,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		internal const string UsageWarningTitle = "Usage Warning";
 
 		internal static readonly Regex QueryEscapingRegex = new Regex(@$"(\{Settings.EscapeCharacter}(?!\{Settings.EscapeCharacter}))");
-		internal static readonly Regex UnescapedProjectPrefixRegex = new Regex(@$"(?<!\{Settings.EscapeCharacter}){Settings.ProjectPrefix}(.*)");
+		internal static readonly Regex UnescapedProjectRegex = new Regex(@$"(?<!\{Settings.EscapeCharacter}){Settings.ProjectPrefix}");
 		internal static readonly Regex UnescapedFlagRegex = new Regex(@" -");
+		internal static readonly Regex ProjectCaptureRegex = new Regex(@$"(?<!\{Settings.EscapeCharacter}){Settings.ProjectPrefix}(.*)");
 		internal static readonly Regex ReportsSpanOffsetRegex = new Regex(@"-(\d+)");
 
 		internal enum ReportsSpanKey

@@ -25,10 +25,16 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return $"{Settings.EscapeCharacter}{description}";
 		}
 
-		public static string EscapeFlags(string description)
+		public static string EscapeSymbols(string description)
 		{
 			string escaped = Settings.QueryEscapingRegex.Replace(description, @$"\{Settings.EscapeCharacter}");
+			escaped = Settings.UnescapedProjectRegex.Replace(escaped, @$"{Settings.EscapeCharacter}{Settings.ProjectPrefix}");
 			return Settings.UnescapedFlagRegex.Replace(escaped, @$" {Settings.EscapeCharacter}-");
+		}
+
+		private static string Unescape(string description)
+		{
+			return Settings.QueryEscapingRegex.Replace(description, string.Empty).Trim();
 		}
 
 		internal TransformedQuery(Query query)
@@ -102,28 +108,29 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 		public bool HasProjectPrefix()
 		{
-			return Settings.UnescapedProjectPrefixRegex.IsMatch(this.ToString());
+			return Settings.UnescapedProjectRegex.IsMatch(this.ToString());
 		}
 
 		public string? ExtractProject()
 		{
-			Match projectMatch = Settings.UnescapedProjectPrefixRegex.Match(this.ToString());
+			Match projectMatch = Settings.ProjectCaptureRegex.Match(this.ToString());
 			return (projectMatch.Success)
 				? projectMatch.Groups[1].Value.Trim()
 				: null;
 		}
 
-		public string ReplaceProject(string replacement, bool escapeIfEmpty = true)
+		public string ReplaceProject(string replacement, bool escapeIfEmpty = true, bool unescape = false)
 		{
-			string search = Settings.UnescapedProjectPrefixRegex.Replace(this.ToString(), replacement);
+			string search = Settings.ProjectCaptureRegex.Replace(this.ToString(), replacement);
+
+			if (unescape)
+			{
+				search = TransformedQuery.Unescape(search);
+			}
+
 			return (escapeIfEmpty && string.IsNullOrEmpty(search))
 				? $"{Settings.EscapeCharacter} "
 				: search;
-		}
-
-		private string UnescapeSearch()
-		{
-			return Settings.QueryEscapingRegex.Replace(this.ToString(), string.Empty).Trim();
 		}
 
 		public override string ToString()
@@ -136,8 +143,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return (escaping) switch
 			{
 				TransformedQuery.Escaping.Raw => this.ToString(),
-				TransformedQuery.Escaping.Unescaped => this.UnescapeSearch(),
-				TransformedQuery.Escaping.Escaped => TransformedQuery.EscapeFlags(this.ToString()),
+				TransformedQuery.Escaping.Unescaped => TransformedQuery.Unescape(this.ToString()),
+				TransformedQuery.Escaping.Escaped => TransformedQuery.EscapeSymbols(this.ToString()),
 				_ => this.ToString(),
 			};
 		}

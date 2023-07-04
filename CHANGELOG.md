@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [4.0.0-0](https://github.com/JamesNZL/flow-toggl-plugin/compare/v3.0.1...v4.0.0-0) (2023-07-04)
+
+
+### ⚠ BREAKING CHANGES
+
+* **ux:** See release notes/below.
+1. `tgl start` and `tgl continue` command keywords have been removed.
+2. `start` and `continue` are now top-level commands.
+4. You can no longer quick-start commands with eg `tgl o`, you must now type the command in full (or select it from the top-level results)
+5. `start` project selection is no longer enforced at the beginning; it is optionally triggered at any point with the `@` symbol.
+6. `edit` project selection uses `@` instead of `-p` accordingly.
+
+### Features
+
+* **ux:** :children_crossing: display currently running timer at top level ([#91](https://github.com/JamesNZL/flow-toggl-plugin/issues/91)) ([aacbd2f](https://github.com/JamesNZL/flow-toggl-plugin/commit/aacbd2f43f7b47f5527a4b322d90da88afa62f15))
+* **ux:** :sparkles: implement new command flow ([#28](https://github.com/JamesNZL/flow-toggl-plugin/issues/28)) ([#90](https://github.com/JamesNZL/flow-toggl-plugin/issues/90)) ([92d2cea](https://github.com/JamesNZL/flow-toggl-plugin/commit/92d2ceae7b6c55259c49713fae0c84672d196d9f))
+
 ### [3.0.1](https://github.com/JamesNZL/flow-toggl-plugin/compare/v3.0.0...v3.0.1) (2023-07-03)
 
 

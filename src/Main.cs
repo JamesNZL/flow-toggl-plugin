@@ -77,7 +77,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				return this._togglTrack.NotifyInvalidToken();
 			}
 
-			this._togglTrack.RefreshCache(force: false);
 			return await this._togglTrack.RequestResults(token, query);
 		}
 

@@ -573,6 +573,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			if (emptyQuery)
 			{
+				this.RefreshCache(force: false);
+
 				this._state.ResultsSource = null;
 				this._state.SelectedIds = (-1, -1, -1);
 				this._state.ReportsShowDetailed = false;

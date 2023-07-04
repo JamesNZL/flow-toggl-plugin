@@ -55,12 +55,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		}
 		private (
 			(bool IsValid, string Token) LastToken,
-			ExclusiveResultsSource? ResultsSource,
+			(ExclusiveResultsSource? Source, bool Locked) ResultsSource,
 			(long TimeEntry, long? Project, long? Client) SelectedIds,
 			bool ReportsShowDetailed
 		) _state = (
 			(false, string.Empty),
-			null,
+			(null, false),
 			(-1, -1, -1),
 			false
 		);
@@ -575,17 +575,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			{
 				this.RefreshCache(force: false);
 
-				this._state.ResultsSource = null;
+				this._state.ResultsSource = (null, false);
 				this._state.SelectedIds = (-1, -1, -1);
 				this._state.ReportsShowDetailed = false;
 			}
-			else if (query.FirstSearch.StartsWith(Settings.EscapeCharacter))
+			else if (!this._state.ResultsSource.Locked)
 			{
-				this._state.ResultsSource = null;
-			}
-			else
-			{
-				this._state.ResultsSource = (query.FirstSearch.ToLower()) switch
+				this._state.ResultsSource.Source = (query.FirstSearch.ToLower()) switch
 				{
 					Settings.StopCommand => TogglTrack.ExclusiveResultsSource.Stop,
 					Settings.EditCommand => TogglTrack.ExclusiveResultsSource.Edit,
@@ -598,7 +594,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				};
 			}
 
-			bool includeAllResults = (this._state.ResultsSource is null);
+			bool includeAllResults = (this._state.ResultsSource.Source is null);
 
 			if (includeAllResults)
 			{
@@ -621,7 +617,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				return results;
 			}
 
-			return (this._state.ResultsSource) switch
+			return (this._state.ResultsSource.Source) switch
 			{
 				TogglTrack.ExclusiveResultsSource.Commands => await this._GetCommands(token, query),
 				TogglTrack.ExclusiveResultsSource.Start => await this._GetStartResults(token, query),
@@ -755,7 +751,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			if (transformedQuery.HasProjectPrefix())
 			{
-				this._state.ResultsSource = TogglTrack.ExclusiveResultsSource.Start;
+				if (this._state.ResultsSource.Source != TogglTrack.ExclusiveResultsSource.Start)
+				{
+					this._state.ResultsSource = (TogglTrack.ExclusiveResultsSource.Start, true);
+
+					this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search}", true);
+					return new List<Result>();
+				}
 
 				var projects = new List<Result>();
 
@@ -773,7 +775,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						{
 							if (!context.SpecialKeyState.AltPressed)
 							{
-								this._state.ResultsSource = null;
+								this._state.ResultsSource = (null, false);
 								this._state.SelectedIds.Project = null;
 
 								this._context.API.ChangeQuery($"{query.ActionKeyword} {transformedQuery.ReplaceProject(string.Empty)}", true);
@@ -869,7 +871,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								}
 								finally
 								{
-									this._state.ResultsSource = null;
+									this._state.ResultsSource = (null, false);
 									this._state.SelectedIds.Project = -1;
 								}
 							});
@@ -898,7 +900,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							{
 								if (!context.SpecialKeyState.AltPressed)
 								{
-									this._state.ResultsSource = null;
+									this._state.ResultsSource = (null, false);
 									this._state.SelectedIds.Project = project.Id;
 
 									this._context.API.ChangeQuery($"{query.ActionKeyword} {transformedQuery.ReplaceProject(string.Empty)}", true);
@@ -994,7 +996,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									}
 									finally
 									{
-										this._state.ResultsSource = null;
+										this._state.ResultsSource = (null, false);
 										this._state.SelectedIds.Project = -1;
 									}
 								});

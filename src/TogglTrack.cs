@@ -1672,7 +1672,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			var transformedQuery = new TransformedQuery(query)
 				.After(ArgumentIndices.Description);
 
-			// TODO: Alt modifier
 			if (transformedQuery.HasProjectPrefix())
 			{
 				var projects = new List<Result>();

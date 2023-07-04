@@ -713,7 +713,14 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				},
 			};
 
-			if (await this._GetRunningTimeEntry(token) is null)
+			var me = (await this._GetMe(token))?.ToMe();
+			if (me is null)
+			{
+				return this.NotifyUnknownError();
+			}
+
+			var runningTimeEntry = (await this._GetRunningTimeEntry(token))?.ToTimeEntry(me);
+			if (runningTimeEntry is null)
 			{
 				return (string.IsNullOrEmpty(query.FirstSearch))
 					? results
@@ -722,15 +729,49 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			results.Add(new Result
 			{
-				Title = Settings.StopCommand,
-				SubTitle = "Stop the current time entry",
-				IcoPath = "stop.png",
+				Title = $"Stop {runningTimeEntry.GetDescription()}",
+				SubTitle = $"{runningTimeEntry.Project?.WithClientName ?? Settings.NoProjectName} | {runningTimeEntry.HumanisedElapsed} ({runningTimeEntry.DetailedElapsed})",
+				IcoPath = this._colourIconProvider.GetColourIcon(runningTimeEntry.Project?.Colour, "stop.png"),
 				AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StopCommand} ",
 				Score = 15050,
-				Action = _ =>
+				Action = context =>
 				{
-					this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StopCommand} ");
-					return false;
+					if (!context.SpecialKeyState.AltPressed)
+					{
+						this._context.API.ChangeQuery($"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StopCommand} ");
+						return false;
+					}
+
+					// Alt key modifier will stop the time entry now
+					Task.Run(async delegate
+					{
+						try
+						{
+							this._context.API.LogInfo("TogglTrack", $"{this._state.SelectedIds.Project}, {runningTimeEntry.Id}, {runningTimeEntry.WorkspaceId}, {runningTimeEntry.StartDate}, {runningTimeEntry.DetailedElapsed}, from commands");
+
+							var stoppedTimeEntry = (await this._client.StopTimeEntry(
+								workspaceId: runningTimeEntry.WorkspaceId,
+								id: runningTimeEntry.Id
+							))?.ToTimeEntry(me);
+
+							if (stoppedTimeEntry?.Id is null)
+							{
+								throw new Exception("An API error was encountered.");
+							}
+
+							this.ShowSuccessMessage($"Stopped {stoppedTimeEntry.GetRawDescription()}", $"{runningTimeEntry.DetailedElapsed} elapsed", "stop.png");
+
+							// Update cached running time entry state
+							this.RefreshCache();
+						}
+						catch (Exception exception)
+						{
+							this._context.API.LogException("TogglTrack", "Failed to stop time entry", exception);
+							this.ShowErrorMessage("Failed to stop time entry.", exception.Message);
+						}
+					});
+
+					return true;
 				}
 			});
 
@@ -782,7 +823,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								return false;
 							}
 
-							// Alt key modifier will continue the time entry now
+							// Alt key modifier will start the time entry now
 							Task.Run(async delegate
 							{
 								long? projectId = null;
@@ -907,7 +948,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									return false;
 								}
 
-								// Alt key modifier will continue the time entry now
+								// Alt key modifier will start the time entry now
 								Task.Run(async delegate
 								{
 									long projectId = project.Id;

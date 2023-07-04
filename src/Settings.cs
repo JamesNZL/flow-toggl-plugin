@@ -14,17 +14,16 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		internal const string DeleteCommand = "delete";
 		internal const string ReportsCommand = "reports";
 		internal const string BrowserCommand = "browser";
-		internal const string RefreshCommand = "refresh";
 		internal const string HelpCommand = "help";
-		// TODO: oh, I forgot I had this array—use in RequestResults/EscapeCommands?
+		internal const string RefreshCommand = "refresh";
 		internal static readonly string[] Commands = new string[] {
 			StopCommand,
 			EditCommand,
 			DeleteCommand,
 			ReportsCommand,
 			BrowserCommand,
-			RefreshCommand,
 			HelpCommand,
+			RefreshCommand,
 		};
 
 		internal const string ProjectPrefix = "@";

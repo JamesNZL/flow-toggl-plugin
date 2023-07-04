@@ -22,6 +22,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 		public static string EscapeCommand(string description)
 		{
+			if (!Settings.Commands.Any(command => description.StartsWith(command)))
+			{
+				return description;
+			}
+
 			return $"{Settings.EscapeCharacter}{description}";
 		}
 

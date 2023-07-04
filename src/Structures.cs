@@ -201,7 +201,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return (int)(this.Duration >> 2);
 		}
 
-		public string? GetRawDescription(bool withTrailingSpace = false, bool escapePotentialCommands = false, bool escapePotentialSymbols = false)
+		public string? GetRawDescription(bool withTrailingSpace = false, bool escapeCommands = false, bool escapePotentialSymbols = false)
 		{
 			if (string.IsNullOrEmpty(this._rawDescription))
 			{
@@ -216,7 +216,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 
 			// ! This must be applied after escaping flags (or we will get double escaping)
-			if (escapePotentialCommands)
+			if (escapeCommands)
 			{
 				rawDescription = TransformedQuery.EscapeCommand(rawDescription);
 			}
@@ -229,7 +229,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return $"{rawDescription} ";
 		}
 
-		public string GetDescription(bool escapePotentialCommands = false, bool escapePotentialSymbols = false)
+		public string GetDescription(bool escapeCommands = false, bool escapePotentialSymbols = false)
 		{
 			if (string.IsNullOrEmpty(this._rawDescription))
 			{
@@ -242,7 +242,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				description = TransformedQuery.EscapeSymbols(description);
 			}
 			// ! This must be applied after escaping flags (or we will get double escaping)
-			if (escapePotentialCommands)
+			if (escapeCommands)
 			{
 				description = TransformedQuery.EscapeCommand(description);
 			}
@@ -585,7 +585,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return (int)(this.Seconds >> 2);
 		}
 
-		public string? GetRawTitle(bool withTrailingSpace = false, bool escapePotentialCommands = false, bool escapePotentialSymbols = false)
+		public string? GetRawTitle(bool withTrailingSpace = false, bool escapeCommands = false, bool escapePotentialSymbols = false)
 		{
 			if (string.IsNullOrEmpty(this._rawTitle))
 			{
@@ -599,7 +599,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				rawTitle = TransformedQuery.EscapeSymbols(rawTitle);
 			}
 			// ! This must be applied after escaping flags (or we will get double escaping)
-			if (escapePotentialCommands)
+			if (escapeCommands)
 			{
 				rawTitle = TransformedQuery.EscapeCommand(rawTitle);
 			}
@@ -612,7 +612,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return $"{rawTitle} ";
 		}
 
-		public string GetTitle(bool escapePotentialCommands = false, bool escapePotentialSymbols = false)
+		public string GetTitle(bool escapeCommands = false, bool escapePotentialSymbols = false)
 		{
 			if (string.IsNullOrEmpty(this._rawTitle))
 			{
@@ -625,7 +625,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				title = TransformedQuery.EscapeSymbols(title);
 			}
 			// ! This must be applied after escaping flags (or we will get double escaping)
-			if (escapePotentialCommands)
+			if (escapeCommands)
 			{
 				title = TransformedQuery.EscapeCommand(title);
 			}

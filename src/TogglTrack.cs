@@ -1461,14 +1461,14 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					Title = timeEntry.GetTitle(),
 					SubTitle = $"{project.Project?.WithClientName ?? Settings.NoProjectName} | {timeEntry.HumanisedElapsed}",
 					IcoPath = this._colourIconProvider.GetColourIcon(project.Project?.Colour, "continue.png"),
-					AutoCompleteText = $"{query.ActionKeyword} {timeEntry.GetTitle(escapePotentialCommands: true, escapePotentialSymbols: true)}",
+					AutoCompleteText = $"{query.ActionKeyword} {timeEntry.GetTitle(escapeCommands: true, escapePotentialSymbols: true)}",
 					Score = timeEntry.GetScoreByStart(),
 					Action = context =>
 					{
 						if (!context.SpecialKeyState.AltPressed)
 						{
 							this._state.SelectedIds.Project = project.Project?.Id;
-							this._context.API.ChangeQuery($"{query.ActionKeyword} {timeEntry.GetRawTitle(withTrailingSpace: true, escapePotentialCommands: true, escapePotentialSymbols: true)}");
+							this._context.API.ChangeQuery($"{query.ActionKeyword} {timeEntry.GetRawTitle(withTrailingSpace: true, escapeCommands: true, escapePotentialSymbols: true)}");
 							return false;
 						}
 
@@ -2609,7 +2609,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									Action = _ =>
 									{
 										this._state.SelectedIds.Project = project?.Id;
-										this._context.API.ChangeQuery($"{query.ActionKeyword} {timeEntry.GetRawDescription(withTrailingSpace: true, escapePotentialCommands: true, escapePotentialSymbols: true)}");
+										this._context.API.ChangeQuery($"{query.ActionKeyword} {timeEntry.GetRawDescription(withTrailingSpace: true, escapeCommands: true, escapePotentialSymbols: true)}");
 										return false;
 									},
 								};
@@ -2651,7 +2651,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								Action = _ =>
 								{
 									this._state.SelectedIds.Project = project?.Id;
-									this._context.API.ChangeQuery($"{query.ActionKeyword} {subGroup.GetRawTitle(withTrailingSpace: true, escapePotentialCommands: true, escapePotentialSymbols: true)}");
+									this._context.API.ChangeQuery($"{query.ActionKeyword} {subGroup.GetRawTitle(withTrailingSpace: true, escapeCommands: true, escapePotentialSymbols: true)}");
 									return false;
 								},
 							}));
@@ -2859,7 +2859,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									Action = _ =>
 									{
 										this._state.SelectedIds.Project = timeEntry.Project?.Id;
-										this._context.API.ChangeQuery($"{query.ActionKeyword} {timeEntry.GetRawDescription(withTrailingSpace: true, escapePotentialCommands: true, escapePotentialSymbols: true)}");
+										this._context.API.ChangeQuery($"{query.ActionKeyword} {timeEntry.GetRawDescription(withTrailingSpace: true, escapeCommands: true, escapePotentialSymbols: true)}");
 										return false;
 									},
 								};
@@ -2906,7 +2906,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								Action = _ =>
 								{
 									this._state.SelectedIds.Project = subGroup.Group.Project?.Id;
-									this._context.API.ChangeQuery($"{query.ActionKeyword} {subGroup.GetRawTitle(withTrailingSpace: true, escapePotentialCommands: true, escapePotentialSymbols: true)}");
+									this._context.API.ChangeQuery($"{query.ActionKeyword} {subGroup.GetRawTitle(withTrailingSpace: true, escapeCommands: true, escapePotentialSymbols: true)}");
 									return false;
 								},
 							}));

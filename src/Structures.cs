@@ -201,16 +201,25 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return (int)(this.Duration >> 2);
 		}
 
-		public string? GetRawDescription(bool withTrailingSpace = false, bool escapePotentialFlags = false)
+		public string? GetRawDescription(bool withTrailingSpace = false, bool escapeCommands = false, bool escapePotentialSymbols = false)
 		{
 			if (string.IsNullOrEmpty(this._rawDescription))
 			{
 				return string.Empty;
 			}
 
-			string rawDescription = (escapePotentialFlags)
-				? TransformedQuery.EscapeDescription(this._rawDescription)
-				: this._rawDescription;
+			string rawDescription = this._rawDescription;
+
+			if (escapePotentialSymbols)
+			{
+				rawDescription = TransformedQuery.EscapeSymbols(rawDescription);
+			}
+
+			// ! This must be applied after escaping flags (or we will get double escaping)
+			if (escapeCommands)
+			{
+				rawDescription = TransformedQuery.EscapeCommand(rawDescription);
+			}
 
 			if (!withTrailingSpace)
 			{
@@ -220,16 +229,25 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return $"{rawDescription} ";
 		}
 
-		public string GetDescription(bool escapePotentialFlags = false)
+		public string GetDescription(bool escapeCommands = false, bool escapePotentialSymbols = false)
 		{
 			if (string.IsNullOrEmpty(this._rawDescription))
 			{
 				return Settings.EmptyDescription;
 			}
 
-			return (escapePotentialFlags)
-				? TransformedQuery.EscapeDescription(this._rawDescription)
-				: this._rawDescription;
+			string description = this._rawDescription;
+			if (escapePotentialSymbols)
+			{
+				description = TransformedQuery.EscapeSymbols(description);
+			}
+			// ! This must be applied after escaping flags (or we will get double escaping)
+			if (escapeCommands)
+			{
+				description = TransformedQuery.EscapeCommand(description);
+			}
+
+			return description;
 		}
 
 		public DateTimeOffset StartDate
@@ -567,16 +585,24 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return (int)(this.Seconds >> 2);
 		}
 
-		public string? GetRawTitle(bool withTrailingSpace = false, bool escapePotentialFlags = false)
+		public string? GetRawTitle(bool withTrailingSpace = false, bool escapeCommands = false, bool escapePotentialSymbols = false)
 		{
 			if (string.IsNullOrEmpty(this._rawTitle))
 			{
 				return string.Empty;
 			}
 
-			string rawTitle = (escapePotentialFlags)
-				? TransformedQuery.EscapeDescription(this._rawTitle)
-				: this._rawTitle;
+			string rawTitle = this._rawTitle;
+
+			if (escapePotentialSymbols)
+			{
+				rawTitle = TransformedQuery.EscapeSymbols(rawTitle);
+			}
+			// ! This must be applied after escaping flags (or we will get double escaping)
+			if (escapeCommands)
+			{
+				rawTitle = TransformedQuery.EscapeCommand(rawTitle);
+			}
 
 			if (!withTrailingSpace)
 			{
@@ -586,16 +612,25 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			return $"{rawTitle} ";
 		}
 
-		public string GetTitle(bool escapePotentialFlags = false)
+		public string GetTitle(bool escapeCommands = false, bool escapePotentialSymbols = false)
 		{
 			if (string.IsNullOrEmpty(this._rawTitle))
 			{
 				return Settings.EmptyDescription;
 			}
 
-			return (escapePotentialFlags)
-				? TransformedQuery.EscapeDescription(this._rawTitle)
-				: this._rawTitle;
+			string title = this._rawTitle;
+			if (escapePotentialSymbols)
+			{
+				title = TransformedQuery.EscapeSymbols(title);
+			}
+			// ! This must be applied after escaping flags (or we will get double escaping)
+			if (escapeCommands)
+			{
+				title = TransformedQuery.EscapeCommand(title);
+			}
+
+			return title;
 		}
 
 		public TimeSpan Elapsed

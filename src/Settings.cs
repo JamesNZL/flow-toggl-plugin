@@ -9,28 +9,26 @@ namespace Flow.Launcher.Plugin.TogglTrack
 	/// </Summary>
 	public class Settings
 	{
-		internal const string StartCommand = "start";
 		internal const string StopCommand = "stop";
-		internal const string ContinueCommand = "continue";
 		internal const string EditCommand = "edit";
 		internal const string DeleteCommand = "delete";
 		internal const string ReportsCommand = "reports";
 		internal const string BrowserCommand = "browser";
-		internal const string RefreshCommand = "refresh";
 		internal const string HelpCommand = "help";
+		internal const string RefreshCommand = "refresh";
 		internal static readonly string[] Commands = new string[] {
-			StartCommand,
 			StopCommand,
-			ContinueCommand,
 			EditCommand,
 			DeleteCommand,
 			ReportsCommand,
 			BrowserCommand,
-			RefreshCommand,
 			HelpCommand,
+			RefreshCommand,
 		};
 
-		internal const string EditProjectFlag = "-p";
+		internal const string ProjectPrefix = "@";
+		internal const string EscapeCharacter = @"\";
+
 		internal const string ClearDescriptionFlag = "-C";
 		internal const string TimeSpanFlag = "-t";
 		internal const string TimeSpanEndFlag = "-T";
@@ -39,10 +37,17 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		internal const string NoProjectName = "No Project";
 		internal const string NoClientName = "No Client";
 		internal const string EmptyDescription = "(no description)";
+		internal const string EmptyTimeEntry = "an empty time entry";
 
 		internal const string UsageTipTitle = "Usage Tip";
 		internal const string UsageExampleTitle = "Usage Example";
 		internal const string UsageWarningTitle = "Usage Warning";
+
+		internal static readonly Regex QueryEscapingRegex = new Regex(@$"(\{Settings.EscapeCharacter}(?!\{Settings.EscapeCharacter}))");
+		internal static readonly Regex UnescapedProjectRegex = new Regex(@$"(?<!\{Settings.EscapeCharacter}){Settings.ProjectPrefix}");
+		internal static readonly Regex UnescapedFlagRegex = new Regex(@" -");
+		internal static readonly Regex ProjectCaptureRegex = new Regex(@$"(?<!\{Settings.EscapeCharacter}){Settings.ProjectPrefix}(.*)");
+		internal static readonly Regex ReportsSpanOffsetRegex = new Regex(@"-(\d+)");
 
 		internal enum ReportsSpanKey
 		{
@@ -51,7 +56,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			Month,
 			Year,
 		}
-		internal static readonly Regex ReportsSpanOffsetRegex = new Regex(@"-(\d+)");
 		internal static readonly List<ReportsSpanCommandArgument> ReportsSpanArguments = new List<ReportsSpanCommandArgument>
 		{
 			new ReportsSpanCommandArgument

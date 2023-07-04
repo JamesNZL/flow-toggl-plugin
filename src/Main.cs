@@ -1,6 +1,6 @@
 using System.Windows.Controls;
 using System.Collections.Generic;
-using System.Linq;
+// using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Flow.Launcher.Plugin.TogglTrack.ViewModels;
@@ -19,14 +19,14 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 		internal TogglTrack? _togglTrack;
 
-		private (
-			string LastCommand,
-			// ! this is needed as tuples must have minimum 2 elements
-			bool? _null
-		) _state = (
-			LastCommand: string.Empty,
-			null
-		);
+		// private (
+		// 	string LastCommand,
+		// 	// ! this is needed as tuples must have minimum 2 elements
+		// 	bool? _null
+		// ) _state = (
+		// 	LastCommand: string.Empty,
+		// 	null
+		// );
 
 		/// <summary>
 		/// Runs on plugin initialisation.
@@ -77,38 +77,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				return this._togglTrack.NotifyInvalidToken();
 			}
 
-			if (string.IsNullOrWhiteSpace(query.Search))
-			{
-				return await this._togglTrack.GetDefaultHotKeys(token, prefetch: true);
-			}
-
-			string command = query.FirstSearch;
-			if (!Settings.Commands.Contains(command) && command == this._state.LastCommand)
-			{
-				command = (await this._togglTrack.GetDefaultHotKeys(token))
-					.GroupBy(result => this._context!.API.FuzzySearch(query.FirstSearch, result.Title).Score)
-					.MaxBy(group => group.Key)
-					?.MaxBy(result => result.Score)
-					?.Title
-					?? query.FirstSearch;
-				this._context!.API.ChangeQuery($"{query.ActionKeyword} {command} ");
-			}
-			this._state.LastCommand = command;
-
-			return (command.ToLower()) switch
-			{
-				Settings.StartCommand => await this._togglTrack.RequestStartEntry(token, query),
-				Settings.StopCommand => await this._togglTrack.RequestStopEntry(token, query),
-				Settings.ContinueCommand => await this._togglTrack.RequestContinueEntry(token, query),
-				Settings.EditCommand => await this._togglTrack.RequestEditEntry(token, query),
-				Settings.DeleteCommand => await this._togglTrack.RequestDeleteEntry(token, query),
-				Settings.ReportsCommand => await this._togglTrack.RequestViewReports(token, query),
-				_ => (await this._togglTrack.GetDefaultHotKeys(token))
-					.FindAll(result =>
-					{
-						return this._context!.API.FuzzySearch(query.Search, result.Title).Score > 0;
-					}),
-			};
+			return await this._togglTrack.RequestResults(token, query);
 		}
 
 		/// <summary>

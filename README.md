@@ -130,7 +130,7 @@ When followed by a recognised command name, the respective command will be auto-
 ![`tgl` with a command name](assets/screenshots/tgl/command-name.png)
 
 > **Note**  
-> To create a new time entry that starts with a command name, you may escape the command with a backslash (`\`) character.
+> To create a new time entry that starts with a command name, you may escape the command with a backslash (`\`) character.  
 > ![`tgl` with an escaped command name](assets/screenshots/tgl/escaped-command-name.png)
 
 #### `tgl ...`

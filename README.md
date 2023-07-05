@@ -170,7 +170,7 @@ When followed by anything other than a command name, the list of results will co
 > :memo: Start a new time entry.
 
 > **Note**  
-> This command exists at the top-level and does not require a command prefix (ie no `tgl start`).
+> This command exists at the top-level and does not have a command (ie no `tgl start`).
 
 ### Usage Examples
 - `tgl`
@@ -222,7 +222,7 @@ When followed by anything other than a command name, the list of results will co
 > :memo: Continue a previous time entry.
 
 > **Note**  
-> This command exists at the top-level and does not require a command prefix (ie no `tgl continue`).
+> This command exists at the top-level and does not have a command (ie no `tgl continue`).
 
 ### Usage Examples
 - `tgl [previous time entry description]`

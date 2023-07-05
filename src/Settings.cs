@@ -61,23 +61,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			new ReportsSpanCommandArgument
 			{
 				Argument = "day",
-				Interpolation = offset =>
+				Interpolation = offset => (offset) switch
 				{
-					switch (offset)
-					{
-						case (0):
-						{
-							return "today";
-						}
-						case (1):
-						{
-							return "yesterday";
-						}
-						default:
-						{
-							return $"{offset} days ago";
-						}
-					}
+					0 => "today",
+					1 => "yesterday",
+					_ => $"{offset} days ago",
 				},
 				Score = 400,
 				// Offsetted day
@@ -87,23 +75,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			new ReportsSpanCommandArgument
 			{
 				Argument = "week",
-				Interpolation = offset =>
+				Interpolation = offset => (offset) switch
 				{
-					switch (offset)
-					{
-						case (0):
-						{
-							return "this week";
-						}
-						case (1):
-						{
-							return "last week";
-						}
-						default:
-						{
-							return $"{offset} weeks ago";
-						}
-					}
+					0 => "this week",
+					1 => "last week",
+					_ => $"{offset} weeks ago",
 				},
 				Score = 300,
 				// Start of the offsetted week
@@ -114,23 +90,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			new ReportsSpanCommandArgument
 			{
 				Argument = "month",
-				Interpolation = offset =>
+				Interpolation = offset => (offset) switch
 				{
-					switch (offset)
-					{
-						case (0):
-						{
-							return "this month";
-						}
-						case (1):
-						{
-							return "last month";
-						}
-						default:
-						{
-							return $"{offset} months ago";
-						}
-					}
+					0 => "this month",
+					1 => "last month",
+					_ => $"{offset} months ago",
 				},
 				Score = 200,
 				// First day of the offsetted month
@@ -141,23 +105,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			new ReportsSpanCommandArgument
 			{
 				Argument = "year",
-				Interpolation = offset =>
+				Interpolation = offset => (offset) switch
 				{
-					switch (offset)
-					{
-						case (0):
-						{
-							return "this year";
-						}
-						case (1):
-						{
-							return "last year";
-						}
-						default:
-						{
-							return $"{offset} years ago";
-						}
-					}
+					0 => "this year",
+					1 => "last year",
+					_ => $"{offset} years ago",
 				},
 				Score = 100,
 				// First day of the offsetted year

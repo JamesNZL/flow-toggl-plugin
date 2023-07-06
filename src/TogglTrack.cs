@@ -1062,6 +1062,30 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			var results = new List<Result>();
 
+			if (query.SearchTerms.Contains(Settings.ClearDescriptionFlag))
+			{
+				bool escapeIfEmpty = (this._state.SelectedIds.Project != -1);
+
+				this._context.API.ChangeQuery($"{query.ActionKeyword} {((escapeIfEmpty) ? $"{Settings.EscapeCharacter} " : string.Empty)}");
+				return new List<Result>();
+			}
+			else if (this._settings.ShowUsageTips && !string.IsNullOrEmpty(query.Search))
+			{
+				results.Add(new Result
+				{
+					Title = Settings.UsageTipTitle,
+					SubTitle = $"Use {Settings.ClearDescriptionFlag} to quickly clear the description",
+					IcoPath = "tip.png",
+					AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.ClearDescriptionFlag} ",
+					Score = int.MaxValue - 300000,
+					Action = _ =>
+					{
+						this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {Settings.ClearDescriptionFlag} ");
+						return false;
+					}
+				});
+			}
+
 			if (this._settings.ShowUsageTips)
 			{
 				if (this._state.SelectedIds.Project == -1)

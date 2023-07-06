@@ -28,12 +28,13 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 		internal const string ProjectPrefix = "@";
 		internal const string EscapeCharacter = @"\";
+		internal const string FlagPrefix = "-";
 
-		internal const string ClearDescriptionFlag = "-C";
-		internal const string TimeSpanFlag = "-t";
-		internal const string TimeSpanEndFlag = "-T";
-		internal const string ListPastFlag = "-l";
-		internal const string ShowStopFlag = "-S";
+		internal const string ClearDescriptionFlag = $"{Settings.FlagPrefix}C";
+		internal const string TimeSpanFlag = $"{Settings.FlagPrefix}t";
+		internal const string TimeSpanEndFlag = $"{Settings.FlagPrefix}T";
+		internal const string ListPastFlag = $"{Settings.FlagPrefix}l";
+		internal const string ShowStopFlag = $"{Settings.FlagPrefix}S";
 
 		internal const string NoProjectName = "No Project";
 		internal const string NoClientName = "No Client";
@@ -46,7 +47,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 		internal static readonly Regex QueryEscapingRegex = new Regex(@$"(\{Settings.EscapeCharacter}(?!\{Settings.EscapeCharacter}))");
 		internal static readonly Regex UnescapedProjectRegex = new Regex(@$"(?<!\{Settings.EscapeCharacter}){Settings.ProjectPrefix}");
-		internal static readonly Regex UnescapedFlagRegex = new Regex(@" -");
+		internal static readonly Regex UnescapedFlagRegex = new Regex(@$" {Settings.FlagPrefix}");
 		internal static readonly Regex ProjectCaptureRegex = new Regex(@$"(?<!\{Settings.EscapeCharacter}){Settings.ProjectPrefix}(.*)");
 		internal static readonly Regex ReportsSpanOffsetRegex = new Regex(@"-(\d+)");
 

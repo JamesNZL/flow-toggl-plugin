@@ -83,9 +83,10 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 # Command Reference
 
 > **Note**  
-> This command reference applies to version `v4.0.0-0`.  
+> This command reference applies to version `v4.0.0-1`.  
 
 **Older Versions**:
+- [`v4.0.0-0`](https://github.com/JamesNZL/flow-toggl-plugin/tree/5d54beec1ad4917c2d7f4cae14d23a4fecb6176d#command-reference)
 - [`v3.0.1`](https://github.com/JamesNZL/flow-toggl-plugin/tree/9be3a06727104b3bed38e8011e9e4a8073eec0e0#command-reference)
 - [`v3.0.0`](https://github.com/JamesNZL/flow-toggl-plugin/tree/25611682dd63d0eef2a2e337f94309eca00cb0a4#command-reference) (created command reference)
 
@@ -185,9 +186,10 @@ When followed by anything other than a command name, the list of results will co
 | ------------------------ | ------ | ------------------------------------ | -------------------- |
 | Project Selection Prefix | `@`    | Set a project for the new time entry | `@flow-toggl-plugin` |
 
-| Name      | Flag | Description                                                               | Example          |
-| --------- | ---- | ------------------------------------------------------------------------- | ---------------- |
-| Time Span | `-t` | Offset the starting time of the new time entry with a specified time span | `-t -30 seconds` |
+| Name              | Flag | Description                                                               | Example          |
+| ----------------- | ---- | ------------------------------------------------------------------------- | ---------------- |
+| Time Span         | `-t` | Offset the starting time of the new time entry with a specified time span | `-t -30 seconds` |
+| Clear Description | `-C` | Empty the time entry description from the Flow search bar                 | `-C`             |
 
 | Name                               | Key Modifier | Description                                                                   | Example                                           |
 | ---------------------------------- | ------------ | ----------------------------------------------------------------------------- | ------------------------------------------------- |

@@ -790,7 +790,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					this._state.ResultsSource = (TogglTrack.ExclusiveResultsSource.Start, true);
 
 					this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search}", true);
-					return new List<Result>();
+					return Main.NoResults;
 				}
 
 				var projects = new List<Result>();
@@ -1060,7 +1060,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				bool escapeIfEmpty = (this._state.SelectedIds.Project != -1);
 
 				this._context.API.ChangeQuery($"{query.ActionKeyword} {((escapeIfEmpty) ? $"{Settings.EscapeCharacter} " : string.Empty)}");
-				return new List<Result>();
+				return Main.NoResults;
 			}
 			else if (this._settings.ShowUsageTips && !string.IsNullOrEmpty(query.Search))
 			{
@@ -1574,7 +1574,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		{
 			if (string.IsNullOrEmpty(query.Search))
 			{
-				return new List<Result>();
+				return Main.NoResults;
 			}
 
 			var me = (await this._GetMe(token))?.ToMe();
@@ -1586,7 +1586,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			var timeEntries = (await this._GetMaxReportTimeEntries(token))?.ToSummaryReport(me);
 			if (timeEntries is null)
 			{
-				return new List<Result>();
+				return Main.NoResults;
 			}
 
 			string entriesQuery = new TransformedQuery(query)
@@ -1827,7 +1827,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					.ToString();
 
 				this._context.API.ChangeQuery($"{query.ActionKeyword} {queryToDescription} ");
-				return new List<Result>();
+				return Main.NoResults;
 			}
 			else if (this._settings.ShowUsageTips)
 			{

@@ -13,6 +13,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 	/// </summary>
 	public class Main : IAsyncPlugin, ISettingProvider
 	{
+		internal readonly static List<Result> NoResults = new List<Result>();
+
 		private static SettingsViewModel? _viewModel;
 		private PluginInitContext? _context;
 		private Settings? _settings;

@@ -229,6 +229,11 @@ When followed by anything other than a command name, the list of results will co
 ### Usage Examples
 - `tgl [previous time entry description]`
 
+### Flags
+| Name                   | Flag | Description                                                        | Example  |
+| ---------------------- | ---- | ------------------------------------------------------------------ | -------- |
+| List Past Time Entries | `-l` | List all past time entries to continue, even if the query is empty | `tgl -l` |
+
 ### Key Modifiers
 | Name                        | Key Modifier | Description                                            | Example                                                      |
 | --------------------------- | ------------ | ------------------------------------------------------ | ------------------------------------------------------------ |

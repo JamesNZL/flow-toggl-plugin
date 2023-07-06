@@ -569,9 +569,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 		internal async ValueTask<List<Result>> RequestResults(CancellationToken token, Query query)
 		{
-			bool emptyQuery = (string.IsNullOrEmpty(query.Search));
-
-			if (emptyQuery)
+			if (string.IsNullOrEmpty(query.Search))
 			{
 				this.RefreshCache(force: false);
 
@@ -605,11 +603,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 				// Add results to start time entry
 				results.AddRange(await this._GetStartResults(token, query));
-
-				if (emptyQuery)
-				{
-					return results;
-				}
 
 				// Add previously matching time entries
 				results.AddRange(await this._GetContinueResults(token, query));
@@ -1579,6 +1572,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 		private async ValueTask<List<Result>> _GetContinueResults(CancellationToken token, Query query)
 		{
+			if (string.IsNullOrEmpty(query.Search))
+			{
+				return new List<Result>();
+			}
+
 			var me = (await this._GetMe(token))?.ToMe();
 			if (me is null)
 			{
@@ -1592,7 +1590,10 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 
 			string entriesQuery = new TransformedQuery(query)
+				.RemoveAll(Settings.ListPastFlag)
 				.ToString(TransformedQuery.Escaping.Unescaped);
+
+			bool emptyQuery = string.IsNullOrEmpty(entriesQuery);
 
 			return timeEntries.Groups.Values.SelectMany(project =>
 			{
@@ -1602,7 +1603,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				}
 
 				return project.SubGroups.Values
-					.Where(timeEntry => (
+					.Where(timeEntry => emptyQuery || (
 						(
 							project.Project?.Id != this._state.SelectedIds.Project ||
 							timeEntry.GetRawTitle() != entriesQuery

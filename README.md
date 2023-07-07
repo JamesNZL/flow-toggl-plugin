@@ -368,10 +368,11 @@ When followed by anything other than a command name, the list of results will co
 > **Note**  
 > 1. Arbitrary date(s) are parsed according to your system locale (eg for `en-US`, your format of `MM/dd` will be used instead).
 > 2. Date parsing is done by the built-in `DateTimeOffset.TryParse` method. Read about what it supports [here](https://learn.microsoft.com/en-us/dotnet/api/system.datetime.parse?view=net-7.0#the-string-to-parse) and [here](https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset.tryparse?view=net-7.0#system-datetimeoffset-tryparse(system-string-system-datetimeoffset@)).
-> 3. Using the `>` separator without supplying an `[end]` date will produce a span between `[start]` and the current date.
-> 4. Reports of tracked time entries can be filtered with a fuzzy search.
-> 5. Selecting a time entry will autofill the `tgl start` command.
-> 6. To include `'-S'` in your fuzzy search, you can escape it with a backslash—eg `tgl reports day entries \-S`
+> 3. Toggl's reports API only supports start/end *dates*—any time components of the parsed span will be lost and reduced to `00:00:00` for both dates.
+> 4. Using the `>` separator without supplying an `[end]` date will produce a span between `[start]` and the current date.
+> 5. Reports of tracked time entries can be filtered with a fuzzy search.
+> 6. Selecting a time entry will autofill the `tgl start` command.
+> 7. To include `'-S'` in your fuzzy search, you can escape it with a backslash—eg `tgl reports day entries \-S`
 
 > **Warning**  
 > 1. The `[end]` date must be after the `[start]` date.

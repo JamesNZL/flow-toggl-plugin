@@ -29,6 +29,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		internal const string ProjectPrefix = "@";
 		internal const string EscapeCharacter = @"\";
 		internal const string FlagPrefix = "-";
+		internal const string DateSeparator = ">";
+		internal const string FauxWhitespace = "_";
 
 		internal const string ClearDescriptionFlag = $"{Settings.FlagPrefix}C";
 		internal const string TimeSpanFlag = $"{Settings.FlagPrefix}t";
@@ -49,7 +51,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		internal static readonly Regex UnescapedProjectRegex = new Regex(@$"(?<!\{Settings.EscapeCharacter}){Settings.ProjectPrefix}");
 		internal static readonly Regex UnescapedFlagRegex = new Regex(@$" {Settings.FlagPrefix}");
 		internal static readonly Regex ProjectCaptureRegex = new Regex(@$"(?<!\{Settings.EscapeCharacter}){Settings.ProjectPrefix}(.*)");
+		internal static readonly Regex ReportsSpanPartialOffsetRegex = new Regex(@"(^|\D)-");
 		internal static readonly Regex ReportsSpanOffsetRegex = new Regex(@"-(\d+)");
+		internal static readonly Regex ReportsSpanDatesRegex = new Regex(@$"^([^{Settings.DateSeparator}]+){Settings.DateSeparator}?([^{Settings.DateSeparator}]+)?$");
 
 		internal enum ReportsSpanKey
 		{
@@ -69,7 +73,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					1 => "yesterday",
 					_ => $"{offset} days ago",
 				},
-				Score = 400,
+				Score = 40000,
 				// Offsetted day
 				Start = (referenceDate, _, offset) => referenceDate.AddDays(-offset),
 				End = (referenceDate, _, offset) => referenceDate.AddDays(-offset),
@@ -83,7 +87,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					1 => "last week",
 					_ => $"{offset} weeks ago",
 				},
-				Score = 300,
+				Score = 30000,
 				// Start of the offsetted week
 				Start = (referenceDate, beginningOfWeek, offset) => referenceDate.AddDays(-((7 + ((int)referenceDate.DayOfWeek - (int)beginningOfWeek)) % 7) - (offset * 7)),
 				// End of the offsetted week
@@ -98,7 +102,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					1 => "last month",
 					_ => $"{offset} months ago",
 				},
-				Score = 200,
+				Score = 20000,
 				// First day of the offsetted month
 				Start = (referenceDate, _, offset) => new DateTimeOffset(referenceDate.Year, referenceDate.Month, 1, 0, 0, 0, referenceDate.Offset).AddMonths(-offset),
 				// Last day of the offsetted month
@@ -113,7 +117,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					1 => "last year",
 					_ => $"{offset} years ago",
 				},
-				Score = 100,
+				Score = 10000,
 				// First day of the offsetted year
 				Start = (referenceDate, _, offset) => new DateTimeOffset(referenceDate.Year - offset, 1, 1, 0, 0, 0, referenceDate.Offset),
 				// Last day of the offsetted year
@@ -136,7 +140,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			{
 				Argument = Settings.ReportsGroupingProjectsArgument,
 				Interpolation = "View tracked time grouped by project",
-				Score = 300,
+				Score = 30000,
 				Grouping = Settings.ReportsGroupingKey.Projects,
 				SubArgument = null,
 			},
@@ -144,7 +148,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			{
 				Argument = Settings.ReportsGroupingClientsArgument,
 				Interpolation = "View tracked time grouped by client",
-				Score = 200,
+				Score = 20000,
 				Grouping = Settings.ReportsGroupingKey.Clients,
 				SubArgument = Settings.ReportsGroupingProjectsArgument,
 			},
@@ -152,7 +156,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			{
 				Argument = Settings.ReportsGroupingEntriesArgument,
 				Interpolation = "View tracked time entries",
-				Score = 100,
+				Score = 10000,
 				Grouping = Settings.ReportsGroupingKey.Entries,
 				SubArgument = null,
 			},

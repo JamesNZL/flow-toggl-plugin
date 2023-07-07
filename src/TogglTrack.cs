@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Globalization;
 using Humanizer;
 using TimeSpanParserUtil;
 using Flow.Launcher.Plugin.TogglTrack.TogglApi;
@@ -64,6 +65,14 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			(-1, -1, -1),
 			false
 		);
+
+		private enum ReportsSpanDatesError
+		{
+			None,
+			ParsingError,
+			TooLongError,
+			EndBeforeStartError,
+		}
 
 		internal TogglTrack(PluginInitContext context, Settings settings)
 		{
@@ -504,6 +513,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			};
 		}
 
+		// TODO: use error icon
 		internal List<Result> NotifyNetworkUnavailable()
 		{
 			return new List<Result>
@@ -1107,6 +1117,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						IcoPath = "tip.png",
 						AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
 						Score = int.MaxValue - 100000,
+						// TODO: useless
 						Action = _ =>
 						{
 							this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search}");
@@ -2430,7 +2441,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					_ = this._GetRunningTimeEntry(token, force: true);
 				});
 			}
-
 			else if (query.SearchTerms.Length == ArgumentIndices.GroupingName)
 			{
 				this._state.SelectedIds.Project = -1;
@@ -2441,7 +2451,96 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			 * Report span selection --- tgl view [day | week | month | year]
 			 */
 
-			if ((query.SearchTerms.Length == ArgumentIndices.Span) || !Settings.ReportsSpanArguments.Exists(span => Regex.IsMatch(query.SearchTerms[ArgumentIndices.Span], $"{span.Argument}({Settings.ReportsSpanOffsetRegex})?")))
+			// Parsed:
+			// `null` — error.
+			// `(DateTimeOffset, null)` — start date, no end date.
+			// `(DateTimeOffset, DateTimeOffset) — start date, end date.
+			// ? This is a delegate with out parameters so:
+			// ?   1) This delegate can be called only when the span argument exists (through conditional short-circuiting)
+			// ?   2) The 'useful' outputs are returned as out parameters so we can:
+			// ?      - check for validity inside a conditional, but
+			// ?	  - save the parsed output (if valid) so we do not need to re-parse later when we want it
+			var parseSpanDates = (string spanQuery, out (DateTimeOffset, DateTimeOffset?)? parsed, out TogglTrack.ReportsSpanDatesError error) =>
+			{
+				Match datesMatch = Settings.ReportsSpanDatesRegex.Match(spanQuery.Replace(Settings.FauxWhitespace, " "));
+				if (!datesMatch.Success)
+				{
+					parsed = null;
+					error = TogglTrack.ReportsSpanDatesError.ParsingError;
+					return false;
+				}
+
+				bool success = DateTimeOffset.TryParse(datesMatch.Groups[1].Value, out var start);
+				if (!success)
+				{
+					parsed = null;
+					error = TogglTrack.ReportsSpanDatesError.ParsingError;
+					return false;
+				}
+
+				DateTimeOffset end;
+				if (string.IsNullOrEmpty(datesMatch.Groups[2].Value))
+				{
+					if (!spanQuery.Contains(Settings.DateSeparator))
+					{
+						parsed = (start, null);
+						error = TogglTrack.ReportsSpanDatesError.None;
+						return true;
+					}
+
+					end = DateTimeOffset.Now;
+				}
+				else
+				{
+					success = DateTimeOffset.TryParse(datesMatch.Groups[2].Value, out end);
+					if (!success)
+					{
+						parsed = null;
+						error = TogglTrack.ReportsSpanDatesError.ParsingError;
+						return false;
+					}
+				}
+
+				// Check that start date is before end date
+				if (start > end)
+				{
+					parsed = null;
+					error = TogglTrack.ReportsSpanDatesError.EndBeforeStartError;
+					return false;
+				}
+
+				// Check span duration is not longer than one year (the API limit)
+				if (start.AddYears(1) < end)
+				{
+					parsed = null;
+					error = TogglTrack.ReportsSpanDatesError.TooLongError;
+					return false;
+				}
+
+				parsed = (start, end);
+				error = TogglTrack.ReportsSpanDatesError.None;
+				return true;
+			};
+
+			/* 
+			   NO_SPAN | NO_VALID_ARG | NO_VALID_DATE | SELECTING_SPAN
+			   -------------------------------------------------------
+			      0           0               0         X — Not possible
+				  0           0               1         0 — Valid argument
+				  0           1               0         0 — Valid date
+				  0           1               1         1 — No valid span
+				  1           X               X         1 — No span argument
+			 */
+			(DateTimeOffset Start, DateTimeOffset? End)? parsedDates = null;
+			TogglTrack.ReportsSpanDatesError parsedDatesError = TogglTrack.ReportsSpanDatesError.None;
+			bool selectingSpan = (
+				(query.SearchTerms.Length == ArgumentIndices.Span) ||
+				(
+					(!Settings.ReportsSpanArguments.Exists(span => Regex.IsMatch(query.SearchTerms[ArgumentIndices.Span], $"{span.Argument}({Settings.ReportsSpanOffsetRegex})?"))) &&
+					!parseSpanDates(query.SearchTerms[ArgumentIndices.Span], out parsedDates, out parsedDatesError)
+				)
+			);
+			if (selectingSpan)
 			{
 				(string queryToSpan, string spanQuery) = new TransformedQuery(query)
 					.Split(ArgumentIndices.Span)
@@ -2479,12 +2578,113 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					};
 				});
 
+				// Display usage results for arbitrary date(span) (#55)
+				if (parsedDates is null)
+				{
+					Result? usageResult = null;
+
+					// ? TogglTrack.ReportsSpanDatesError.None means either:
+					// ?   - Parsing was not attempted, or
+					// ?   - Parsing was successful (but we won't be in this if-block because parsedDates would be non-null)
+					// ? If any other enum type, parsing was both attempted and unsuccessful
+					if (parsedDatesError != TogglTrack.ReportsSpanDatesError.None)
+					{
+						switch (parsedDatesError)
+						{
+							case (TogglTrack.ReportsSpanDatesError.ParsingError):
+								{
+									if (!this._settings.ShowUsageExamples)
+									{
+										break;
+									}
+
+									string example = spanQuery.Contains(Settings.DateSeparator)
+										? $"{DateTimeOffset.Now.AddDays(-5).ToString("d")}>{DateTimeOffset.Now.ToString("d")}"
+										: DateTimeOffset.Now.ToString("d");
+
+									usageResult = new Result
+									{
+										Title = Settings.UsageExampleTitle,
+										SubTitle = $"{query.ActionKeyword} {queryToSpan} {example}",
+										IcoPath = "tip.png",
+										AutoCompleteText = $"{query.ActionKeyword} {queryToSpan} {example} ",
+										Score = 300000,
+										Action = _ =>
+										{
+											this._context.API.ChangeQuery($"{query.ActionKeyword} {queryToSpan} {example} ");
+											return false;
+										}
+									};
+
+									break;
+								}
+							case (TogglTrack.ReportsSpanDatesError.TooLongError):
+								{
+									usageResult = new Result
+									{
+										Title = "ERROR: Span is too large",
+										SubTitle = "The reports span must not exceed 1 year.",
+										IcoPath = "tip-error.png",
+										AutoCompleteText = $"{query.ActionKeyword} {queryToSpan} ",
+										Score = 300000,
+										Action = _ =>
+										{
+											this._context.API.ChangeQuery($"{query.ActionKeyword} {queryToSpan} ");
+											return false;
+										}
+									};
+
+									break;
+								}
+							case (TogglTrack.ReportsSpanDatesError.EndBeforeStartError):
+								{
+									usageResult = new Result
+									{
+										Title = "ERROR: Invalid reports span",
+										SubTitle = "The end date must be after the start date.",
+										IcoPath = "tip-error.png",
+										AutoCompleteText = $"{query.ActionKeyword} {queryToSpan} ",
+										Score = 300000,
+										Action = _ =>
+										{
+											this._context.API.ChangeQuery($"{query.ActionKeyword} {queryToSpan} ");
+											return false;
+										}
+									};
+
+									break;
+								}
+						}
+					}
+					else if (this._settings.ShowUsageTips)
+					{
+						usageResult = new Result
+						{
+							Title = Settings.UsageTipTitle,
+							SubTitle = "Use [start] or [start]>[end] to specify your own span",
+							IcoPath = "tip.png",
+							AutoCompleteText = $"{query.ActionKeyword} {queryToSpan} {DateTimeOffset.Now.AddDays(-4).ToString("d")}>{DateTimeOffset.Now.ToString("d")} ",
+							Score = 1,
+							Action = _ =>
+							{
+								this._context.API.ChangeQuery($"{query.ActionKeyword} {queryToSpan} {DateTimeOffset.Now.AddDays(-5).ToString("d")}>{DateTimeOffset.Now.ToString("d")} ");
+								return false;
+							}
+						};
+					}
+
+					if (usageResult is not null)
+					{
+						spans.Add(usageResult);
+					}
+				}
+
 				if ((this._settings.ShowUsageTips || this._settings.ShowUsageExamples) && !spanOffsetMatch.Success)
 				{
-					bool queryContainsDash = spanQuery.Contains("-");
+					bool attemptedOffsetQuery = Settings.ReportsSpanPartialOffsetRegex.IsMatch(spanQuery);
 
 					Result? usageResult = null;
-					if (this._settings.ShowUsageExamples && queryContainsDash)
+					if (this._settings.ShowUsageExamples && attemptedOffsetQuery)
 					{
 						usageResult = new Result
 						{
@@ -2500,15 +2700,15 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							}
 						};
 					}
-					else if (this._settings.ShowUsageTips && !queryContainsDash)
+					else if (this._settings.ShowUsageTips && !attemptedOffsetQuery)
 					{
 						usageResult = new Result
 						{
 							Title = Settings.UsageTipTitle,
-							SubTitle = $"Use -[number] to view older reports",
+							SubTitle = $"Use -[number] to view older reports relative to now",
 							IcoPath = "tip.png",
 							AutoCompleteText = $"{query.ActionKeyword} {queryToSpan} -",
-							Score = 1,
+							Score = 300,
 							Action = _ =>
 							{
 								this._context.API.ChangeQuery($"{query.ActionKeyword} {queryToSpan} -");
@@ -2558,33 +2758,88 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			string spanArgument = query.SearchTerms[ArgumentIndices.Span];
 			string groupingArgument = query.SearchTerms[ArgumentIndices.Grouping];
 
-			var spanConfiguration = Settings.ReportsSpanArguments.Find(span => Regex.IsMatch(spanArgument, $"{span.Argument}({Settings.ReportsSpanOffsetRegex})?"));
 			var groupingConfiguration = Settings.ReportsGroupingArguments.Find(grouping => grouping.Argument == groupingArgument);
 
-			if ((spanConfiguration is null) || (groupingConfiguration is null))
+			DateTimeOffset start, end;
+			string reportSpanInterpolation;
+			if (parsedDates is null)
+			{
+				var spanConfiguration = Settings.ReportsSpanArguments.Find(span => Regex.IsMatch(spanArgument, $"{span.Argument}({Settings.ReportsSpanOffsetRegex})?"));
+
+				if (spanConfiguration is null)
+				{
+					return this.NotifyUnknownError();
+				}
+
+				Match spanArgumentOffsetMatch = Settings.ReportsSpanOffsetRegex.Match(spanArgument);
+				int spanArgumentOffset = (spanArgumentOffsetMatch.Success)
+					? int.Parse(spanArgumentOffsetMatch.Groups[1].Value)
+					: 0;
+
+				DateTimeOffset reportsNow;
+				try
+				{
+					reportsNow = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTimeOffset.UtcNow, me.ReportsTimeZoneId);
+				}
+				catch (Exception exception)
+				{
+					this._context.API.LogException("TogglTrack", $"Failed to convert time to reports time zone '{me.ReportsTimeZoneId}'", exception);
+					// Use local time instead
+					reportsNow = DateTimeOffset.Now;
+				}
+
+				start = spanConfiguration.Start(reportsNow, me.BeginningOfWeek, spanArgumentOffset);
+				end = spanConfiguration.End(reportsNow, me.BeginningOfWeek, spanArgumentOffset);
+
+				reportSpanInterpolation = spanConfiguration.Interpolation(spanArgumentOffset);
+			}
+			else
+			{
+				try
+				{
+					start = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(parsedDates.Value.Start, me.ReportsTimeZoneId);
+					end = (parsedDates.Value.End is not null)
+						? TimeZoneInfo.ConvertTimeBySystemTimeZoneId((DateTimeOffset)parsedDates.Value.End, me.ReportsTimeZoneId)
+						: start;
+				}
+				catch (Exception exception)
+				{
+					this._context.API.LogException("TogglTrack", $"Failed to convert time to reports time zone '{me.ReportsTimeZoneId}'", exception);
+
+					// Use local time instead
+					start = parsedDates.Value.Start;
+					end = (parsedDates.Value.End is not null)
+						? (DateTimeOffset)parsedDates.Value.End
+						: start;
+				}
+
+				string abbreviatedMonthDayPattern = DateTimeFormatInfo.CurrentInfo.MonthDayPattern.Replace("MMMM", "MMM");
+				// TODO: start time
+				if (parsedDates.Value.End is null)
+				{
+					reportSpanInterpolation = $"on {start.ToString("ddd")} {start.ToString(abbreviatedMonthDayPattern)} {start.ToString("yyyy")}";
+				}
+				else if (start.Year != end.Year)
+				{
+					reportSpanInterpolation = $"from {start.ToString("ddd")} {start.ToString(abbreviatedMonthDayPattern)} {start.ToString("yyyy")} to {end.ToString("ddd")} {end.ToString(abbreviatedMonthDayPattern)} {end.ToString("yyyy")}";
+				}
+				else if (start.Month == end.Month)
+				{
+					// Check whether the month or the date is written first in the present culture
+					reportSpanInterpolation = (abbreviatedMonthDayPattern.IndexOf("M") < abbreviatedMonthDayPattern.IndexOf("d"))
+						? $"from {start.ToString("ddd")} {start.ToString(abbreviatedMonthDayPattern)} to {end.ToString("ddd")} {end.ToString(abbreviatedMonthDayPattern.Replace("MMM", string.Empty)).Trim()} {end.ToString("yyyy")}"
+						: $"from {start.ToString("ddd")} {start.ToString(abbreviatedMonthDayPattern.Replace("MMM", string.Empty)).Trim()} to {end.ToString("ddd")} {end.ToString(abbreviatedMonthDayPattern)} {end.ToString("yyyy")}";
+				}
+				else
+				{
+					reportSpanInterpolation = $"from {start.ToString("ddd")} {start.ToString(abbreviatedMonthDayPattern)} to {end.ToString("ddd")} {end.ToString(abbreviatedMonthDayPattern)} {end.ToString("yyyy")}";
+				}
+			}
+
+			if (groupingConfiguration is null)
 			{
 				return this.NotifyUnknownError();
 			}
-
-			Match spanArgumentOffsetMatch = Settings.ReportsSpanOffsetRegex.Match(spanArgument);
-			int spanArgumentOffset = (spanArgumentOffsetMatch.Success)
-				? int.Parse(spanArgumentOffsetMatch.Groups[1].Value)
-				: 0;
-
-			DateTimeOffset reportsNow;
-			try
-			{
-				reportsNow = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTimeOffset.UtcNow, me.ReportsTimeZoneId);
-			}
-			catch (Exception exception)
-			{
-				this._context.API.LogException("TogglTrack", $"Failed to convert time to reports time zone '{me.ReportsTimeZoneId}'", exception);
-				// Use local time instead
-				reportsNow = DateTimeOffset.Now;
-			}
-
-			var start = spanConfiguration.Start(reportsNow, me.BeginningOfWeek, spanArgumentOffset);
-			var end = spanConfiguration.End(reportsNow, me.BeginningOfWeek, spanArgumentOffset);
 
 			this._context.API.LogInfo("TogglTrack", $"{spanArgument}, {groupingArgument}, {start.ToString("yyyy-MM-dd")}, {end.ToString("yyyy-MM-dd")}");
 
@@ -2593,6 +2848,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				workspaceId: me.DefaultWorkspaceId,
 				userId: me.Id,
 				reportGrouping: groupingConfiguration.Grouping,
+				// TODO: startTime
 				start: start,
 				end: end
 			))?.ToSummaryReport(me);
@@ -2615,6 +2871,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 				this._context.API.LogInfo("TogglTrack", $"{start.Date}, {end.Date}, {runningEntryStart.Date}");
 
+				// TODO: check this logic: will need to updated if we allow specifing a time
 				if (runningEntryStart.Date >= start.Date && runningEntryStart.Date <= end.Date)
 				{
 					summary = summary?.InsertRunningTimeEntry(runningTimeEntry, groupingConfiguration.Grouping);
@@ -2633,7 +2890,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 				results.Add(new Result
 				{
-					Title = $"{total.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour)} tracked {spanConfiguration.Interpolation(spanArgumentOffset)} ({(int)total.TotalHours}:{total.ToString(@"mm\:ss")})",
+					Title = $"{total.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour)} tracked {reportSpanInterpolation} ({(int)total.TotalHours}:{total.ToString(@"mm\:ss")})",
 					IcoPath = "reports.png",
 					AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
 					Score = int.MaxValue - 100000,
@@ -2829,7 +3086,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 						subResults = subResults.Append(new Result
 						{
-							Title = $"{total.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour)} tracked {spanConfiguration.Interpolation(spanArgumentOffset)} ({(int)total.TotalHours}:{total.ToString(@"mm\:ss")})",
+							Title = $"{total.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour)} tracked {reportSpanInterpolation} ({(int)total.TotalHours}:{total.ToString(@"mm\:ss")})",
 							SubTitle = (!string.IsNullOrEmpty(subGroupQuery))
 								? $"{project?.WithClientName ?? Settings.NoProjectName} | {subGroupQuery}"
 								: project?.WithClientName ?? Settings.NoProjectName,
@@ -2925,7 +3182,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						{
 							subResults = subResults.Append(new Result
 							{
-								Title = $"{selectedClientGroup.HumanisedElapsed} tracked {spanConfiguration.Interpolation(spanArgumentOffset)} ({selectedClientGroup.DetailedElapsed})",
+								Title = $"{selectedClientGroup.HumanisedElapsed} tracked {reportSpanInterpolation} ({selectedClientGroup.DetailedElapsed})",
 								SubTitle = client?.Name ?? Settings.NoClientName,
 								IcoPath = "reports.png",
 								AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
@@ -3084,7 +3341,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 						subResults = subResults.Append(new Result
 						{
-							Title = $"{total.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour)} tracked {spanConfiguration.Interpolation(spanArgumentOffset)} ({(int)total.TotalHours}:{total.ToString(@"mm\:ss")})",
+							Title = $"{total.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour)} tracked {reportSpanInterpolation} ({(int)total.TotalHours}:{total.ToString(@"mm\:ss")})",
 							SubTitle = groupQuery,
 							IcoPath = "reports.png",
 							AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
@@ -3097,5 +3354,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 			return results;
 		}
+
 	}
 }

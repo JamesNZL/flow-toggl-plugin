@@ -349,20 +349,33 @@ When followed by anything other than a command name, the list of results will co
 - `tgl reports month entries [time entry description search query]`
 - `tgl reports week-3 projects no-project [time entry description search query]`
 
+#### With Arbitrary Date(s)
+- `tgl reports 21/9 entries`
+- `tgl reports 1/1/2021> projects`
+- `tgl reports 2/1/2021>5/6/2021 clients`
+
 ### Flags and Options
 | Name           | Flag | Description                                                  | Example |
 | -------------- | ---- | ------------------------------------------------------------ | ------- |
 | Show Stop Time | `-S` | Show time entry stop times when displaying a detailed report | `-S`    |
 
-| Name               | Option            | Description                                  | Example   |
-| ------------------ | ----------------- | -------------------------------------------- | --------- |
-| Report Span Offset | `[span]-[offset]` | Offset the report span by a specified offset | `month-1` |
+| Name               | Option            | Description                                                               | Example      |
+| ------------------ | ----------------- | ------------------------------------------------------------------------- | ------------ |
+| Report Span Offset | `[span]-[offset]` | Offset the report span by a specified offset                              | `month-1`    |
+| To End Date        | `[start]>[end]`   | The separator between the `[start]` and the `[end]` of the arbitrary span | `21/9>21/10` |
 
-### Notes
+### Notes and Warnings
 > **Note**  
-> 1. Reports of tracked time entries can be filtered with a fuzzy search.
-> 2. Selecting a time entry will autofill the `tgl start` command.
-> 3. To include `'-S'` in your fuzzy search, you can escape it with a backslash—eg `tgl reports day entries \-S`
+> 1. Arbitrary date(s) are parsed according to your system locale (eg for `en-US`, your format of `MM/dd` will be used instead).
+> 2. Date parsing is done by the built-in `DateTimeOffset.TryParse` method. Read about what it supports [here](https://learn.microsoft.com/en-us/dotnet/api/system.datetime.parse?view=net-7.0#the-string-to-parse) and [here](https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset.tryparse?view=net-7.0#system-datetimeoffset-tryparse(system-string-system-datetimeoffset@)).
+> 3. Using the `>` separator without supplying an `[end]` date will produce a span between `[start]` and the current date.
+> 4. Reports of tracked time entries can be filtered with a fuzzy search.
+> 5. Selecting a time entry will autofill the `tgl start` command.
+> 6. To include `'-S'` in your fuzzy search, you can escape it with a backslash—eg `tgl reports day entries \-S`
+
+> **Warning**  
+> 1. The `[end]` date must be after the `[start]` date.
+> 2. The arbitrary report span must not exceed one year (Toggl API limitation).
 
 ### Screenshots
 ![Tracked time report span selection](assets/screenshots/reports/spans.jpg)
@@ -384,6 +397,13 @@ When followed by anything other than a command name, the list of results will co
 ![View tracked time report by client projects](assets/screenshots/reports/clients-projects.jpg)
 
 ![View tracked time report by entries with fuzzy filter](assets/screenshots/reports/entries-fuzzy.jpg)
+
+#### With Arbitrary Date(s)
+![View tracked time report on an arbitrary date](assets/screenshots/reports/arbitrary-date.png)
+
+![View tracked time report from an arbitrary date to now](assets/screenshots/reports/arbitrary-span-now.png)
+
+![View tracked time report over an arbitrary span](assets/screenshots/reports/arbitrary-span.png)
 
 ---
 

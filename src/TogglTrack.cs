@@ -830,7 +830,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							{
 								long? projectId = null;
 								long workspaceId = me.DefaultWorkspaceId;
-								string description = transformedQuery.ReplaceProject(string.Empty, unescape: true);
+								string description = transformedQuery.ReplaceProject(string.Empty, escapeIfEmpty: false, unescape: true);
 
 								// Attempt to parse the time span flag if it exists
 								TimeSpan startTimeSpan = TimeSpan.Zero;
@@ -851,7 +851,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									{
 										description = new TransformedQuery(query)
 											.To(Settings.TimeSpanFlag)
-											.ReplaceProject(string.Empty, unescape: true);
+											.ReplaceProject(string.Empty, escapeIfEmpty: false, unescape: true);
 									}
 								}
 
@@ -951,7 +951,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								{
 									long projectId = project.Id;
 									long workspaceId = project.WorkspaceId;
-									string description = transformedQuery.ReplaceProject(string.Empty, unescape: true);
+									string description = transformedQuery.ReplaceProject(string.Empty, escapeIfEmpty: false, unescape: true);
 
 									// Attempt to parse the time span flag if it exists
 									TimeSpan startTimeSpan = TimeSpan.Zero;
@@ -972,7 +972,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 										{
 											description = new TransformedQuery(query)
 												.To(Settings.TimeSpanFlag)
-												.ReplaceProject(string.Empty, unescape: true);
+												.ReplaceProject(string.Empty, escapeIfEmpty: false, unescape: true);
 										}
 									}
 

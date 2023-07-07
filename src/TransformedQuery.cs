@@ -124,18 +124,37 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				: null;
 		}
 
-		public string ReplaceProject(string replacement, bool escapeIfEmpty = true, bool unescape = false)
+		public string ReplaceProject(
+			string replacement,
+			bool escapeIfEmpty = true,
+			bool unescape = false,
+			bool withTrailingSpace = false
+		)
 		{
-			string search = Settings.ProjectCaptureRegex.Replace(this.ToString(), replacement);
+			string search = Settings.ProjectCaptureRegex
+				.Replace(this.ToString(), replacement)
+				.Trim();
 
 			if (unescape)
 			{
 				search = TransformedQuery.Unescape(search);
 			}
 
-			return (escapeIfEmpty && string.IsNullOrEmpty(search))
+			if (!string.IsNullOrEmpty(search))
+			{
+				return (withTrailingSpace)
+					? $"{search} "
+					: search;
+			}
+
+			if (!escapeIfEmpty)
+			{
+				return string.Empty;
+			}
+
+			return (withTrailingSpace)
 				? $"{Settings.EscapeCharacter} "
-				: search;
+				: Settings.EscapeCharacter;
 		}
 
 		public override string ToString()

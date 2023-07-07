@@ -821,7 +821,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								this._state.ResultsSource = (null, false);
 								this._state.SelectedIds.Project = null;
 
-								this._context.API.ChangeQuery($"{query.ActionKeyword} {transformedQuery.ReplaceProject(string.Empty)}", true);
+								this._context.API.ChangeQuery($"{query.ActionKeyword} {transformedQuery.ReplaceProject(string.Empty, withTrailingSpace: true)}", true);
 								return false;
 							}
 
@@ -942,7 +942,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									this._state.ResultsSource = (null, false);
 									this._state.SelectedIds.Project = project.Id;
 
-									this._context.API.ChangeQuery($"{query.ActionKeyword} {transformedQuery.ReplaceProject(string.Empty)}", true);
+									this._context.API.ChangeQuery($"{query.ActionKeyword} {transformedQuery.ReplaceProject(string.Empty, withTrailingSpace: true)}", true);
 									return false;
 								}
 
@@ -1758,7 +1758,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						{
 							this._state.SelectedIds.Project = null;
 
-							this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.EditCommand} {transformedQuery.ReplaceProject(string.Empty, escapeIfEmpty: false)}", true);
+							this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.EditCommand} {transformedQuery.ReplaceProject(string.Empty, escapeIfEmpty: false, withTrailingSpace: true)}", true);
 							return false;
 						},
 					});
@@ -1783,7 +1783,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							{
 								this._state.SelectedIds.Project = project.Id;
 
-								this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.EditCommand} {transformedQuery.ReplaceProject(string.Empty, escapeIfEmpty: false)}", true);
+								this._context.API.ChangeQuery($"{query.ActionKeyword} {Settings.EditCommand} {transformedQuery.ReplaceProject(string.Empty, escapeIfEmpty: false, withTrailingSpace: true)}", true);
 								return false;
 							},
 						})

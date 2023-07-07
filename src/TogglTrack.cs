@@ -1801,7 +1801,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					SubTitle = $"Use {Settings.ProjectPrefix} to edit the project for this time entry",
 					IcoPath = "tip.png",
 					AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.ProjectPrefix}",
-					Score = 1,
+					Score = 100,
 					Action = _ =>
 					{
 						this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {Settings.ProjectPrefix}");
@@ -1827,7 +1827,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					SubTitle = $"Use {Settings.ClearDescriptionFlag} to quickly clear the description",
 					IcoPath = "tip.png",
 					AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.ClearDescriptionFlag} ",
-					Score = 2,
+					Score = 10,
 					Action = _ =>
 					{
 						this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {Settings.ClearDescriptionFlag} ");
@@ -1865,8 +1865,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			var timeSpanFlags = new string[] { Settings.TimeSpanFlag, Settings.TimeSpanEndFlag };
 			bool hasTimeSpanFlag = query.SearchTerms.Contains(Settings.TimeSpanFlag);
 			bool hasTimeSpanEndFlag = query.SearchTerms.Contains(Settings.TimeSpanEndFlag);
+			bool hasResumeFlag = query.SearchTerms.Contains(Settings.ResumeFlag);
 
-			if (!hasTimeSpanFlag && !hasTimeSpanEndFlag)
+			if (!hasTimeSpanFlag && !hasTimeSpanEndFlag && !hasResumeFlag)
 			{
 				results.Add(new Result
 				{
@@ -2004,7 +2005,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							SubTitle = $"Use {Settings.TimeSpanFlag} after the description to edit the start time",
 							IcoPath = "tip.png",
 							AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ",
-							Score = 10,
+							Score = 70,
 							Action = _ =>
 							{
 								this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ");
@@ -2021,10 +2022,27 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							SubTitle = $"Use {Settings.TimeSpanEndFlag} after the description to edit the stop time",
 							IcoPath = "tip.png",
 							AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.TimeSpanEndFlag} ",
-							Score = 5,
+							Score = 50,
 							Action = _ =>
 							{
 								this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {Settings.TimeSpanEndFlag} ");
+								return false;
+							}
+						});
+					}
+
+					if (!timeEntry.IsRunning && !hasResumeFlag)
+					{
+						results.Add(new Result
+						{
+							Title = Settings.UsageTipTitle,
+							SubTitle = $"Use {Settings.ResumeFlag} to resume this time entry",
+							IcoPath = "tip.png",
+							AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.ResumeFlag} ",
+							Score = 30,
+							Action = _ =>
+							{
+								this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {Settings.ResumeFlag} ");
 								return false;
 							}
 						});
@@ -2033,8 +2051,8 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 			else
 			{
-				// TimeSpanFlag and/or TimeSpanEndFlag is present
-				int firstFlag = -1;
+				// TimeSpanFlag and/or TimeSpanEndFlag and/or ResumeFlag is present
+				int firstFlag = Array.IndexOf(query.SearchTerms, Settings.ResumeFlag);
 				for (int i = 0; i < query.SearchTerms.Length; i++)
 				{
 					if (!timeSpanFlags.Contains(query.SearchTerms[i]))
@@ -2044,6 +2062,30 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 					firstFlag = i;
 					break;
+				}
+
+				if (hasTimeSpanEndFlag && hasResumeFlag)
+				{
+					string sanitisedQuery = new TransformedQuery(query)
+						.To(Settings.TimeSpanEndFlag)
+						.RemoveAll(Settings.ResumeFlag)
+						.ToString();
+
+					results.Add(new Result
+					{
+						Title = "ERROR: Conflicting flags",
+						SubTitle = $"You may not use both {Settings.TimeSpanEndFlag} and {Settings.ResumeFlag} at the same time.",
+						IcoPath = "tip-error.png",
+						AutoCompleteText = $"{query.ActionKeyword} {sanitisedQuery} ",
+						Score = 300000,
+						Action = _ =>
+						{
+							this._context.API.ChangeQuery($"{query.ActionKeyword} {sanitisedQuery} ");
+							return false;
+						}
+					});
+
+					return results;
 				}
 
 				TimeSpan? startTimeSpan = null;
@@ -2133,12 +2175,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 						return results;
 					}
-
 				}
 
 				// Remove flags from description
 				string sanitisedDescription = new TransformedQuery(query)
 					.Between(ArgumentIndices.Description, firstFlag)
+					.RemoveAll(Settings.ResumeFlag)
 					.ToString(TransformedQuery.Escaping.Unescaped);
 
 				if (this._settings.ShowUsageWarnings && string.IsNullOrEmpty(sanitisedDescription) && !string.IsNullOrEmpty(timeEntry.GetRawDescription()))
@@ -2159,7 +2201,14 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				}
 
 				var startTime = (timeEntry.StartDate + startTimeSpan) ?? timeEntry.StartDate;
-				var stopTime = ((timeEntry.StopDate ?? DateTimeOffset.UtcNow) + endTimeSpan) ?? timeEntry.StopDate;
+				var stopTime = (!hasResumeFlag)
+					? ((timeEntry.StopDate ?? DateTimeOffset.UtcNow) + endTimeSpan) ?? timeEntry.StopDate
+					: null;
+
+				if (hasResumeFlag)
+				{
+					newElapsed = DateTimeOffset.UtcNow.Subtract(startTime);
+				}
 
 				results.Add(new Result
 				{

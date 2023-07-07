@@ -36,6 +36,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		internal const string TimeSpanFlag = $"{Settings.FlagPrefix}t";
 		internal const string TimeSpanEndFlag = $"{Settings.FlagPrefix}T";
 		internal const string ListPastFlag = $"{Settings.FlagPrefix}l";
+		internal const string ResumeFlag = $"{Settings.FlagPrefix}R";
 		internal const string ShowStopFlag = $"{Settings.FlagPrefix}S";
 
 		internal const string NoProjectName = "No Project";

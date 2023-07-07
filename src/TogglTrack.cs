@@ -1194,10 +1194,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 			else
 			{
+				(string queryToFlag, string flagQuery) = new TransformedQuery(query)
+					.Split(Settings.TimeSpanFlag)
+					.ToStrings();
+
 				bool success = TimeSpanParser.TryParse(
-					new TransformedQuery(query)
-						.After(Settings.TimeSpanFlag)
-						.ToString(),
+					flagQuery,
 					new TimeSpanParserOptions
 					{
 						UncolonedDefault = Units.Minutes,
@@ -1209,10 +1211,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					if (this._settings.ShowUsageExamples)
 					{
-						string queryToFlag = new TransformedQuery(query)
-							.To(Settings.TimeSpanFlag)
-							.ToString();
-
 						results.Add(new Result
 						{
 							Title = Settings.UsageExampleTitle,
@@ -2054,10 +2052,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 				if (hasTimeSpanFlag)
 				{
+					(string queryToFlag, string flagQuery) = new TransformedQuery(query)
+						.Split(Settings.TimeSpanFlag)
+						.ToStrings();
+
 					bool success = TimeSpanParser.TryParse(
-						new TransformedQuery(query)
-							.After(Settings.TimeSpanFlag)
-							.ToString(),
+						flagQuery,
 						new TimeSpanParserOptions
 						{
 							UncolonedDefault = Units.Minutes,
@@ -2074,10 +2074,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					{
 						if (this._settings.ShowUsageExamples)
 						{
-							string queryToFlag = new TransformedQuery(query)
-								.To(Settings.TimeSpanFlag)
-								.ToString();
-
 							results.Add(new Result
 							{
 								Title = Settings.UsageExampleTitle,
@@ -2098,10 +2094,12 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				}
 				if (hasTimeSpanEndFlag)
 				{
+					(string queryToFlag, string flagQuery) = new TransformedQuery(query)
+						.Split(Settings.TimeSpanEndFlag)
+						.ToStrings();
+
 					bool success = TimeSpanParser.TryParse(
-						new TransformedQuery(query)
-							.After(Settings.TimeSpanEndFlag)
-							.ToString(),
+						flagQuery,
 						new TimeSpanParserOptions
 						{
 							UncolonedDefault = Units.Minutes,
@@ -2118,10 +2116,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					{
 						if (this._settings.ShowUsageExamples)
 						{
-							string queryToFlag = new TransformedQuery(query)
-								.To(Settings.TimeSpanEndFlag)
-								.ToString();
-
 							results.Add(new Result
 							{
 								Title = Settings.UsageExampleTitle,

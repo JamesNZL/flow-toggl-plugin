@@ -100,6 +100,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			);
 		}
 
+		public (TransformedQuery, TransformedQuery) Split(string term)
+		{
+			return this.Split(this.IndexOf(term));
+		}
+
 		public TransformedQuery RemoveAll(string term)
 		{
 			this.SearchTerms = this.SearchTerms.Where(searchTerm => searchTerm != term).ToArray();

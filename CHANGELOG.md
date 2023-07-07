@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [4.0.0-1](https://github.com/JamesNZL/flow-toggl-plugin/compare/v4.0.0-0...v4.0.0-1) (2023-07-07)
+
+
+### Features
+
+* **reports:** :sparkles: implement reports of any arbitrary date/span ([#55](https://github.com/JamesNZL/flow-toggl-plugin/issues/55)) ([e45e46e](https://github.com/JamesNZL/flow-toggl-plugin/commit/e45e46ed36e9e5a58eb7950fd0439c56d6f1388d))
+* **ux:** :children_crossing: add trailing space after project selection ([#105](https://github.com/JamesNZL/flow-toggl-plugin/issues/105)) ([b4208c8](https://github.com/JamesNZL/flow-toggl-plugin/commit/b4208c89059550f1ae50552dc16726e3b357f6fe))
+* **ux:** :children_crossing: implement `-C` clear flag for `start` and `continue` ([#97](https://github.com/JamesNZL/flow-toggl-plugin/issues/97)) ([7fd55fc](https://github.com/JamesNZL/flow-toggl-plugin/commit/7fd55fc7d6675f71b971313079aa5d900707563e))
+* **ux:** :children_crossing: implement `-l` list flag for `continue` ([#98](https://github.com/JamesNZL/flow-toggl-plugin/issues/98)) ([1f57cd9](https://github.com/JamesNZL/flow-toggl-plugin/commit/1f57cd904e44b46b77a7dfb299c14873e26d07c3))
+* **ux:** :lipstick: use error icon for all errors ([#103](https://github.com/JamesNZL/flow-toggl-plugin/issues/103)) ([4d16b20](https://github.com/JamesNZL/flow-toggl-plugin/commit/4d16b2090e93f2fb9f2c5e5d717b6b47b26a7d72))
+* **ux:** :sparkles: implement `-R` resume flag for `edit` ([#107](https://github.com/JamesNZL/flow-toggl-plugin/issues/107)) ([a621035](https://github.com/JamesNZL/flow-toggl-plugin/commit/a6210353a6df362aa7b6674b36abfeaa282793b0))
+
+
+### Bug Fixes
+
+* :bug: fix created description of `\` when quick-starting empty time entry ([#106](https://github.com/JamesNZL/flow-toggl-plugin/issues/106)) ([a761e63](https://github.com/JamesNZL/flow-toggl-plugin/commit/a761e63135222fd824466303ec713a9f208e73a1))
+* **ux:** :bug: fix `edit` erroneously resuming time entry when using `-t` ([#104](https://github.com/JamesNZL/flow-toggl-plugin/issues/104)) ([1efca81](https://github.com/JamesNZL/flow-toggl-plugin/commit/1efca81c084f5121c4aaa47a6004738229391843))
+* **ux:** :children_crossing: fix missing `edit` usage tips if any flag present ([#108](https://github.com/JamesNZL/flow-toggl-plugin/issues/108)) ([4ddf83c](https://github.com/JamesNZL/flow-toggl-plugin/commit/4ddf83cdfcb8977f0f8451bee2ca0a6d31f1db71))
+
 ## [4.0.0-0](https://github.com/JamesNZL/flow-toggl-plugin/compare/v3.0.1...v4.0.0-0) (2023-07-04)
 
 

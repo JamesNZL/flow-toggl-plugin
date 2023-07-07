@@ -1867,6 +1867,60 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			bool hasTimeSpanEndFlag = query.SearchTerms.Contains(Settings.TimeSpanEndFlag);
 			bool hasResumeFlag = query.SearchTerms.Contains(Settings.ResumeFlag);
 
+			if (this._settings.ShowUsageTips)
+			{
+				if (!hasTimeSpanFlag)
+				{
+					results.Add(new Result
+					{
+						Title = Settings.UsageTipTitle,
+						SubTitle = $"Use {Settings.TimeSpanFlag} after the description to edit the start time",
+						IcoPath = "tip.png",
+						AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ",
+						Score = 70,
+						Action = _ =>
+						{
+							this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ");
+							return false;
+						}
+					});
+				}
+
+				if (!hasTimeSpanEndFlag && !hasResumeFlag)
+				{
+					results.Add(new Result
+					{
+						Title = Settings.UsageTipTitle,
+						SubTitle = $"Use {Settings.TimeSpanEndFlag} after the description to edit the stop time",
+						IcoPath = "tip.png",
+						AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.TimeSpanEndFlag} ",
+						Score = 50,
+						Action = _ =>
+						{
+							this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {Settings.TimeSpanEndFlag} ");
+							return false;
+						}
+					});
+				}
+
+				if (!timeEntry.IsRunning && !hasResumeFlag && !hasTimeSpanEndFlag)
+				{
+					results.Add(new Result
+					{
+						Title = Settings.UsageTipTitle,
+						SubTitle = $"Use {Settings.ResumeFlag} to resume this time entry",
+						IcoPath = "tip.png",
+						AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.ResumeFlag} ",
+						Score = 30,
+						Action = _ =>
+						{
+							this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {Settings.ResumeFlag} ");
+							return false;
+						}
+					});
+				}
+			}
+
 			if (!hasTimeSpanFlag && !hasTimeSpanEndFlag && !hasResumeFlag)
 			{
 				results.Add(new Result
@@ -1993,60 +2047,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								},
 							});
 					}));
-				}
-
-				if (this._settings.ShowUsageTips)
-				{
-					if (!hasTimeSpanFlag)
-					{
-						results.Add(new Result
-						{
-							Title = Settings.UsageTipTitle,
-							SubTitle = $"Use {Settings.TimeSpanFlag} after the description to edit the start time",
-							IcoPath = "tip.png",
-							AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ",
-							Score = 70,
-							Action = _ =>
-							{
-								this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ");
-								return false;
-							}
-						});
-					}
-
-					if (!hasTimeSpanEndFlag)
-					{
-						results.Add(new Result
-						{
-							Title = Settings.UsageTipTitle,
-							SubTitle = $"Use {Settings.TimeSpanEndFlag} after the description to edit the stop time",
-							IcoPath = "tip.png",
-							AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.TimeSpanEndFlag} ",
-							Score = 50,
-							Action = _ =>
-							{
-								this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {Settings.TimeSpanEndFlag} ");
-								return false;
-							}
-						});
-					}
-
-					if (!timeEntry.IsRunning && !hasResumeFlag)
-					{
-						results.Add(new Result
-						{
-							Title = Settings.UsageTipTitle,
-							SubTitle = $"Use {Settings.ResumeFlag} to resume this time entry",
-							IcoPath = "tip.png",
-							AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.ResumeFlag} ",
-							Score = 30,
-							Action = _ =>
-							{
-								this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {Settings.ResumeFlag} ");
-								return false;
-							}
-						});
-					}
 				}
 			}
 			else

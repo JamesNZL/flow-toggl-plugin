@@ -492,7 +492,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					Title = "ERROR: Missing API token",
 					SubTitle = "Configure Toggl Track API token in Flow Launcher settings.",
-					IcoPath = this._context.CurrentPluginMetadata.IcoPath,
+					IcoPath = "tip-error.png",
 					Action = _ =>
 					{
 						this._context.API.OpenSettingDialog();
@@ -513,7 +513,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			};
 		}
 
-		// TODO: use error icon
 		internal List<Result> NotifyNetworkUnavailable()
 		{
 			return new List<Result>
@@ -522,7 +521,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					Title = "ERROR: No network connection",
 					SubTitle = "Connect to the internet to use Toggl Track.",
-					IcoPath = this._context.CurrentPluginMetadata.IcoPath,
+					IcoPath = "tip-error.png",
 					Action = _ =>
 					{
 						return true;
@@ -539,7 +538,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					Title = "ERROR: Invalid API token",
 					SubTitle = $"{this._settings.ApiToken} is not a valid API token.",
-					IcoPath = this._context.CurrentPluginMetadata.IcoPath,
+					IcoPath = "tip-error.png",
 					Action = _ =>
 					{
 						this._context.API.OpenSettingDialog();
@@ -568,7 +567,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					Title = "ERROR: Unknown error",
 					SubTitle = "An unexpected error has occurred.",
-					IcoPath = this._context.CurrentPluginMetadata.IcoPath,
+					IcoPath = "tip-error.png",
 					Action = _ =>
 					{
 						return true;

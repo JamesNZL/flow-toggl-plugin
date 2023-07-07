@@ -490,7 +490,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			{
 				new Result
 				{
-					Title = "ERROR: Missing API token",
+					Title = $"{Settings.ErrorPrefix}Missing API token",
 					SubTitle = "Configure Toggl Track API token in Flow Launcher settings.",
 					IcoPath = "tip-error.png",
 					Action = _ =>
@@ -519,7 +519,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			{
 				new Result
 				{
-					Title = "ERROR: No network connection",
+					Title = $"{Settings.ErrorPrefix}No network connection",
 					SubTitle = "Connect to the internet to use Toggl Track.",
 					IcoPath = "tip-error.png",
 					Action = _ =>
@@ -536,7 +536,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			{
 				new Result
 				{
-					Title = "ERROR: Invalid API token",
+					Title = $"{Settings.ErrorPrefix}Invalid API token",
 					SubTitle = $"{this._settings.ApiToken} is not a valid API token.",
 					IcoPath = "tip-error.png",
 					Action = _ =>
@@ -565,7 +565,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			{
 				new Result
 				{
-					Title = "ERROR: Unknown error",
+					Title = $"{Settings.ErrorPrefix}Unknown error",
 					SubTitle = "An unexpected error has occurred.",
 					IcoPath = "tip-error.png",
 					Action = _ =>
@@ -2073,7 +2073,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 					results.Add(new Result
 					{
-						Title = "ERROR: Conflicting flags",
+						Title = $"{Settings.ErrorPrefix}Conflicting flags",
 						SubTitle = $"You may not use both {Settings.TimeSpanEndFlag} and {Settings.ResumeFlag} at the same time.",
 						IcoPath = "tip-error.png",
 						AutoCompleteText = $"{query.ActionKeyword} {sanitisedQuery} ",
@@ -2661,7 +2661,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								{
 									usageResult = new Result
 									{
-										Title = "ERROR: Span is too large",
+										Title = $"{Settings.ErrorPrefix}Span is too large",
 										SubTitle = "The reports span must not exceed 1 year.",
 										IcoPath = "tip-error.png",
 										AutoCompleteText = $"{query.ActionKeyword} {queryToSpan} ",
@@ -2679,7 +2679,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								{
 									usageResult = new Result
 									{
-										Title = "ERROR: Invalid reports span",
+										Title = $"{Settings.ErrorPrefix}Invalid reports span",
 										SubTitle = "The end date must be after the start date.",
 										IcoPath = "tip-error.png",
 										AutoCompleteText = $"{query.ActionKeyword} {queryToSpan} ",

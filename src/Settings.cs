@@ -39,6 +39,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		internal const string ResumeFlag = $"{Settings.FlagPrefix}R";
 		internal const string ShowStopFlag = $"{Settings.FlagPrefix}S";
 
+		internal const string ErrorPrefix = "ERROR: ";
 		internal const string NoProjectName = "No Project";
 		internal const string NoClientName = "No Client";
 		internal const string EmptyDescription = "(no description)";

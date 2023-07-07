@@ -285,6 +285,7 @@ When followed by anything other than a command name, the list of results will co
 - `tgl edit [previous time entry description]` > `tgl edit -C` > `tgl edit New time entry description`
 - `tgl edit [previous time entry description]` > `tgl edit -t 20s -T 1h`
 - `tgl edit [previous time entry description]` > `tgl edit [previous time entry description]@no-project`
+- `tgl edit [previous time entry description]` > `tgl edit [previous time entry description] -R`
 
 ### Symbols and Flags
 | Name                     | Symbol | Description                                 | Example        |
@@ -295,16 +296,18 @@ When followed by anything other than a command name, the list of results will co
 | ----------------- | ---- | ------------------------------------------------------------------------------ | ---------------- |
 | Time Span         | `-t` | Offset the starting time of the selected time entry with a specified time span | `-t -30 seconds` |
 | End Time Span     | `-T` | Offset the stopping time of the selected time entry with a specified time span | `-T -30 seconds` |
+| Resume Time Entry | `-R` | Unstop the time entry (ie resume it, ie restart it from the same start time)   | `-R`             |
 | Clear Description | `-C` | Empty the time entry description from the Flow search bar                      | `-C`             |
 
 ### Notes and Warnings
 > **Note**  
 > 1. If an `End Time Span` is specified, the time entry will be stopped (if it is currently running).
-> 2. The `Clear Description` flag will only empty the time entry description from the Flow search bar, so a replacement can be input quickly.
+> 2. The `End Time Span` and `Resume Time Entry` flags are mutually exclusive (cannot be used together).
+> 3. The `Clear Description` flag will only empty the time entry description from the Flow search bar, so a replacement can be input quickly.
 >    > **Note**  
 >    > To actually clear a time entry's description, use the `Clear Description` flag then hit the `Enter` action key to save.
-> 3. `tgl edit` will use the entered description to perform a fuzzy match against all previously tracked time entries (within the past 12 months), allowing you to quickly apply a previous time entry's description/project/etc.
-> 4. To include a command symbol/flag in your time entry description, you can escape it with a backslash (`\`), eg `tgl edit Email james\@jamesnzl.xyz \-t \-T \-C`
+> 4. `tgl edit` will use the entered description to perform a fuzzy match against all previously tracked time entries (within the past 12 months), allowing you to quickly apply a previous time entry's description/project/etc.
+> 5. To include a command symbol/flag in your time entry description, you can escape it with a backslash (`\`), eg `tgl edit Email james\@jamesnzl.xyz \-t \-T \-C`
 
 > **Warning**  
 > 1. The `Time Span`/`End Time Span` flags must be the entered after the time entry description. Anything entered after the flag(s) will be ignored.

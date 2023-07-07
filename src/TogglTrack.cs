@@ -836,26 +836,22 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								TimeSpan startTimeSpan = TimeSpan.Zero;
 								if (query.SearchTerms.Contains(Settings.TimeSpanFlag))
 								{
-									try
+									bool success = TimeSpanParser.TryParse(
+										new TransformedQuery(query)
+											.After(Settings.TimeSpanFlag)
+											.ToString(),
+										new TimeSpanParserOptions
+										{
+											UncolonedDefault = Units.Minutes,
+											ColonedDefault = Units.Minutes,
+										},
+										out startTimeSpan
+									);
+									if (success)
 									{
-										startTimeSpan = TimeSpanParser.Parse(
-											new TransformedQuery(query)
-												.After(Settings.TimeSpanFlag)
-												.ToString(),
-											new TimeSpanParserOptions
-											{
-												UncolonedDefault = Units.Minutes,
-												ColonedDefault = Units.Minutes,
-											}
-										);
-
 										description = new TransformedQuery(query)
 											.To(Settings.TimeSpanFlag)
 											.ReplaceProject(string.Empty, unescape: true);
-									}
-									catch (ArgumentException)
-									{
-										// Invalid time span; so continue to create the time entry now
 									}
 								}
 
@@ -961,26 +957,22 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									TimeSpan startTimeSpan = TimeSpan.Zero;
 									if (query.SearchTerms.Contains(Settings.TimeSpanFlag))
 									{
-										try
+										bool success = TimeSpanParser.TryParse(
+											new TransformedQuery(query)
+												.After(Settings.TimeSpanFlag)
+												.ToString(),
+											new TimeSpanParserOptions
+											{
+												UncolonedDefault = Units.Minutes,
+												ColonedDefault = Units.Minutes,
+											},
+											out startTimeSpan
+										);
+										if (success)
 										{
-											startTimeSpan = TimeSpanParser.Parse(
-												new TransformedQuery(query)
-													.After(Settings.TimeSpanFlag)
-													.ToString(),
-												new TimeSpanParserOptions
-												{
-													UncolonedDefault = Units.Minutes,
-													ColonedDefault = Units.Minutes,
-												}
-											);
-
 											description = new TransformedQuery(query)
 												.To(Settings.TimeSpanFlag)
 												.ReplaceProject(string.Empty, unescape: true);
-										}
-										catch (ArgumentException)
-										{
-											// Invalid time span; so continue to create the time entry now
 										}
 									}
 
@@ -1202,96 +1194,18 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			}
 			else
 			{
-				try
-				{
-					var startTimeSpan = TimeSpanParser.Parse(
-						new TransformedQuery(query)
-							.After(Settings.TimeSpanFlag)
-							.ToString(),
-						new TimeSpanParserOptions
-						{
-							UncolonedDefault = Units.Minutes,
-							ColonedDefault = Units.Minutes,
-						}
-					);
-					// If we get here, there will have been a valid time span
-					// An exception will be thrown if a time span was not able to be parsed
-					var startTime = DateTimeOffset.UtcNow + startTimeSpan;
-
-					// Remove -t flag from description
-					string sanitisedDescription = new TransformedQuery(query)
-						.To(Settings.TimeSpanFlag)
-						.ToString(TransformedQuery.Escaping.Unescaped);
-
-					results.Add(new Result
+				bool success = TimeSpanParser.TryParse(
+					new TransformedQuery(query)
+						.After(Settings.TimeSpanFlag)
+						.ToString(),
+					new TimeSpanParserOptions
 					{
-						Title = $"Start {((string.IsNullOrEmpty(sanitisedDescription) ? Settings.EmptyTimeEntry : sanitisedDescription))} {startTime.Humanize()} at {startTime.ToLocalTime().ToString("t")}",
-						SubTitle = projectName,
-						IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "start.png"),
-						AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
-						Score = int.MaxValue - 1000,
-						Action = _ =>
-						{
-							Task.Run(async delegate
-							{
-								try
-								{
-									this._context.API.LogInfo("TogglTrack", $"{projectId}, {workspaceId}, {sanitisedDescription}, {startTimeSpan.ToString()}, time span flag");
-
-									var runningTimeEntry = (await this._GetRunningTimeEntry(CancellationToken.None, force: true))?.ToTimeEntry(me);
-									if (runningTimeEntry is not null)
-									{
-										var stoppedTimeEntry = (await this._client.EditTimeEntry(
-											workspaceId: runningTimeEntry.WorkspaceId,
-											projectId: runningTimeEntry.ProjectId,
-											id: runningTimeEntry.Id,
-											stop: startTime,
-											duration: runningTimeEntry.Duration,
-											tags: runningTimeEntry.Tags,
-											billable: runningTimeEntry.Billable
-										))?.ToTimeEntry(me);
-
-										if (stoppedTimeEntry?.Id is null)
-										{
-											throw new Exception("An API error was encountered.");
-										}
-									}
-
-									var createdTimeEntry = (await this._client.CreateTimeEntry(
-										workspaceId: workspaceId,
-										projectId: projectId,
-										description: sanitisedDescription,
-										start: startTime
-									))?.ToTimeEntry(me);
-
-									if (createdTimeEntry?.Id is null)
-									{
-										throw new Exception("An API error was encountered.");
-									}
-
-									this.ShowSuccessMessage($"Started {createdTimeEntry.GetRawDescription(withTrailingSpace: true)}{startTime.Humanize()}", projectName, "start.png");
-
-									// Update cached running time entry state
-									this.RefreshCache();
-								}
-								catch (Exception exception)
-								{
-									this._context.API.LogException("TogglTrack", "Failed to start time entry", exception);
-									this.ShowErrorMessage("Failed to start time entry.", exception.Message);
-								}
-								finally
-								{
-									this._state.SelectedIds.Project = -1;
-								}
-							});
-
-							return true;
-						},
-					});
-
-					return results;
-				}
-				catch
+						UncolonedDefault = Units.Minutes,
+						ColonedDefault = Units.Minutes,
+					},
+					out var startTimeSpan
+				);
+				if (!success)
 				{
 					if (this._settings.ShowUsageExamples)
 					{
@@ -1316,6 +1230,81 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 					return results;
 				}
+
+				var startTime = DateTimeOffset.UtcNow + startTimeSpan;
+
+				// Remove -t flag from description
+				string sanitisedDescription = new TransformedQuery(query)
+					.To(Settings.TimeSpanFlag)
+					.ToString(TransformedQuery.Escaping.Unescaped);
+
+				results.Add(new Result
+				{
+					Title = $"Start {((string.IsNullOrEmpty(sanitisedDescription) ? Settings.EmptyTimeEntry : sanitisedDescription))} {startTime.Humanize()} at {startTime.ToLocalTime().ToString("t")}",
+					SubTitle = projectName,
+					IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "start.png"),
+					AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
+					Score = int.MaxValue - 1000,
+					Action = _ =>
+					{
+						Task.Run(async delegate
+						{
+							try
+							{
+								this._context.API.LogInfo("TogglTrack", $"{projectId}, {workspaceId}, {sanitisedDescription}, {startTimeSpan.ToString()}, time span flag");
+
+								var runningTimeEntry = (await this._GetRunningTimeEntry(CancellationToken.None, force: true))?.ToTimeEntry(me);
+								if (runningTimeEntry is not null)
+								{
+									var stoppedTimeEntry = (await this._client.EditTimeEntry(
+										workspaceId: runningTimeEntry.WorkspaceId,
+										projectId: runningTimeEntry.ProjectId,
+										id: runningTimeEntry.Id,
+										stop: startTime,
+										duration: runningTimeEntry.Duration,
+										tags: runningTimeEntry.Tags,
+										billable: runningTimeEntry.Billable
+									))?.ToTimeEntry(me);
+
+									if (stoppedTimeEntry?.Id is null)
+									{
+										throw new Exception("An API error was encountered.");
+									}
+								}
+
+								var createdTimeEntry = (await this._client.CreateTimeEntry(
+									workspaceId: workspaceId,
+									projectId: projectId,
+									description: sanitisedDescription,
+									start: startTime
+								))?.ToTimeEntry(me);
+
+								if (createdTimeEntry?.Id is null)
+								{
+									throw new Exception("An API error was encountered.");
+								}
+
+								this.ShowSuccessMessage($"Started {createdTimeEntry.GetRawDescription(withTrailingSpace: true)}{startTime.Humanize()}", projectName, "start.png");
+
+								// Update cached running time entry state
+								this.RefreshCache();
+							}
+							catch (Exception exception)
+							{
+								this._context.API.LogException("TogglTrack", "Failed to start time entry", exception);
+								this.ShowErrorMessage("Failed to start time entry.", exception.Message);
+							}
+							finally
+							{
+								this._state.SelectedIds.Project = -1;
+							}
+						});
+
+						return true;
+					},
+				});
+
+				return results;
 			}
 
 			// Use cached time entries here to ensure responsiveness
@@ -1482,76 +1471,18 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				return results;
 			}
 
-			try
-			{
-				var stopTimeSpan = TimeSpanParser.Parse(
-					new TransformedQuery(query)
-						.After(Settings.TimeSpanEndFlag)
-						.ToString(),
-					new TimeSpanParserOptions
-					{
-						UncolonedDefault = Units.Minutes,
-						ColonedDefault = Units.Minutes,
-					}
-				);
-				// An exception will be thrown if a time span was not able to be parsed
-				// If we get here, there will have been a valid time span
-				var stopTime = DateTimeOffset.UtcNow + stopTimeSpan;
-				if (stopTime < runningTimeEntry.StartDate)
+			bool success = TimeSpanParser.TryParse(
+				new TransformedQuery(query)
+					.After(Settings.TimeSpanEndFlag)
+					.ToString(),
+				new TimeSpanParserOptions
 				{
-					// Ensure stop is not before start
-					stopTime = runningTimeEntry.StartDate;
-				}
-
-				var newElapsed = stopTime.Subtract(runningTimeEntry.StartDate);
-
-				results.Add(new Result
-				{
-					Title = $"Stop {runningTimeEntry.GetDescription()} {stopTime.Humanize()} at {stopTime.ToLocalTime().ToString("t")}",
-					SubTitle = $"{projectName} | {newElapsed.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")})",
-					IcoPath = this._colourIconProvider.GetColourIcon(runningTimeEntry.Project?.Colour, "stop.png"),
-					AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
-					Score = 100000,
-					Action = _ =>
-					{
-						Task.Run(async delegate
-						{
-							try
-							{
-								this._context.API.LogInfo("TogglTrack", $"{this._state.SelectedIds.Project}, {runningTimeEntry.Id}, {runningTimeEntry.WorkspaceId}, {runningTimeEntry.StartDate}, {(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")}, {stopTime}, time span flag");
-
-								var stoppedTimeEntry = (await this._client.EditTimeEntry(
-									workspaceId: runningTimeEntry.WorkspaceId,
-									projectId: runningTimeEntry.ProjectId,
-									id: runningTimeEntry.Id,
-									stop: stopTime,
-									duration: runningTimeEntry.Duration,
-									tags: runningTimeEntry.Tags,
-									billable: runningTimeEntry.Billable
-								))?.ToTimeEntry(me);
-
-								if (stoppedTimeEntry?.Id is null)
-								{
-									throw new Exception("An API error was encountered.");
-								}
-
-								this.ShowSuccessMessage($"Stopped {stoppedTimeEntry.GetRawDescription()}", $"{(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")} elapsed", "stop.png");
-
-								// Update cached running time entry state
-								this.RefreshCache();
-							}
-							catch (Exception exception)
-							{
-								this._context.API.LogException("TogglTrack", "Failed to stop time entry", exception);
-								this.ShowErrorMessage("Failed to stop time entry.", exception.Message);
-							}
-						});
-
-						return true;
-					},
-				});
-			}
-			catch
+					UncolonedDefault = Units.Minutes,
+					ColonedDefault = Units.Minutes,
+				},
+				out var stopTimeSpan
+			);
+			if (!success)
 			{
 				if (this._settings.ShowUsageExamples)
 				{
@@ -1569,7 +1500,64 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						}
 					});
 				}
+
+				return results;
 			}
+
+			var stopTime = DateTimeOffset.UtcNow + stopTimeSpan;
+			if (stopTime < runningTimeEntry.StartDate)
+			{
+				// Ensure stop is not before start
+				stopTime = runningTimeEntry.StartDate;
+			}
+
+			var newElapsed = stopTime.Subtract(runningTimeEntry.StartDate);
+
+			results.Add(new Result
+			{
+				Title = $"Stop {runningTimeEntry.GetDescription()} {stopTime.Humanize()} at {stopTime.ToLocalTime().ToString("t")}",
+				SubTitle = $"{projectName} | {newElapsed.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")})",
+				IcoPath = this._colourIconProvider.GetColourIcon(runningTimeEntry.Project?.Colour, "stop.png"),
+				AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
+				Score = 100000,
+				Action = _ =>
+				{
+					Task.Run(async delegate
+					{
+						try
+						{
+							this._context.API.LogInfo("TogglTrack", $"{this._state.SelectedIds.Project}, {runningTimeEntry.Id}, {runningTimeEntry.WorkspaceId}, {runningTimeEntry.StartDate}, {(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")}, {stopTime}, time span flag");
+
+							var stoppedTimeEntry = (await this._client.EditTimeEntry(
+								workspaceId: runningTimeEntry.WorkspaceId,
+								projectId: runningTimeEntry.ProjectId,
+								id: runningTimeEntry.Id,
+								stop: stopTime,
+								duration: runningTimeEntry.Duration,
+								tags: runningTimeEntry.Tags,
+								billable: runningTimeEntry.Billable
+							))?.ToTimeEntry(me);
+
+							if (stoppedTimeEntry?.Id is null)
+							{
+								throw new Exception("An API error was encountered.");
+							}
+
+							this.ShowSuccessMessage($"Stopped {stoppedTimeEntry.GetRawDescription()}", $"{(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")} elapsed", "stop.png");
+
+							// Update cached running time entry state
+							this.RefreshCache();
+						}
+						catch (Exception exception)
+						{
+							this._context.API.LogException("TogglTrack", "Failed to stop time entry", exception);
+							this.ShowErrorMessage("Failed to stop time entry.", exception.Message);
+						}
+					});
+
+					return true;
+				},
+			});
 
 			return results;
 		}
@@ -2060,238 +2048,253 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					break;
 				}
 
-				try
+				TimeSpan? startTimeSpan = null;
+				TimeSpan? endTimeSpan = null;
+				TimeSpan newElapsed = timeEntry.Elapsed;
+
+				if (hasTimeSpanFlag)
 				{
-					TimeSpan? startTimeSpan = null;
-					TimeSpan? endTimeSpan = null;
-					TimeSpan newElapsed = timeEntry.Elapsed;
-
-					if (hasTimeSpanFlag)
+					bool success = TimeSpanParser.TryParse(
+						new TransformedQuery(query)
+							.After(Settings.TimeSpanFlag)
+							.ToString(),
+						new TimeSpanParserOptions
+						{
+							UncolonedDefault = Units.Minutes,
+							ColonedDefault = Units.Minutes,
+						},
+						out var parsedStartTimeSpan
+					);
+					if (success)
 					{
-						try
-						{
-							startTimeSpan = TimeSpanParser.Parse(
-								new TransformedQuery(query)
-									.After(Settings.TimeSpanFlag)
-									.ToString(),
-								new TimeSpanParserOptions
-								{
-									UncolonedDefault = Units.Minutes,
-									ColonedDefault = Units.Minutes,
-								}
-							);
-							// An exception will be thrown if a time span was not able to be parsed
-							// If we get here, there will have been a valid time span
-							newElapsed = newElapsed.Subtract((TimeSpan)startTimeSpan);
-						}
-						catch
-						{
-							throw new ArgumentException(Settings.TimeSpanFlag);
-						}
+						startTimeSpan = parsedStartTimeSpan;
+						newElapsed -= parsedStartTimeSpan;
 					}
-					if (hasTimeSpanEndFlag)
+					else
 					{
-						try
+						if (this._settings.ShowUsageExamples)
 						{
-							endTimeSpan = TimeSpanParser.Parse(
-								new TransformedQuery(query)
-									.After(Settings.TimeSpanEndFlag)
-									.ToString(),
-								new TimeSpanParserOptions
-								{
-									UncolonedDefault = Units.Minutes,
-									ColonedDefault = Units.Minutes,
-								}
-							);
-							// An exception will be thrown if a time span was not able to be parsed
-							// If we get here, there will have been a valid time span
-							newElapsed = newElapsed.Add((TimeSpan)endTimeSpan);
-						}
-						catch
-						{
-							throw new ArgumentException(Settings.TimeSpanEndFlag);
-						}
-					}
+							string queryToFlag = new TransformedQuery(query)
+								.To(Settings.TimeSpanFlag)
+								.ToString();
 
-					// Remove flags from description
-					string sanitisedDescription = new TransformedQuery(query)
-						.Between(ArgumentIndices.Description, firstFlag)
-						.ToString(TransformedQuery.Escaping.Unescaped);
-
-					if (this._settings.ShowUsageWarnings && string.IsNullOrEmpty(sanitisedDescription) && !string.IsNullOrEmpty(timeEntry.GetRawDescription()))
-					{
-						results.Add(new Result
-						{
-							Title = Settings.UsageWarningTitle,
-							SubTitle = $"Time entry description will be cleared if nothing is entered!",
-							IcoPath = "tip-warning.png",
-							AutoCompleteText = $"{query.ActionKeyword} {query.Search} {timeEntry.GetRawDescription(withTrailingSpace: true, escapePotentialSymbols: true)}",
-							Score = 1000,
-							Action = _ =>
+							results.Add(new Result
 							{
-								this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {timeEntry.GetRawDescription(withTrailingSpace: true, escapePotentialSymbols: true)}");
-								return false;
-							}
-						});
-					}
-
-					var startTime = (timeEntry.StartDate + startTimeSpan) ?? timeEntry.StartDate;
-					var stopTime = ((timeEntry.StopDate ?? DateTimeOffset.UtcNow) + endTimeSpan) ?? timeEntry.StopDate;
-
-					results.Add(new Result
-					{
-						Title = (string.IsNullOrEmpty(sanitisedDescription))
-							? timeEntry.GetDescription()
-							: sanitisedDescription,
-						SubTitle = $"{projectName} | {newElapsed.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")})",
-						IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "edit.png"),
-						AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
-						Score = int.MaxValue - 1000,
-						Action = _ =>
-						{
-							Task.Run(async delegate
-							{
-								try
+								Title = Settings.UsageExampleTitle,
+								SubTitle = $"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} 5 mins",
+								IcoPath = "tip.png",
+								AutoCompleteText = $"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} 5 mins",
+								Score = 100000,
+								Action = _ =>
 								{
-									this._context.API.LogInfo("TogglTrack", $"{projectId}, {timeEntry.Id}, {timeEntry.Duration}, {timeEntry.Start}, {timeEntry.WorkspaceId}, {sanitisedDescription}, {startTime.ToString("yyyy-MM-ddTHH:mm:ssZ")}, {startTimeSpan.ToString()}, {stopTime?.ToString("yyyy-MM-ddTHH:mm:ssZ")}, {endTimeSpan.ToString()}, edit start time");
-
-									var editedTimeEntry = (await this._client.EditTimeEntry(
-										workspaceId: timeEntry.WorkspaceId,
-										projectId: projectId,
-										id: timeEntry.Id,
-										description: sanitisedDescription,
-										start: startTime,
-										stop: stopTime,
-										duration: timeEntry.Duration,
-										tags: timeEntry.Tags,
-										billable: timeEntry.Billable
-									))?.ToTimeEntry(me);
-
-									if (editedTimeEntry?.Id is null)
-									{
-										throw new Exception("An API error was encountered.");
-									}
-
-									this.ShowSuccessMessage($"Edited {editedTimeEntry.GetRawDescription()}", $"{projectName} | {(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")}", "edit.png");
-
-									// Update cached running time entry state
-									this.RefreshCache();
-								}
-								catch (Exception exception)
-								{
-									this._context.API.LogException("TogglTrack", "Failed to edit time entry", exception);
-									this.ShowErrorMessage("Failed to edit time entry.", exception.Message);
-								}
-								finally
-								{
-									this._state.SelectedIds.TimeEntry = -1;
-									this._state.SelectedIds.Project = -1;
+									this._context.API.ChangeQuery($"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} 5 mins");
+									return false;
 								}
 							});
+						}
 
-							return true;
-						},
-					});
-
-					if (!string.IsNullOrEmpty(sanitisedDescription))
-					{
-						results.AddRange(maxTimeEntries.Groups.Values.SelectMany(pastProject =>
-						{
-							if (pastProject.SubGroups is null)
-							{
-								return Enumerable.Empty<Result>();
-							}
-
-							return pastProject.SubGroups.Values
-								.Where(pastTimeEntry => (
-										(
-											pastProject.Project?.Id != timeEntry.Project?.Id ||
-											pastTimeEntry.GetRawTitle() != sanitisedDescription
-										) &&
-										(
-											this._context.API.FuzzySearch(sanitisedDescription, pastTimeEntry.GetTitle()).Score > 0
-										)
-									)
-								)
-								.Select(pastTimeEntry => new Result
-								{
-									Title = pastTimeEntry.GetTitle(),
-									SubTitle = $"{pastProject.Project?.WithClientName ?? Settings.NoProjectName} | {newElapsed.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")})",
-									IcoPath = this._colourIconProvider.GetColourIcon(pastProject.Project?.Colour, "edit.png"),
-									AutoCompleteText = $"{query.ActionKeyword} {pastTimeEntry.GetTitle(escapePotentialSymbols: true)}",
-									Score = pastTimeEntry.GetScoreByStart(),
-									Action = _ =>
-									{
-										Task.Run(async delegate
-										{
-											try
-											{
-												this._context.API.LogInfo("TogglTrack", $"past time entry {pastProject.Project?.Id}, {pastTimeEntry.Id}, {timeEntry.Duration}, {timeEntry.Start}, {projectId}, {timeEntry.WorkspaceId}, {sanitisedDescription}, {pastTimeEntry.GetTitle()}");
-
-												var editedTimeEntry = (await this._client.EditTimeEntry(
-													workspaceId: timeEntry.WorkspaceId,
-													projectId: pastProject.Project?.Id,
-													id: timeEntry.Id,
-													description: pastTimeEntry.GetRawTitle(),
-													start: startTime,
-													stop: stopTime,
-													duration: timeEntry.Duration,
-													tags: timeEntry.Tags,
-													billable: timeEntry.Billable
-												))?.ToTimeEntry(me);
-
-												if (editedTimeEntry?.Id is null)
-												{
-													throw new Exception("An API error was encountered.");
-												}
-
-												this.ShowSuccessMessage($"Edited {editedTimeEntry.GetRawDescription()}", $"{pastProject.Project?.WithClientName ?? Settings.NoProjectName} | {(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")}", "edit.png");
-
-												// Update cached running time entry state
-												this.RefreshCache();
-											}
-											catch (Exception exception)
-											{
-												this._context.API.LogException("TogglTrack", "Failed to edit time entry", exception);
-												this.ShowErrorMessage("Failed to edit time entry.", exception.Message);
-											}
-											finally
-											{
-												this._state.SelectedIds.TimeEntry = -1;
-												this._state.SelectedIds.Project = -1;
-											}
-										});
-
-										return true;
-									},
-								});
-						}));
+						return results;
 					}
 				}
-				catch (ArgumentException exception)
+				if (hasTimeSpanEndFlag)
 				{
-					if (this._settings.ShowUsageExamples)
-					{
-						string flag = exception.Message;
-
-						string queryToFlag = new TransformedQuery(query)
-							.To(flag)
-							.ToString();
-
-						results.Add(new Result
+					bool success = TimeSpanParser.TryParse(
+						new TransformedQuery(query)
+							.After(Settings.TimeSpanEndFlag)
+							.ToString(),
+						new TimeSpanParserOptions
 						{
-							Title = Settings.UsageExampleTitle,
-							SubTitle = $"{query.ActionKeyword} {queryToFlag} {flag} 5 mins",
-							IcoPath = "tip.png",
-							AutoCompleteText = $"{query.ActionKeyword} {queryToFlag} {flag} 5 mins",
-							Score = 100000,
-							Action = _ =>
+							UncolonedDefault = Units.Minutes,
+							ColonedDefault = Units.Minutes,
+						},
+						out var parsedEndTimeSpan
+					);
+					if (success)
+					{
+						endTimeSpan = parsedEndTimeSpan;
+						newElapsed += parsedEndTimeSpan;
+					}
+					else
+					{
+						if (this._settings.ShowUsageExamples)
+						{
+							string queryToFlag = new TransformedQuery(query)
+								.To(Settings.TimeSpanEndFlag)
+								.ToString();
+
+							results.Add(new Result
 							{
-								this._context.API.ChangeQuery($"{query.ActionKeyword} {queryToFlag} {flag} 5 mins");
-								return false;
+								Title = Settings.UsageExampleTitle,
+								SubTitle = $"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanEndFlag} 5 mins",
+								IcoPath = "tip.png",
+								AutoCompleteText = $"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanEndFlag} 5 mins",
+								Score = 100000,
+								Action = _ =>
+								{
+									this._context.API.ChangeQuery($"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanEndFlag} 5 mins");
+									return false;
+								}
+							});
+						}
+
+						return results;
+					}
+
+				}
+
+				// Remove flags from description
+				string sanitisedDescription = new TransformedQuery(query)
+					.Between(ArgumentIndices.Description, firstFlag)
+					.ToString(TransformedQuery.Escaping.Unescaped);
+
+				if (this._settings.ShowUsageWarnings && string.IsNullOrEmpty(sanitisedDescription) && !string.IsNullOrEmpty(timeEntry.GetRawDescription()))
+				{
+					results.Add(new Result
+					{
+						Title = Settings.UsageWarningTitle,
+						SubTitle = $"Time entry description will be cleared if nothing is entered!",
+						IcoPath = "tip-warning.png",
+						AutoCompleteText = $"{query.ActionKeyword} {query.Search} {timeEntry.GetRawDescription(withTrailingSpace: true, escapePotentialSymbols: true)}",
+						Score = 1000,
+						Action = _ =>
+						{
+							this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search} {timeEntry.GetRawDescription(withTrailingSpace: true, escapePotentialSymbols: true)}");
+							return false;
+						}
+					});
+				}
+
+				var startTime = (timeEntry.StartDate + startTimeSpan) ?? timeEntry.StartDate;
+				var stopTime = ((timeEntry.StopDate ?? DateTimeOffset.UtcNow) + endTimeSpan) ?? timeEntry.StopDate;
+
+				results.Add(new Result
+				{
+					Title = (string.IsNullOrEmpty(sanitisedDescription))
+						? timeEntry.GetDescription()
+						: sanitisedDescription,
+					SubTitle = $"{projectName} | {newElapsed.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")})",
+					IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "edit.png"),
+					AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
+					Score = int.MaxValue - 1000,
+					Action = _ =>
+					{
+						Task.Run(async delegate
+						{
+							try
+							{
+								this._context.API.LogInfo("TogglTrack", $"{projectId}, {timeEntry.Id}, {timeEntry.Duration}, {timeEntry.Start}, {timeEntry.WorkspaceId}, {sanitisedDescription}, {startTime.ToString("yyyy-MM-ddTHH:mm:ssZ")}, {startTimeSpan.ToString()}, {stopTime?.ToString("yyyy-MM-ddTHH:mm:ssZ")}, {endTimeSpan.ToString()}, edit start time");
+
+								var editedTimeEntry = (await this._client.EditTimeEntry(
+									workspaceId: timeEntry.WorkspaceId,
+									projectId: projectId,
+									id: timeEntry.Id,
+									description: sanitisedDescription,
+									start: startTime,
+									stop: stopTime,
+									duration: timeEntry.Duration,
+									tags: timeEntry.Tags,
+									billable: timeEntry.Billable
+								))?.ToTimeEntry(me);
+
+								if (editedTimeEntry?.Id is null)
+								{
+									throw new Exception("An API error was encountered.");
+								}
+
+								this.ShowSuccessMessage($"Edited {editedTimeEntry.GetRawDescription()}", $"{projectName} | {(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")}", "edit.png");
+
+								// Update cached running time entry state
+								this.RefreshCache();
+							}
+							catch (Exception exception)
+							{
+								this._context.API.LogException("TogglTrack", "Failed to edit time entry", exception);
+								this.ShowErrorMessage("Failed to edit time entry.", exception.Message);
+							}
+							finally
+							{
+								this._state.SelectedIds.TimeEntry = -1;
+								this._state.SelectedIds.Project = -1;
 							}
 						});
-					}
+
+						return true;
+					},
+				});
+
+				if (!string.IsNullOrEmpty(sanitisedDescription))
+				{
+					results.AddRange(maxTimeEntries.Groups.Values.SelectMany(pastProject =>
+					{
+						if (pastProject.SubGroups is null)
+						{
+							return Enumerable.Empty<Result>();
+						}
+
+						return pastProject.SubGroups.Values
+							.Where(pastTimeEntry => (
+									(
+										pastProject.Project?.Id != timeEntry.Project?.Id ||
+										pastTimeEntry.GetRawTitle() != sanitisedDescription
+									) &&
+									(
+										this._context.API.FuzzySearch(sanitisedDescription, pastTimeEntry.GetTitle()).Score > 0
+									)
+								)
+							)
+							.Select(pastTimeEntry => new Result
+							{
+								Title = pastTimeEntry.GetTitle(),
+								SubTitle = $"{pastProject.Project?.WithClientName ?? Settings.NoProjectName} | {newElapsed.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")})",
+								IcoPath = this._colourIconProvider.GetColourIcon(pastProject.Project?.Colour, "edit.png"),
+								AutoCompleteText = $"{query.ActionKeyword} {pastTimeEntry.GetTitle(escapePotentialSymbols: true)}",
+								Score = pastTimeEntry.GetScoreByStart(),
+								Action = _ =>
+								{
+									Task.Run(async delegate
+									{
+										try
+										{
+											this._context.API.LogInfo("TogglTrack", $"past time entry {pastProject.Project?.Id}, {pastTimeEntry.Id}, {timeEntry.Duration}, {timeEntry.Start}, {projectId}, {timeEntry.WorkspaceId}, {sanitisedDescription}, {pastTimeEntry.GetTitle()}");
+
+											var editedTimeEntry = (await this._client.EditTimeEntry(
+												workspaceId: timeEntry.WorkspaceId,
+												projectId: pastProject.Project?.Id,
+												id: timeEntry.Id,
+												description: pastTimeEntry.GetRawTitle(),
+												start: startTime,
+												stop: stopTime,
+												duration: timeEntry.Duration,
+												tags: timeEntry.Tags,
+												billable: timeEntry.Billable
+											))?.ToTimeEntry(me);
+
+											if (editedTimeEntry?.Id is null)
+											{
+												throw new Exception("An API error was encountered.");
+											}
+
+											this.ShowSuccessMessage($"Edited {editedTimeEntry.GetRawDescription()}", $"{pastProject.Project?.WithClientName ?? Settings.NoProjectName} | {(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")}", "edit.png");
+
+											// Update cached running time entry state
+											this.RefreshCache();
+										}
+										catch (Exception exception)
+										{
+											this._context.API.LogException("TogglTrack", "Failed to edit time entry", exception);
+											this.ShowErrorMessage("Failed to edit time entry.", exception.Message);
+										}
+										finally
+										{
+											this._state.SelectedIds.TimeEntry = -1;
+											this._state.SelectedIds.Project = -1;
+										}
+									});
+
+									return true;
+								},
+							});
+					}));
 				}
 			}
 
@@ -2518,7 +2521,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			/* 
 			   NO_SPAN | NO_VALID_ARG | NO_VALID_DATE | SELECTING_SPAN
 			   -------------------------------------------------------
-			      0           0               0         X — Not possible
+				  0           0               0         X — Not possible
 				  0           0               1         0 — Valid argument
 				  0           1               0         0 — Valid date
 				  0           1               1         1 — No valid span

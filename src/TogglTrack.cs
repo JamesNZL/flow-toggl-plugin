@@ -2136,7 +2136,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					}
 
 					var startTime = (timeEntry.StartDate + startTimeSpan) ?? timeEntry.StartDate;
-					var stopTime = ((timeEntry.StopDate ?? DateTimeOffset.UtcNow) + endTimeSpan);
+					var stopTime = ((timeEntry.StopDate ?? DateTimeOffset.UtcNow) + endTimeSpan) ?? timeEntry.StopDate;
 
 					results.Add(new Result
 					{

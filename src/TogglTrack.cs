@@ -1117,12 +1117,6 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						IcoPath = "tip.png",
 						AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
 						Score = int.MaxValue - 100000,
-						// TODO: useless
-						Action = _ =>
-						{
-							this._context.API.ChangeQuery($"{query.ActionKeyword} {query.Search}");
-							return false;
-						}
 					});
 				}
 			}

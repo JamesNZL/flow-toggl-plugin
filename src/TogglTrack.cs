@@ -784,6 +784,11 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 		private async ValueTask<List<Result>> _GetStartResults(CancellationToken token, Query query)
 		{
+			if (!string.IsNullOrEmpty(query.Search) && Settings.Commands.Any(command => command.StartsWith(query.Search)))
+			{
+				return Main.NoResults;
+			}
+
 			var me = (await this._GetMe(token))?.ToMe();
 			if (me is null)
 			{
@@ -1562,7 +1567,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 		private async ValueTask<List<Result>> _GetContinueResults(CancellationToken token, Query query)
 		{
-			if (string.IsNullOrEmpty(query.Search))
+			if (string.IsNullOrEmpty(query.Search) || Settings.Commands.Any(command => command.StartsWith(query.Search)))
 			{
 				return Main.NoResults;
 			}

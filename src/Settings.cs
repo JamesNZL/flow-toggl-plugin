@@ -26,28 +26,28 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			RefreshCommand,
 		};
 
-		internal const string ProjectPrefix = "@";
-		internal const string EscapeCharacter = @"\";
-		internal const string FlagPrefix = "-";
-		internal const string DateSeparator = ">";
-		internal const string FauxWhitespace = "_";
+		internal static readonly string ProjectPrefix = "@";
+		internal static readonly string EscapeCharacter = @"\";
+		internal static readonly string FlagPrefix = "-";
+		internal static readonly string DateSeparator = ">";
+		internal static readonly string FauxWhitespace = "_";
 
-		internal const string ClearDescriptionFlag = $"{Settings.FlagPrefix}C";
-		internal const string TimeSpanFlag = $"{Settings.FlagPrefix}t";
-		internal const string TimeSpanEndFlag = $"{Settings.FlagPrefix}T";
-		internal const string ListPastFlag = $"{Settings.FlagPrefix}l";
-		internal const string ResumeFlag = $"{Settings.FlagPrefix}R";
-		internal const string ShowStopFlag = $"{Settings.FlagPrefix}S";
+		internal static readonly string ClearDescriptionFlag = $"{Settings.FlagPrefix}C";
+		internal static readonly string TimeSpanFlag = $"{Settings.FlagPrefix}t";
+		internal static readonly string TimeSpanEndFlag = $"{Settings.FlagPrefix}T";
+		internal static readonly string ListPastFlag = $"{Settings.FlagPrefix}l";
+		internal static readonly string ResumeFlag = $"{Settings.FlagPrefix}R";
+		internal static readonly string ShowStopFlag = $"{Settings.FlagPrefix}S";
 
-		internal const string ErrorPrefix = "ERROR: ";
-		internal const string NoProjectName = "No Project";
-		internal const string NoClientName = "No Client";
-		internal const string EmptyDescription = "(no description)";
-		internal const string EmptyTimeEntry = "an empty time entry";
+		internal static readonly string ErrorPrefix = "ERROR: ";
+		internal static readonly string NoProjectName = "No Project";
+		internal static readonly string NoClientName = "No Client";
+		internal static readonly string EmptyDescription = "(no description)";
+		internal static readonly string EmptyTimeEntry = "an empty time entry";
 
-		internal const string UsageTipTitle = "Usage Tip";
-		internal const string UsageExampleTitle = "Usage Example";
-		internal const string UsageWarningTitle = "Usage Warning";
+		internal static readonly string UsageTipTitle = "Usage Tip";
+		internal static readonly string UsageExampleTitle = "Usage Example";
+		internal static readonly string UsageWarningTitle = "Usage Warning";
 
 		internal static readonly Regex QueryEscapingRegex = new Regex(@$"(\{Settings.EscapeCharacter}(?!\{Settings.EscapeCharacter}))");
 		internal static readonly Regex UnescapedProjectRegex = new Regex(@$"(?<!\{Settings.EscapeCharacter}){Settings.ProjectPrefix}");
@@ -133,9 +133,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			Clients,
 			Entries,
 		}
-		private const string ReportsGroupingProjectsArgument = "projects";
-		private const string ReportsGroupingClientsArgument = "clients";
-		private const string ReportsGroupingEntriesArgument = "entries";
+		private static readonly string ReportsGroupingProjectsArgument = "projects";
+		private static readonly string ReportsGroupingClientsArgument = "clients";
+		private static readonly string ReportsGroupingEntriesArgument = "entries";
 		internal static readonly List<ReportsGroupingCommandArgument> ReportsGroupingArguments = new List<ReportsGroupingCommandArgument>
 		{
 			new ReportsGroupingCommandArgument

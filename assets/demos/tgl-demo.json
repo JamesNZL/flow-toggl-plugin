@@ -169,7 +169,7 @@
                     "settings": {
                         "left": 896,
                         "top": 288,
-                        "bottom": 288,
+                        "bottom": 360,
                         "right": 896,
                         "relative": true
                     },
@@ -306,7 +306,7 @@
                         "bounds_align": 0,
                         "bounds": {
                             "x": 768.0,
-                            "y": 864.0
+                            "y": 792.0
                         },
                         "crop_left": 0,
                         "crop_top": 0,
@@ -333,7 +333,7 @@
                         "rot": 0.0,
                         "pos": {
                             "x": 372.0,
-                            "y": 730.0
+                            "y": 658.0
                         },
                         "scale": {
                             "x": 1.0,

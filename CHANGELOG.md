@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [4.0.0-2](https://github.com/JamesNZL/flow-toggl-plugin/compare/v4.0.0-1...v4.0.0-2) (2023-07-08)
+
+
+### Features
+
+* **ux:** :children_crossing: hide `start` and `continue` results if searching for command ([#112](https://github.com/JamesNZL/flow-toggl-plugin/issues/112)) ([00aa5d6](https://github.com/JamesNZL/flow-toggl-plugin/commit/00aa5d609ac70f388eebcf9466279d1f2308d303))
+
 ## [4.0.0-1](https://github.com/JamesNZL/flow-toggl-plugin/compare/v4.0.0-0...v4.0.0-1) (2023-07-07)
 
 

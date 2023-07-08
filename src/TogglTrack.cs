@@ -16,7 +16,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		private PluginInitContext _context { get; set; }
 		private Settings _settings { get; set; }
 
-		internal ColourIconProvider _colourIconProvider;
+		internal IconProvider _iconProvider;
 
 		private TogglClient _client;
 
@@ -80,7 +80,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			this._settings = settings;
 
 			this._client = new TogglClient(this._settings.ApiToken);
-			this._colourIconProvider = new ColourIconProvider(this._context);
+			this._iconProvider = new IconProvider(this._context);
 		}
 
 		private async ValueTask<MeResponse?> _GetMe(CancellationToken token, bool force = false)
@@ -492,7 +492,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					Title = $"{Settings.ErrorPrefix}Missing API token",
 					SubTitle = "Configure Toggl Track API token in Flow Launcher settings.",
-					IcoPath = "tip-error.png",
+					IcoPath = IconProvider.UsageErrorIcon,
 					Action = _ =>
 					{
 						this._context.API.OpenSettingDialog();
@@ -521,7 +521,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					Title = $"{Settings.ErrorPrefix}No network connection",
 					SubTitle = "Connect to the internet to use Toggl Track.",
-					IcoPath = "tip-error.png",
+					IcoPath = IconProvider.UsageErrorIcon,
 					Action = _ =>
 					{
 						return true;
@@ -538,7 +538,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					Title = $"{Settings.ErrorPrefix}Invalid API token",
 					SubTitle = $"{this._settings.ApiToken} is not a valid API token.",
-					IcoPath = "tip-error.png",
+					IcoPath = IconProvider.UsageErrorIcon,
 					Action = _ =>
 					{
 						this._context.API.OpenSettingDialog();
@@ -567,7 +567,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					Title = $"{Settings.ErrorPrefix}Unknown error",
 					SubTitle = "An unexpected error has occurred.",
-					IcoPath = "tip-error.png",
+					IcoPath = IconProvider.UsageErrorIcon,
 					Action = _ =>
 					{
 						return true;
@@ -639,7 +639,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					Title = Settings.EditCommand,
 					SubTitle = "Edit a previous time entry",
-					IcoPath = "edit.png",
+					IcoPath = IconProvider.EditIcon,
 					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.EditCommand} ",
 					Score = 6000,
 					Action = _ =>
@@ -652,7 +652,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					Title = Settings.DeleteCommand,
 					SubTitle = "Delete a previous time entry",
-					IcoPath = "delete.png",
+					IcoPath = IconProvider.DeleteIcon,
 					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.DeleteCommand} ",
 					Score = 4000,
 					Action = _ =>
@@ -665,7 +665,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					Title = Settings.ReportsCommand,
 					SubTitle = "View tracked time reports",
-					IcoPath = "reports.png",
+					IcoPath = IconProvider.ReportsIcon,
 					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.ReportsCommand} ",
 					Score = 2000,
 					Action = _ =>
@@ -678,7 +678,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					Title = Settings.BrowserCommand,
 					SubTitle = "Open Toggl Track in browser",
-					IcoPath = "browser.png",
+					IcoPath = IconProvider.BrowserIcon,
 					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.BrowserCommand} ",
 					Score = 100,
 					Action = _ =>
@@ -691,7 +691,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					Title = Settings.HelpCommand,
 					SubTitle = "Open plugin command reference",
-					IcoPath = "tip.png",
+					IcoPath = IconProvider.HelpIcon,
 					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.HelpCommand} ",
 					Score = 75,
 					Action = _ =>
@@ -704,7 +704,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					Title = Settings.RefreshCommand,
 					SubTitle = "Refresh plugin cache",
-					IcoPath = "refresh.png",
+					IcoPath = IconProvider.RefreshIcon,
 					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.RefreshCommand} ",
 					Score = 5,
 					Action = _ =>
@@ -733,7 +733,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			{
 				Title = $"Stop {runningTimeEntry.GetDescription()}",
 				SubTitle = $"{runningTimeEntry.Project?.WithClientName ?? Settings.NoProjectName} | {runningTimeEntry.HumanisedElapsed} ({runningTimeEntry.DetailedElapsed})",
-				IcoPath = this._colourIconProvider.GetColourIcon(runningTimeEntry.Project?.Colour, "stop.png"),
+				IcoPath = this._iconProvider.GetColourIcon(runningTimeEntry.Project?.Colour, IconProvider.StopIcon),
 				AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StopCommand} ",
 				Score = 15050,
 				Action = context =>
@@ -761,7 +761,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								throw new Exception("An API error was encountered.");
 							}
 
-							this.ShowSuccessMessage($"Stopped {stoppedTimeEntry.GetRawDescription()}", $"{runningTimeEntry.DetailedElapsed} elapsed", "stop.png");
+							this.ShowSuccessMessage($"Stopped {stoppedTimeEntry.GetRawDescription()}", $"{runningTimeEntry.DetailedElapsed} elapsed", IconProvider.StopIcon);
 
 							// Update cached running time entry state
 							this.RefreshCache();
@@ -811,7 +811,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					projects.Add(new Result
 					{
 						Title = Settings.NoProjectName,
-						IcoPath = "start.png",
+						IcoPath = IconProvider.StartIcon,
 						AutoCompleteText = $"{query.ActionKeyword} {transformedQuery.ReplaceProject(TransformedQuery.PrefixProject(Settings.NoProjectName))}",
 						Score = int.MaxValue - 1000,
 						Action = context =>
@@ -897,7 +897,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 											? $"Started {createdTimeEntry.GetRawDescription()}"
 											: $"Started {createdTimeEntry.GetRawDescription(withTrailingSpace: true)}{startTime.Humanize()}",
 										Settings.NoProjectName,
-										"start.png"
+										IconProvider.StartIcon
 									);
 
 									// Update cached running time entry state
@@ -932,7 +932,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						{
 							Title = project.Name,
 							SubTitle = $"{((project.ClientId is not null) ? $"{project.Client!.Name} | " : string.Empty)}{project.ElapsedString}",
-							IcoPath = this._colourIconProvider.GetColourIcon(project.Colour, "start.png"),
+							IcoPath = this._iconProvider.GetColourIcon(project.Colour, IconProvider.StartIcon),
 							AutoCompleteText = $"{query.ActionKeyword} {transformedQuery.ReplaceProject(TransformedQuery.PrefixProject(project.Name))}",
 							Score = index,
 							Action = context =>
@@ -1018,7 +1018,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 												? $"Started {createdTimeEntry.GetRawDescription()}"
 												: $"Started {createdTimeEntry.GetRawDescription(withTrailingSpace: true)}{startTime.Humanize()}",
 											project.WithClientName,
-											"start.png"
+											IconProvider.StartIcon
 										);
 
 										// Update cached running time entry state
@@ -1069,7 +1069,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					Title = Settings.UsageTipTitle,
 					SubTitle = $"Use {Settings.ClearDescriptionFlag} to quickly clear the description",
-					IcoPath = "tip.png",
+					IcoPath = IconProvider.UsageTipIcon,
 					AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.ClearDescriptionFlag} ",
 					Score = int.MaxValue - 300000,
 					Action = _ =>
@@ -1088,7 +1088,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					{
 						Title = Settings.UsageTipTitle,
 						SubTitle = $"Use {Settings.ProjectPrefix} to set the project for this time entry",
-						IcoPath = "tip.png",
+						IcoPath = IconProvider.UsageTipIcon,
 						AutoCompleteText = $"{query.ActionKeyword} {query.Search}{Settings.ProjectPrefix}",
 						Score = int.MaxValue - 150000,
 						Action = _ =>
@@ -1105,7 +1105,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					{
 						Title = Settings.UsageTipTitle,
 						SubTitle = $"Keep typing to add a time entry description",
-						IcoPath = "tip.png",
+						IcoPath = IconProvider.UsageTipIcon,
 						AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
 						Score = int.MaxValue - 100000,
 					});
@@ -1118,7 +1118,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					Title = $"Start {((string.IsNullOrEmpty(description) ? Settings.EmptyTimeEntry : description))} now",
 					SubTitle = projectName,
-					IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "start.png"),
+					IcoPath = this._iconProvider.GetColourIcon(project?.Colour, IconProvider.StartIcon),
 					AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
 					Score = int.MaxValue - 10000,
 					Action = _ =>
@@ -1155,7 +1155,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									throw new Exception("An API error was encountered.");
 								}
 
-								this.ShowSuccessMessage($"Started {createdTimeEntry.GetRawDescription()}", projectName, "start.png");
+								this.ShowSuccessMessage($"Started {createdTimeEntry.GetRawDescription()}", projectName, IconProvider.StartIcon);
 
 								// Update cached running time entry state
 								this.RefreshCache();
@@ -1181,7 +1181,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					{
 						Title = Settings.UsageTipTitle,
 						SubTitle = $"Use {Settings.TimeSpanFlag} after the description to specify the start time",
-						IcoPath = "tip.png",
+						IcoPath = IconProvider.UsageTipIcon,
 						AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ",
 						Score = int.MaxValue - 200000,
 						Action = _ =>
@@ -1215,7 +1215,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						{
 							Title = Settings.UsageExampleTitle,
 							SubTitle = $"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} -5 mins",
-							IcoPath = "tip.png",
+							IcoPath = IconProvider.UsageExampleIcon,
 							AutoCompleteText = $"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} -5 mins",
 							Score = int.MaxValue - 1000,
 							Action = _ =>
@@ -1240,7 +1240,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					Title = $"Start {((string.IsNullOrEmpty(sanitisedDescription) ? Settings.EmptyTimeEntry : sanitisedDescription))} {startTime.Humanize()} at {startTime.ToLocalTime().ToString("t")}",
 					SubTitle = projectName,
-					IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "start.png"),
+					IcoPath = this._iconProvider.GetColourIcon(project?.Colour, IconProvider.StartIcon),
 					AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
 					Score = int.MaxValue - 1000,
 					Action = _ =>
@@ -1282,7 +1282,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									throw new Exception("An API error was encountered.");
 								}
 
-								this.ShowSuccessMessage($"Started {createdTimeEntry.GetRawDescription(withTrailingSpace: true)}{startTime.Humanize()}", projectName, "start.png");
+								this.ShowSuccessMessage($"Started {createdTimeEntry.GetRawDescription(withTrailingSpace: true)}{startTime.Humanize()}", projectName, IconProvider.StartIcon);
 
 								// Update cached running time entry state
 								this.RefreshCache();
@@ -1316,7 +1316,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			{
 				Title = $"Start {((string.IsNullOrEmpty(description) ? Settings.EmptyTimeEntry : description))} {likelyPastTimeEntry.HumanisedStop} at previous stop time",
 				SubTitle = projectName,
-				IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "start.png"),
+				IcoPath = this._iconProvider.GetColourIcon(project?.Colour, IconProvider.StartIcon),
 				AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
 				Score = int.MaxValue - 10000,
 				Action = _ =>
@@ -1351,7 +1351,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								throw new Exception("An API error was encountered.");
 							}
 
-							this.ShowSuccessMessage($"Started {createdTimeEntry.GetRawDescription(withTrailingSpace: true)}at previous stop time", $"{projectName} | {createdTimeEntry.DetailedElapsed}", "start.png");
+							this.ShowSuccessMessage($"Started {createdTimeEntry.GetRawDescription(withTrailingSpace: true)}at previous stop time", $"{projectName} | {createdTimeEntry.DetailedElapsed}", IconProvider.StartIcon);
 
 							// Update cached running time entry state
 							this.RefreshCache();
@@ -1410,7 +1410,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					Title = $"Stop {runningTimeEntry.GetDescription()} now",
 					SubTitle = $"{projectName} | {runningTimeEntry.HumanisedElapsed} ({runningTimeEntry.DetailedElapsed})",
-					IcoPath = this._colourIconProvider.GetColourIcon(runningTimeEntry.Project?.Colour, "stop.png"),
+					IcoPath = this._iconProvider.GetColourIcon(runningTimeEntry.Project?.Colour, IconProvider.StopIcon),
 					AutoCompleteText = $"{query.ActionKeyword} {Settings.StopCommand} {runningTimeEntry.GetDescription(escapePotentialSymbols: true)} ",
 					Score = 10000,
 					Action = _ =>
@@ -1431,7 +1431,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									throw new Exception("An API error was encountered.");
 								}
 
-								this.ShowSuccessMessage($"Stopped {stoppedTimeEntry.GetRawDescription()}", $"{runningTimeEntry.DetailedElapsed} elapsed", "stop.png");
+								this.ShowSuccessMessage($"Stopped {stoppedTimeEntry.GetRawDescription()}", $"{runningTimeEntry.DetailedElapsed} elapsed", IconProvider.StopIcon);
 
 								// Update cached running time entry state
 								this.RefreshCache();
@@ -1456,7 +1456,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					Title = Settings.UsageTipTitle,
 					SubTitle = $"Use {Settings.TimeSpanEndFlag} to specify the stop time",
-					IcoPath = "tip.png",
+					IcoPath = IconProvider.UsageTipIcon,
 					AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.TimeSpanEndFlag} ",
 					Score = 1,
 					Action = _ =>
@@ -1488,7 +1488,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					{
 						Title = Settings.UsageExampleTitle,
 						SubTitle = $"{query.ActionKeyword} {Settings.StopCommand} {Settings.TimeSpanEndFlag} -5 mins",
-						IcoPath = "tip.png",
+						IcoPath = IconProvider.UsageExampleIcon,
 						AutoCompleteText = $"{query.ActionKeyword} {query.Search} -5 mins",
 						Score = 100000,
 						Action = _ =>
@@ -1515,7 +1515,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			{
 				Title = $"Stop {runningTimeEntry.GetDescription()} {stopTime.Humanize()} at {stopTime.ToLocalTime().ToString("t")}",
 				SubTitle = $"{projectName} | {newElapsed.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")})",
-				IcoPath = this._colourIconProvider.GetColourIcon(runningTimeEntry.Project?.Colour, "stop.png"),
+				IcoPath = this._iconProvider.GetColourIcon(runningTimeEntry.Project?.Colour, IconProvider.StopIcon),
 				AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
 				Score = 100000,
 				Action = _ =>
@@ -1541,7 +1541,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								throw new Exception("An API error was encountered.");
 							}
 
-							this.ShowSuccessMessage($"Stopped {stoppedTimeEntry.GetRawDescription()}", $"{(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")} elapsed", "stop.png");
+							this.ShowSuccessMessage($"Stopped {stoppedTimeEntry.GetRawDescription()}", $"{(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")} elapsed", IconProvider.StopIcon);
 
 							// Update cached running time entry state
 							this.RefreshCache();
@@ -1606,7 +1606,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					{
 						Title = timeEntry.GetTitle(),
 						SubTitle = $"{project.Project?.WithClientName ?? Settings.NoProjectName} | {timeEntry.HumanisedElapsed}",
-						IcoPath = this._colourIconProvider.GetColourIcon(project.Project?.Colour, "continue.png"),
+						IcoPath = this._iconProvider.GetColourIcon(project.Project?.Colour, IconProvider.ContinueIcon),
 						AutoCompleteText = $"{query.ActionKeyword} {timeEntry.GetTitle(escapeCommands: true, escapePotentialSymbols: true)}",
 						Score = timeEntry.GetScoreByStart(),
 						Action = context =>
@@ -1653,7 +1653,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 										throw new Exception("An API error was encountered.");
 									}
 
-									this.ShowSuccessMessage($"Continued {createdTimeEntry.GetRawDescription()}", project.Project?.WithClientName ?? Settings.NoProjectName, "start.png");
+									this.ShowSuccessMessage($"Continued {createdTimeEntry.GetRawDescription()}", project.Project?.WithClientName ?? Settings.NoProjectName, IconProvider.StartIcon);
 
 									// Update cached running time entry state
 									this.RefreshCache();
@@ -1717,7 +1717,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					Title = timeEntry.GetDescription(),
 					SubTitle = $"{timeEntry.Project?.WithClientName ?? Settings.NoProjectName} | {timeEntry.HumanisedElapsed} ({timeEntry.HumanisedStart})",
-					IcoPath = this._colourIconProvider.GetColourIcon(timeEntry.Project?.Colour, "edit.png"),
+					IcoPath = this._iconProvider.GetColourIcon(timeEntry.Project?.Colour, IconProvider.EditIcon),
 					AutoCompleteText = $"{query.ActionKeyword} {Settings.EditCommand} {timeEntry.GetDescription(escapePotentialSymbols: true)}",
 					Score = timeEntry.GetScoreByStart(),
 					Action = _ =>
@@ -1749,7 +1749,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					projects.Add(new Result
 					{
 						Title = Settings.NoProjectName,
-						IcoPath = "edit.png",
+						IcoPath = IconProvider.EditIcon,
 						AutoCompleteText = $"{query.ActionKeyword} {Settings.EditCommand} {transformedQuery.ReplaceProject(TransformedQuery.PrefixProject(Settings.NoProjectName), escapeIfEmpty: false)}",
 						Score = int.MaxValue - 1000,
 						Action = _ =>
@@ -1774,7 +1774,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						{
 							Title = project.Name,
 							SubTitle = $"{((project.ClientId is not null) ? $"{project.Client!.Name} | " : string.Empty)}{project.ElapsedString}",
-							IcoPath = this._colourIconProvider.GetColourIcon(project.Colour, "edit.png"),
+							IcoPath = this._iconProvider.GetColourIcon(project.Colour, IconProvider.EditIcon),
 							AutoCompleteText = $"{query.ActionKeyword} {Settings.EditCommand} {transformedQuery.ReplaceProject(TransformedQuery.PrefixProject(project.Name), escapeIfEmpty: false)}",
 							Score = index,
 							Action = _ =>
@@ -1799,7 +1799,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					Title = Settings.UsageTipTitle,
 					SubTitle = $"Use {Settings.ProjectPrefix} to edit the project for this time entry",
-					IcoPath = "tip.png",
+					IcoPath = IconProvider.UsageTipIcon,
 					AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.ProjectPrefix}",
 					Score = 100,
 					Action = _ =>
@@ -1825,7 +1825,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					Title = Settings.UsageTipTitle,
 					SubTitle = $"Use {Settings.ClearDescriptionFlag} to quickly clear the description",
-					IcoPath = "tip.png",
+					IcoPath = IconProvider.UsageTipIcon,
 					AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.ClearDescriptionFlag} ",
 					Score = 10,
 					Action = _ =>
@@ -1851,7 +1851,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					Title = Settings.UsageWarningTitle,
 					SubTitle = $"Time entry description will be cleared if nothing is entered!",
-					IcoPath = "tip-warning.png",
+					IcoPath = IconProvider.UsageWarningIcon,
 					AutoCompleteText = $"{query.ActionKeyword} {query.Search} {timeEntry.GetRawDescription(withTrailingSpace: true, escapePotentialSymbols: true)}",
 					Score = 1000,
 					Action = _ =>
@@ -1875,7 +1875,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					{
 						Title = Settings.UsageTipTitle,
 						SubTitle = $"Use {Settings.TimeSpanFlag} after the description to edit the start time",
-						IcoPath = "tip.png",
+						IcoPath = IconProvider.UsageTipIcon,
 						AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.TimeSpanFlag} ",
 						Score = 70,
 						Action = _ =>
@@ -1892,7 +1892,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					{
 						Title = Settings.UsageTipTitle,
 						SubTitle = $"Use {Settings.TimeSpanEndFlag} after the description to edit the stop time",
-						IcoPath = "tip.png",
+						IcoPath = IconProvider.UsageTipIcon,
 						AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.TimeSpanEndFlag} ",
 						Score = 50,
 						Action = _ =>
@@ -1909,7 +1909,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					{
 						Title = Settings.UsageTipTitle,
 						SubTitle = $"Use {Settings.ResumeFlag} to resume this time entry",
-						IcoPath = "tip.png",
+						IcoPath = IconProvider.UsageTipIcon,
 						AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.ResumeFlag} ",
 						Score = 30,
 						Action = _ =>
@@ -1929,7 +1929,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						? timeEntry.GetDescription()
 						: description,
 					SubTitle = $"{projectName} | {timeEntry.HumanisedElapsed} ({timeEntry.DetailedElapsed})",
-					IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "edit.png"),
+					IcoPath = this._iconProvider.GetColourIcon(project?.Colour, IconProvider.EditIcon),
 					AutoCompleteText = $"{query.ActionKeyword} {(string.IsNullOrEmpty(description) ? ($"{query.Search} {timeEntry.GetDescription(escapePotentialSymbols: true)}") : query.Search)} ",
 					Score = int.MaxValue - 1000,
 					Action = _ =>
@@ -1955,7 +1955,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									throw new Exception("An API error was encountered.");
 								}
 
-								this.ShowSuccessMessage($"Edited {editedTimeEntry.GetRawDescription()}", $"{projectName} | {timeEntry.DetailedElapsed}", "edit.png");
+								this.ShowSuccessMessage($"Edited {editedTimeEntry.GetRawDescription()}", $"{projectName} | {timeEntry.DetailedElapsed}", IconProvider.EditIcon);
 
 								// Update cached running time entry state
 								this.RefreshCache();
@@ -2000,7 +2000,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							{
 								Title = pastTimeEntry.GetTitle(),
 								SubTitle = $"{pastProject.Project?.WithClientName ?? Settings.NoProjectName} | {timeEntry.HumanisedElapsed} ({timeEntry.DetailedElapsed})",
-								IcoPath = this._colourIconProvider.GetColourIcon(pastProject.Project?.Colour, "edit.png"),
+								IcoPath = this._iconProvider.GetColourIcon(pastProject.Project?.Colour, IconProvider.EditIcon),
 								AutoCompleteText = $"{query.ActionKeyword} {pastTimeEntry.GetTitle(escapePotentialSymbols: true)}",
 								Score = pastTimeEntry.GetScoreByStart(),
 								Action = _ =>
@@ -2026,7 +2026,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 												throw new Exception("An API error was encountered.");
 											}
 
-											this.ShowSuccessMessage($"Edited {editedTimeEntry.GetRawDescription()}", $"{pastProject.Project?.WithClientName ?? Settings.NoProjectName} | {timeEntry.DetailedElapsed}", "edit.png");
+											this.ShowSuccessMessage($"Edited {editedTimeEntry.GetRawDescription()}", $"{pastProject.Project?.WithClientName ?? Settings.NoProjectName} | {timeEntry.DetailedElapsed}", IconProvider.EditIcon);
 
 											// Update cached running time entry state
 											this.RefreshCache();
@@ -2075,7 +2075,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					{
 						Title = $"{Settings.ErrorPrefix}Conflicting flags",
 						SubTitle = $"You may not use both {Settings.TimeSpanEndFlag} and {Settings.ResumeFlag} at the same time.",
-						IcoPath = "tip-error.png",
+						IcoPath = IconProvider.UsageErrorIcon,
 						AutoCompleteText = $"{query.ActionKeyword} {sanitisedQuery} ",
 						Score = 300000,
 						Action = _ =>
@@ -2120,7 +2120,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							{
 								Title = Settings.UsageExampleTitle,
 								SubTitle = $"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} 5 mins",
-								IcoPath = "tip.png",
+								IcoPath = IconProvider.UsageExampleIcon,
 								AutoCompleteText = $"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanFlag} 5 mins",
 								Score = 100000,
 								Action = _ =>
@@ -2162,7 +2162,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							{
 								Title = Settings.UsageExampleTitle,
 								SubTitle = $"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanEndFlag} 5 mins",
-								IcoPath = "tip.png",
+								IcoPath = IconProvider.UsageExampleIcon,
 								AutoCompleteText = $"{query.ActionKeyword} {queryToFlag} {Settings.TimeSpanEndFlag} 5 mins",
 								Score = 100000,
 								Action = _ =>
@@ -2189,7 +2189,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					{
 						Title = Settings.UsageWarningTitle,
 						SubTitle = $"Time entry description will be cleared if nothing is entered!",
-						IcoPath = "tip-warning.png",
+						IcoPath = IconProvider.UsageWarningIcon,
 						AutoCompleteText = $"{query.ActionKeyword} {query.Search} {timeEntry.GetRawDescription(withTrailingSpace: true, escapePotentialSymbols: true)}",
 						Score = 1000,
 						Action = _ =>
@@ -2216,7 +2216,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						? timeEntry.GetDescription()
 						: sanitisedDescription,
 					SubTitle = $"{projectName} | {newElapsed.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")})",
-					IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "edit.png"),
+					IcoPath = this._iconProvider.GetColourIcon(project?.Colour, IconProvider.EditIcon),
 					AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
 					Score = int.MaxValue - 1000,
 					Action = _ =>
@@ -2244,7 +2244,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									throw new Exception("An API error was encountered.");
 								}
 
-								this.ShowSuccessMessage($"Edited {editedTimeEntry.GetRawDescription()}", $"{projectName} | {(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")}", "edit.png");
+								this.ShowSuccessMessage($"Edited {editedTimeEntry.GetRawDescription()}", $"{projectName} | {(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")}", IconProvider.EditIcon);
 
 								// Update cached running time entry state
 								this.RefreshCache();
@@ -2289,7 +2289,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							{
 								Title = pastTimeEntry.GetTitle(),
 								SubTitle = $"{pastProject.Project?.WithClientName ?? Settings.NoProjectName} | {newElapsed.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")})",
-								IcoPath = this._colourIconProvider.GetColourIcon(pastProject.Project?.Colour, "edit.png"),
+								IcoPath = this._iconProvider.GetColourIcon(pastProject.Project?.Colour, IconProvider.EditIcon),
 								AutoCompleteText = $"{query.ActionKeyword} {pastTimeEntry.GetTitle(escapePotentialSymbols: true)}",
 								Score = pastTimeEntry.GetScoreByStart(),
 								Action = _ =>
@@ -2317,7 +2317,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 												throw new Exception("An API error was encountered.");
 											}
 
-											this.ShowSuccessMessage($"Edited {editedTimeEntry.GetRawDescription()}", $"{pastProject.Project?.WithClientName ?? Settings.NoProjectName} | {(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")}", "edit.png");
+											this.ShowSuccessMessage($"Edited {editedTimeEntry.GetRawDescription()}", $"{pastProject.Project?.WithClientName ?? Settings.NoProjectName} | {(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")}", IconProvider.EditIcon);
 
 											// Update cached running time entry state
 											this.RefreshCache();
@@ -2389,7 +2389,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					Title = timeEntry.GetDescription(),
 					SubTitle = $"{timeEntry.Project?.WithClientName ?? Settings.NoProjectName} | {timeEntry.HumanisedElapsed} ({timeEntry.HumanisedStart})",
-					IcoPath = this._colourIconProvider.GetColourIcon(timeEntry.Project?.Colour, "delete.png"),
+					IcoPath = this._iconProvider.GetColourIcon(timeEntry.Project?.Colour, IconProvider.DeleteIcon),
 					AutoCompleteText = $"{query.ActionKeyword} {Settings.DeleteCommand} {timeEntry.GetDescription(escapePotentialSymbols: true)}",
 					Score = timeEntry.GetScoreByStart(),
 					Action = _ =>
@@ -2413,7 +2413,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				{
 					Title = $"Delete {timeEntry.GetDescription()}",
 					SubTitle = $"{timeEntry.Project?.WithClientName ?? Settings.NoProjectName} | {timeEntry.HumanisedElapsed} ({timeEntry.DetailedElapsed})",
-					IcoPath = this._colourIconProvider.GetColourIcon(timeEntry.Project?.Colour, "delete.png") ,
+					IcoPath = this._iconProvider.GetColourIcon(timeEntry.Project?.Colour, IconProvider.DeleteIcon) ,
 					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.DeleteCommand} {timeEntry.GetDescription(escapePotentialSymbols: true)}",
 					Action = _ =>
 					{
@@ -2433,7 +2433,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									throw new Exception("An API error was encountered.");
 								}
 
-								this.ShowSuccessMessage($"Deleted {timeEntry.GetRawDescription()}", $"{timeEntry.DetailedElapsed} elapsed", "delete.png");
+								this.ShowSuccessMessage($"Deleted {timeEntry.GetRawDescription()}", $"{timeEntry.DetailedElapsed} elapsed", IconProvider.DeleteIcon);
 
 								// Update cached running time entry state
 								this.RefreshCache();
@@ -2606,7 +2606,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					{
 						Title = span.Argument,
 						SubTitle = $"View tracked time report for {span.Interpolation(spanOffset)}",
-						IcoPath = "reports.png",
+						IcoPath = IconProvider.ReportsIcon,
 						AutoCompleteText = $"{query.ActionKeyword} {queryToSpan} {argument} ",
 						Score = span.Score,
 						Action = _ =>
@@ -2645,7 +2645,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									{
 										Title = Settings.UsageExampleTitle,
 										SubTitle = $"{query.ActionKeyword} {queryToSpan} {example}",
-										IcoPath = "tip.png",
+										IcoPath = IconProvider.UsageExampleIcon,
 										AutoCompleteText = $"{query.ActionKeyword} {queryToSpan} {example} ",
 										Score = 300000,
 										Action = _ =>
@@ -2663,7 +2663,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									{
 										Title = $"{Settings.ErrorPrefix}Span is too large",
 										SubTitle = "The reports span must not exceed 1 year.",
-										IcoPath = "tip-error.png",
+										IcoPath = IconProvider.UsageErrorIcon,
 										AutoCompleteText = $"{query.ActionKeyword} {queryToSpan} ",
 										Score = 300000,
 										Action = _ =>
@@ -2681,7 +2681,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									{
 										Title = $"{Settings.ErrorPrefix}Invalid reports span",
 										SubTitle = "The end date must be after the start date.",
-										IcoPath = "tip-error.png",
+										IcoPath = IconProvider.UsageErrorIcon,
 										AutoCompleteText = $"{query.ActionKeyword} {queryToSpan} ",
 										Score = 300000,
 										Action = _ =>
@@ -2701,7 +2701,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						{
 							Title = Settings.UsageTipTitle,
 							SubTitle = "Use [start] or [start]>[end] to specify your own span",
-							IcoPath = "tip.png",
+							IcoPath = IconProvider.UsageTipIcon,
 							AutoCompleteText = $"{query.ActionKeyword} {queryToSpan} {DateTimeOffset.Now.AddDays(-4).ToString("d")}>{DateTimeOffset.Now.ToString("d")} ",
 							Score = 1,
 							Action = _ =>
@@ -2729,7 +2729,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						{
 							Title = Settings.UsageExampleTitle,
 							SubTitle = $"{query.ActionKeyword} {queryToSpan} -1",
-							IcoPath = "tip.png",
+							IcoPath = IconProvider.UsageExampleIcon,
 							AutoCompleteText = $"{query.ActionKeyword} {queryToSpan} -1 ",
 							Score = 100000,
 							Action = _ =>
@@ -2745,7 +2745,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						{
 							Title = Settings.UsageTipTitle,
 							SubTitle = $"Use -[number] to view older reports relative to now",
-							IcoPath = "tip.png",
+							IcoPath = IconProvider.UsageTipIcon,
 							AutoCompleteText = $"{query.ActionKeyword} {queryToSpan} -",
 							Score = 300,
 							Action = _ =>
@@ -2783,7 +2783,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 					// ! see #79... also Flow-Launcher/Flow.Launcher#2201 and Flow-Launcher/Flow.Launcher#2202
 					Title = $"{grouping.Argument}{new string('\u200B', queryToGrouping.Length)}",
 					SubTitle = grouping.Interpolation,
-					IcoPath = "reports.png",
+					IcoPath = IconProvider.ReportsIcon,
 					AutoCompleteText = $"{query.ActionKeyword} {queryToGrouping} {grouping.Argument} ",
 					Score = grouping.Score,
 					Action = _ =>
@@ -2930,7 +2930,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				results.Add(new Result
 				{
 					Title = $"{total.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour)} tracked {reportSpanInterpolation} ({(int)total.TotalHours}:{total.ToString(@"mm\:ss")})",
-					IcoPath = "reports.png",
+					IcoPath = IconProvider.ReportsIcon,
 					AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
 					Score = int.MaxValue - 100000,
 				});
@@ -2956,7 +2956,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 								{
 									Title = group.Project?.Name ?? Settings.NoProjectName,
 									SubTitle = $"{((group.Project?.ClientId is not null) ? $"{group.Project.Client!.Name} | " : string.Empty)}{group.HumanisedElapsed} ({group.DetailedElapsed})",
-									IcoPath = this._colourIconProvider.GetColourIcon(group.Project?.Colour, "reports.png"),
+									IcoPath = this._iconProvider.GetColourIcon(group.Project?.Colour, IconProvider.ReportsIcon),
 									AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} ",
 									Score = group.GetScoreByDuration(),
 									Action = _ =>
@@ -3054,7 +3054,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									SubTitle = (hasShowStopFlag)
 											? $"{timeEntry.DetailedElapsed} ({startDate.ToString("t")} {startDate.ToString("d")} to {stopString})"
 											: $"{timeEntry.DetailedElapsed} ({timeEntry.HumanisedStart} at {startDate.ToString("t")} {startDate.ToString("ddd")} {startDate.ToString("m")})",
-									IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "reports.png"),
+									IcoPath = this._iconProvider.GetColourIcon(project?.Colour, IconProvider.ReportsIcon),
 									AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} {project?.KebabName ?? "no-project"} {timeEntry.GetDescription(escapePotentialSymbols: true)}",
 									Score = timeEntry.GetScoreByStart(),
 									Action = _ =>
@@ -3073,7 +3073,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									// ! see #79... also Flow-Launcher/Flow.Launcher#2201 and Flow-Launcher/Flow.Launcher#2202
 									Title = $"{Settings.UsageTipTitle}{new string('\u200B', subGroupQuery.Length)}",
 									SubTitle = $"Use {Settings.ShowStopFlag} to display time entry stop times",
-									IcoPath = "tip.png",
+									IcoPath = IconProvider.UsageTipIcon,
 									AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.ShowStopFlag} ",
 									Score = 1,
 									Action = _ =>
@@ -3096,7 +3096,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							{
 								Title = subGroup.GetTitle(),
 								SubTitle = $"{subGroup.HumanisedElapsed} ({subGroup.DetailedElapsed})",
-								IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "reports.png"),
+								IcoPath = this._iconProvider.GetColourIcon(project?.Colour, IconProvider.ReportsIcon),
 								AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} {project?.KebabName ?? "no-project"} {subGroup.GetTitle(escapePotentialSymbols: true)}",
 								Score = subGroup.GetScoreByDuration(),
 								Action = _ =>
@@ -3112,7 +3112,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						{
 							// ! see #79... also Flow-Launcher/Flow.Launcher#2201 and Flow-Launcher/Flow.Launcher#2202
 							Title = $"Display {((this._state.ReportsShowDetailed) ? "summary" : "detailed")} report{new string('\u200B', subGroupQuery.Length)}",
-							IcoPath = "reports.png",
+							IcoPath = IconProvider.ReportsIcon,
 							AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
 							Score = int.MaxValue - 1000,
 							Action = _ =>
@@ -3129,7 +3129,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							SubTitle = (!string.IsNullOrEmpty(subGroupQuery))
 								? $"{project?.WithClientName ?? Settings.NoProjectName} | {subGroupQuery}"
 								: project?.WithClientName ?? Settings.NoProjectName,
-							IcoPath = "reports.png",
+							IcoPath = IconProvider.ReportsIcon,
 							AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
 							Score = int.MaxValue - 100000,
 						});
@@ -3153,7 +3153,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									{
 										Title = group.Client?.Name ?? Settings.NoClientName,
 										SubTitle = $"{group.HumanisedElapsed} ({group.DetailedElapsed})",
-										IcoPath = this._colourIconProvider.GetColourIcon(longestProject?.Colour, "reports.png"),
+										IcoPath = this._iconProvider.GetColourIcon(longestProject?.Colour, IconProvider.ReportsIcon),
 										AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} ",
 										Score = group.GetScoreByDuration(),
 										Action = _ =>
@@ -3198,7 +3198,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							{
 								Title = project?.Name ?? Settings.NoProjectName,
 								SubTitle = $"{((client?.Id is not null) ? $"{client.Name} | " : string.Empty)}{subGroup.HumanisedElapsed} ({subGroup.DetailedElapsed})",
-								IcoPath = this._colourIconProvider.GetColourIcon(project?.Colour, "reports.png"),
+								IcoPath = this._iconProvider.GetColourIcon(project?.Colour, IconProvider.ReportsIcon),
 								AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} {client?.KebabName ?? "no-client"} ",
 								Score = subGroup.GetScoreByDuration(),
 								Action = _ =>
@@ -3223,7 +3223,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							{
 								Title = $"{selectedClientGroup.HumanisedElapsed} tracked {reportSpanInterpolation} ({selectedClientGroup.DetailedElapsed})",
 								SubTitle = client?.Name ?? Settings.NoClientName,
-								IcoPath = "reports.png",
+								IcoPath = IconProvider.ReportsIcon,
 								AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
 								Score = int.MaxValue - 100000,
 							});
@@ -3304,7 +3304,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									SubTitle = (hasShowStopFlag)
 										? $"{timeEntry.DetailedElapsed} ({startDate.ToString("t")} {startDate.ToString("d")} to {stopString})"
 										: $"{timeEntry.DetailedElapsed} ({timeEntry.HumanisedStart} at {startDate.ToString("t")} {startDate.ToString("ddd")} {startDate.ToString("m")})",
-									IcoPath = this._colourIconProvider.GetColourIcon(timeEntry.Project?.Colour, "reports.png"),
+									IcoPath = this._iconProvider.GetColourIcon(timeEntry.Project?.Colour, IconProvider.ReportsIcon),
 									AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} {timeEntry.GetDescription(escapePotentialSymbols: true)}",
 									Score = timeEntry.GetScoreByStart(),
 									Action = _ =>
@@ -3323,7 +3323,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 									// ! see #79... also Flow-Launcher/Flow.Launcher#2201 and Flow-Launcher/Flow.Launcher#2202
 									Title = $"{Settings.UsageTipTitle}{new string('\u200B', groupQuery.Length)}",
 									SubTitle = $"Use {Settings.ShowStopFlag} to display time entry stop times",
-									IcoPath = "tip.png",
+									IcoPath = IconProvider.UsageTipIcon,
 									AutoCompleteText = $"{query.ActionKeyword} {query.Search} {Settings.ShowStopFlag} ",
 									Score = 1,
 									Action = _ =>
@@ -3351,7 +3351,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 							{
 								Title = subGroup.GetTitle(),
 								SubTitle = $"{subGroup.Group.Project?.WithClientName ?? Settings.NoProjectName} | {subGroup.HumanisedElapsed} ({subGroup.DetailedElapsed})",
-								IcoPath = this._colourIconProvider.GetColourIcon(subGroup.Group.Project?.Colour, "reports.png"),
+								IcoPath = this._iconProvider.GetColourIcon(subGroup.Group.Project?.Colour, IconProvider.ReportsIcon),
 								AutoCompleteText = $"{query.ActionKeyword} {Settings.ReportsCommand} {spanArgument} {groupingArgument} {subGroup.GetTitle(escapePotentialSymbols: true)}",
 								Score = subGroup.GetScoreByDuration(),
 								Action = _ =>
@@ -3367,7 +3367,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						{
 							// ! see #79... also Flow-Launcher/Flow.Launcher#2201 and Flow-Launcher/Flow.Launcher#2202
 							Title = $"Display {((this._state.ReportsShowDetailed) ? "summary" : "detailed")} report{new string('\u200B', groupQuery.Length)}",
-							IcoPath = "reports.png",
+							IcoPath = IconProvider.ReportsIcon,
 							AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
 							Score = int.MaxValue - 1000,
 							Action = _ =>
@@ -3382,7 +3382,7 @@ namespace Flow.Launcher.Plugin.TogglTrack
 						{
 							Title = $"{total.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour)} tracked {reportSpanInterpolation} ({(int)total.TotalHours}:{total.ToString(@"mm\:ss")})",
 							SubTitle = groupQuery,
-							IcoPath = "reports.png",
+							IcoPath = IconProvider.ReportsIcon,
 							AutoCompleteText = $"{query.ActionKeyword} {query.Search} ",
 							Score = int.MaxValue - 100000,
 						});

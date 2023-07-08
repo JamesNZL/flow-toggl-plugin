@@ -5,7 +5,7 @@ using System.IO;
 
 namespace Flow.Launcher.Plugin.TogglTrack
 {
-	public class ColourIconProvider
+	public class IconProvider
 	{
 		private static readonly int IMAGE_SIZE = 32;
 		private static readonly int CIRCLE_SIZE = 20;
@@ -13,7 +13,22 @@ namespace Flow.Launcher.Plugin.TogglTrack
 		private PluginInitContext _context { get; set; }
 		private DirectoryInfo? _coloursDirectory { get; set; }
 
-		public ColourIconProvider(PluginInitContext context)
+		internal const string UsageTipIcon = "tip.png";
+		internal const string UsageExampleIcon = IconProvider.UsageTipIcon;
+		internal const string UsageWarningIcon = "tip-warning.png";
+		internal const string UsageErrorIcon = "tip-error.png";
+
+		internal const string StartIcon = "start.png";
+		internal const string ContinueIcon = "continue.png";
+		internal const string StopIcon = "stop.png";
+		internal const string EditIcon = "edit.png";
+		internal const string DeleteIcon = "delete.png";
+		internal const string ReportsIcon = "reports.png";
+		internal const string BrowserIcon = "browser.png";
+		internal const string HelpIcon = IconProvider.UsageTipIcon;
+		internal const string RefreshIcon = "refresh.png";
+
+		public IconProvider(PluginInitContext context)
 		{
 			this._context = context;
 
@@ -30,15 +45,15 @@ namespace Flow.Launcher.Plugin.TogglTrack
 
 		private string CreateCacheImage(string path, string colourCode)
 		{
-			using (var bitmap = new Bitmap(ColourIconProvider.IMAGE_SIZE, ColourIconProvider.IMAGE_SIZE))
+			using (var bitmap = new Bitmap(IconProvider.IMAGE_SIZE, IconProvider.IMAGE_SIZE))
 			using (var graphics = Graphics.FromImage(bitmap))
 			{
 				var colour = ColorTranslator.FromHtml(colourCode);
 				graphics.Clear(Color.Transparent);
 				graphics.SmoothingMode = SmoothingMode.AntiAlias;
 
-				int centre = (ColourIconProvider.IMAGE_SIZE - ColourIconProvider.CIRCLE_SIZE) / 2;
-				graphics.FillEllipse(new SolidBrush(colour), centre, centre, ColourIconProvider.CIRCLE_SIZE, ColourIconProvider.CIRCLE_SIZE);
+				int centre = (IconProvider.IMAGE_SIZE - IconProvider.CIRCLE_SIZE) / 2;
+				graphics.FillEllipse(new SolidBrush(colour), centre, centre, IconProvider.CIRCLE_SIZE, IconProvider.CIRCLE_SIZE);
 
 				bitmap.Save(path, ImageFormat.Png);
 				return path;

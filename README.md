@@ -83,9 +83,10 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 # Command Reference
 
 > **Note**  
-> This command reference applies to version `v4.0.0-1`.  
+> This command reference applies to version `v4.0.0-2`.  
 
 **Older Versions**:
+- [`v4.0.0-1`](https://github.com/JamesNZL/flow-toggl-plugin/tree/v4.0.0-1#command-reference)
 - [`v4.0.0-0`](https://github.com/JamesNZL/flow-toggl-plugin/tree/5d54beec1ad4917c2d7f4cae14d23a4fecb6176d#command-reference)
 - [`v3.0.1`](https://github.com/JamesNZL/flow-toggl-plugin/tree/9be3a06727104b3bed38e8011e9e4a8073eec0e0#command-reference)
 - [`v3.0.0`](https://github.com/JamesNZL/flow-toggl-plugin/tree/25611682dd63d0eef2a2e337f94309eca00cb0a4#command-reference) (created command reference)
@@ -131,8 +132,20 @@ When the plugin is triggered with no further input, the list of results will con
 
 ![`tgl` with no input](assets/screenshots/tgl/empty-query.png)
 
+#### `tgl [exact partial command name]`
+When followed by an exact match for the start of any recognised command name, the list of results will contain all the executable commands which fuzzy match the query.
+This allows you to search for plugin commands without the list of results being flooded by past time entry suggestions.
+
+![`tgl` with a partial command name and fuzzy results](assets/screenshots/tgl/partial-command-name-fuzzy.png)
+
+![`tgl` with a partial command name](assets/screenshots/tgl/partial-command-name.png)
+
+> **Note**  
+> To create a new time entry that starts with a partial command name, you may escape the partial command with a backslash (`\`) character.  
+> ![`tgl` with an escaped partial command name](assets/screenshots/tgl/escaped-partial-command-name.png)
+
 #### `tgl [command name]`
-When followed by a recognised command name, the respective command will be auto-triggered and the list of results will contain its respective actions.
+When followed by a full recognised command name, the respective command will be auto-triggered and the list of results will contain its respective actions.
 
 ![`tgl` with a command name](assets/screenshots/tgl/command-name.png)
 

@@ -4,7 +4,7 @@
 	"Name": "Toggl Track",
 	"Description": "A time tracking plugin for Flow Launcher using Toggl Track",
 	"Author": "JamesNZL",
-	"Version": "4.0.0-2",
+	"Version": "4.0.0",
 	"Language": "csharp",
 	"Website": "https://github.com/JamesNZL/flow-toggl-plugin",
 	"IcoPath": "app.png",

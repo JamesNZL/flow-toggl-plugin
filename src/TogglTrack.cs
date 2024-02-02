@@ -732,6 +732,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			results.Add(new Result
 			{
 				Title = $"Stop {runningTimeEntry.GetDescription()}",
+				TitleHighlightData = (runningTimeEntry.GetDescription() == Settings.EmptyDescription)
+					? new List<int>()
+					: Enumerable.Range("Stop ".Length, runningTimeEntry.GetDescription().Length).ToList(),
 				SubTitle = $"{runningTimeEntry.Project?.WithClientName ?? Settings.NoProjectName} | {runningTimeEntry.HumanisedElapsed} ({runningTimeEntry.DetailedElapsed})",
 				IcoPath = this._iconProvider.GetColourIcon(runningTimeEntry.Project?.Colour, IconProvider.StopIcon),
 				AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.StopCommand} ",
@@ -1122,6 +1125,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				results.Add(new Result
 				{
 					Title = $"Start {((string.IsNullOrEmpty(description) ? Settings.EmptyTimeEntry : description))} now",
+					TitleHighlightData = (string.IsNullOrEmpty(description))
+						? new List<int>()
+						: Enumerable.Range("Start ".Length, description.Length).ToList(),
 					SubTitle = projectName,
 					IcoPath = this._iconProvider.GetColourIcon(project?.Colour, IconProvider.StartIcon),
 					AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
@@ -1244,6 +1250,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				results.Add(new Result
 				{
 					Title = $"Start {((string.IsNullOrEmpty(sanitisedDescription) ? Settings.EmptyTimeEntry : sanitisedDescription))} {startTime.Humanize()} at {startTime.ToLocalTime().ToString("t")}",
+					TitleHighlightData = (string.IsNullOrEmpty(sanitisedDescription))
+						? new List<int>()
+						: Enumerable.Range("Start ".Length, sanitisedDescription.Length).ToList(),
 					SubTitle = projectName,
 					IcoPath = this._iconProvider.GetColourIcon(project?.Colour, IconProvider.StartIcon),
 					AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
@@ -1320,6 +1329,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			results.Add(new Result
 			{
 				Title = $"Start {((string.IsNullOrEmpty(description) ? Settings.EmptyTimeEntry : description))} {likelyPastTimeEntry.HumanisedStop} at previous stop time",
+				TitleHighlightData = (string.IsNullOrEmpty(description))
+					? new List<int>()
+					: Enumerable.Range("Start ".Length, description.Length).ToList(),
 				SubTitle = projectName,
 				IcoPath = this._iconProvider.GetColourIcon(project?.Colour, IconProvider.StartIcon),
 				AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
@@ -1414,6 +1426,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				results.Add(new Result
 				{
 					Title = $"Stop {runningTimeEntry.GetDescription()} now",
+					TitleHighlightData = (runningTimeEntry.GetDescription() == Settings.EmptyDescription)
+						? new List<int>()
+						: Enumerable.Range("Stop ".Length, runningTimeEntry.GetDescription().Length).ToList(),
 					SubTitle = $"{projectName} | {runningTimeEntry.HumanisedElapsed} ({runningTimeEntry.DetailedElapsed})",
 					IcoPath = this._iconProvider.GetColourIcon(runningTimeEntry.Project?.Colour, IconProvider.StopIcon),
 					AutoCompleteText = $"{query.ActionKeyword} {Settings.StopCommand} {runningTimeEntry.GetDescription(escapePotentialSymbols: true)} ",
@@ -1519,6 +1534,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 			results.Add(new Result
 			{
 				Title = $"Stop {runningTimeEntry.GetDescription()} {stopTime.Humanize()} at {stopTime.ToLocalTime().ToString("t")}",
+				TitleHighlightData = (runningTimeEntry.GetDescription() == Settings.EmptyDescription)
+					? new List<int>()
+					: Enumerable.Range("Stop ".Length, runningTimeEntry.GetDescription().Length).ToList(),
 				SubTitle = $"{projectName} | {newElapsed.Humanize(minUnit: Humanizer.Localisation.TimeUnit.Second, maxUnit: Humanizer.Localisation.TimeUnit.Hour)} ({(int)newElapsed.TotalHours}:{newElapsed.ToString(@"mm\:ss")})",
 				IcoPath = this._iconProvider.GetColourIcon(runningTimeEntry.Project?.Colour, IconProvider.StopIcon),
 				AutoCompleteText = $"{query.ActionKeyword} {query.Search}",
@@ -2417,6 +2435,9 @@ namespace Flow.Launcher.Plugin.TogglTrack
 				new Result
 				{
 					Title = $"Delete {timeEntry.GetDescription()}",
+					TitleHighlightData = (timeEntry.GetDescription() == Settings.EmptyDescription)
+						? new List<int>()
+						: Enumerable.Range("Delete ".Length, timeEntry.GetDescription().Length).ToList(),
 					SubTitle = $"{timeEntry.Project?.WithClientName ?? Settings.NoProjectName} | {timeEntry.HumanisedElapsed} ({timeEntry.DetailedElapsed})",
 					IcoPath = this._iconProvider.GetColourIcon(timeEntry.Project?.Colour, IconProvider.DeleteIcon) ,
 					AutoCompleteText = $"{this._context.CurrentPluginMetadata.ActionKeyword} {Settings.DeleteCommand} {timeEntry.GetDescription(escapePotentialSymbols: true)}",

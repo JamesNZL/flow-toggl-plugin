@@ -45,7 +45,6 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 
 - Powerful, speed-optimised interface
 - Auto-complete for any time entry started within the last 366 days
-  > [!note]  
   > This is *significantly* longer than the ~1 month of Toggl's own interface!
 - Support for projects, clients, and workspaces
 - Coloured icons for projects
@@ -85,7 +84,7 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 
 # Command Reference
 
-> **Note**  
+> [!NOTE]
 > This command reference applies to version `v4.1.0`.  
 
 **Older Versions**:
@@ -127,12 +126,12 @@ When the plugin is triggered with no further input, the list of results will con
 2. `Start an empty time entry [x time] ago at previous stop time`, and
 3. A list of currently executable commands.
 
-> **Note**  
+> [!NOTE]
 > The `previous stop time` action is only available if:
 > 1. There is a past time entry, and
 > 2. There is no currently running time entry.
 
-> **Note**  
+> [!NOTE]
 > Relevant `Usage Tip`s will also be displayed if `Show Usage Results: Tips` is enabled in the plugin settings.
 
 ![`tgl` with no input](assets/screenshots/tgl/empty-query.png)
@@ -145,7 +144,7 @@ This allows you to search for plugin commands without the list of results being 
 
 ![`tgl` with a partial command name](assets/screenshots/tgl/partial-command-name.png)
 
-> **Note**  
+> [!NOTE]
 > To create a new time entry that starts with a partial command name, you may escape the partial command with a backslash (`\`) character.  
 > ![`tgl` with an escaped partial command name](assets/screenshots/tgl/escaped-partial-command-name.png)
 
@@ -154,7 +153,7 @@ When followed by a full recognised command name, the respective command will be 
 
 ![`tgl` with a command name](assets/screenshots/tgl/command-name.png)
 
-> **Note**  
+> [!NOTE]
 > To create a new time entry that starts with a command name, you may escape the command with a backslash (`\`) character.  
 > ![`tgl` with an escaped command name](assets/screenshots/tgl/escaped-command-name.png)
 
@@ -165,12 +164,12 @@ When followed by anything other than a command name, the list of results will co
 3. A list of past time entries whose descriptions fuzzy match the `...` query, and
 4. A list of currently executable commands that fuzzy match the `...` query.
 
-> **Note**  
+> [!NOTE]
 > The `previous stop time` action is only available if:
 > 1. There is a past time entry, and
 > 2. There is no currently running time entry.
 
-> **Note**  
+> [!NOTE]
 > Relevant `Usage Tip`s will also be displayed if `Show Usage Results: Tips` is enabled in the plugin settings.
 
 ![`tgl` with a fuzzy query](assets/screenshots/tgl/fuzzy-query.png)
@@ -188,7 +187,7 @@ When followed by anything other than a command name, the list of results will co
 ### Description
 > :memo: Start a new time entry.
 
-> **Note**  
+> [!NOTE]
 > This command exists at the top-level and does not have a command name (ie no `tgl start`).
 
 ### Usage Examples
@@ -214,12 +213,12 @@ When followed by anything other than a command name, the list of results will co
 | Quick-Start from Project Selection | `Alt`        | Instantly start the new time entry directly from the project selection screen | `tgl Release v4.0.0@flow-toggl` > `Alt` + `Enter` |
 
 ### Notes and Warnings
-> **Note**  
+> [!NOTE]
 > 1. Any currently running time entry will first be stopped before starting the new time entry to prevent overlapping entries (mimics Toggl Track behaviour)
 > 2. If a time entry is not currently running, there will be an option to start the new time entry at the previous stop time (if one exists).
 > 3. To include a command symbol/flag in your time entry description, you can escape it with a backslash (`\`), eg `tgl Email james\@jamesnzl.xyz \-t -t -5`
 
-> **Warning**  
+> [!IMPORTANT]
 > 1. The `Time Span` flag must be the entered after the time entry description. Anything entered after the `-t` flag will be ignored.
 > 2. Due to a current [Flow Launcher bug](https://github.com/Flow-Launcher/Flow.Launcher/issues/2191), the `Alt` quick-start will execute if you use the `Alt` + `number` hotkey to select a project. This can be circumvented for the time being by changing your `Open Result Modifier Key` to `Ctrl` in the Flow `Hotkey` settings.
 
@@ -241,7 +240,7 @@ When followed by anything other than a command name, the list of results will co
 ### Description
 > :memo: Continue a previous time entry.
 
-> **Note**  
+> [!NOTE]
 > This command exists at the top-level and does not have a command name (ie no `tgl continue`).
 
 ### Usage Examples
@@ -258,7 +257,7 @@ When followed by anything other than a command name, the list of results will co
 | Quick-Start without editing | `Alt`        | Instantly continue the time entry without confirmation | `tgl [past time entry]` > Highlight result > `Alt` + `Enter` |
 
 ### Notes
-> **Note**  
+> [!NOTE]
 > 1. The default behaviour is to autofill the time entry description/project for `start`.
 > 2. The list is guaranteed to contain all time entries tracked within the preceeding 12 months.
 
@@ -285,7 +284,7 @@ When followed by anything other than a command name, the list of results will co
 | End Time Span | `-T` | Offset the stopping time of the current time entry with a specified time span | `-T -30 seconds` |
 
 ### Notes
-> **Note**  
+> [!NOTE]
 > 1. This command is only available if there is a currently running time entry.
 > 2. Typing the time entry name (or anything else, other than the `End Time Span` flag) has no effect.
 
@@ -318,16 +317,15 @@ When followed by anything other than a command name, the list of results will co
 | Clear Description | `-C` | Empty the time entry description from the Flow search bar                      | `-C`             |
 
 ### Notes and Warnings
-> **Note**  
+> [!NOTE]
 > 1. If an `End Time Span` is specified, the time entry will be stopped (if it is currently running).
 > 2. The `End Time Span` and `Resume Time Entry` flags are mutually exclusive (cannot be used together).
 > 3. The `Clear Description` flag will only empty the time entry description from the Flow search bar, so a replacement can be input quickly.
->    > **Note**  
 >    > To actually clear a time entry's description, use the `Clear Description` flag then hit the `Enter` action key to save.
 > 4. `tgl edit` will use the entered description to perform a fuzzy match against all previously tracked time entries (within the past 12 months), allowing you to quickly apply a previous time entry's description/project/etc.
 > 5. To include a command symbol/flag in your time entry description, you can escape it with a backslash (`\`), eg `tgl edit Email james\@jamesnzl.xyz \-t \-T \-C`
 
-> **Warning**  
+> [!IMPORTANT]
 > 1. The `Time Span`/`End Time Span` flags must be the entered after the time entry description. Anything entered after the flag(s) will be ignored.
 > 2. The list of editable time entries will only contain up to `1000` of the most-recent time entries due to Toggl limitations.
 
@@ -351,7 +349,7 @@ When followed by anything other than a command name, the list of results will co
 - `tgl delete [previous time entry description]`
 
 ### Notes
-> **Note**  
+> [!NOTE]
 > 1. Typing anything on the deletion confirmation page (ie after selecting a time entry) has no effect.
 
 ### Screenshots
@@ -386,7 +384,7 @@ When followed by anything other than a command name, the list of results will co
 | To End Date        | `[start]>[end]`   | The separator between the `[start]` and the `[end]` of the arbitrary span | `21/9>21/10` |
 
 ### Notes and Warnings
-> **Note**  
+> [!NOTE]
 > 1. Arbitrary date(s) are parsed according to your system locale (eg for `en-US`, your format of `MM/dd` will be used instead).
 > 2. Date parsing is done by the built-in `DateTimeOffset.TryParse` method. Read about what it supports [here](https://learn.microsoft.com/en-us/dotnet/api/system.datetime.parse?view=net-7.0#the-string-to-parse) and [here](https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset.tryparse?view=net-7.0#system-datetimeoffset-tryparse(system-string-system-datetimeoffset@)).
 > 3. Toggl's reports API only supports start/end *dates*—any time components of the parsed span will be lost and reduced to `00:00:00` for both dates.
@@ -395,7 +393,7 @@ When followed by anything other than a command name, the list of results will co
 > 6. Selecting a time entry will autofill the `tgl start` command.
 > 7. To include `'-S'` in your fuzzy search, you can escape it with a backslash—eg `tgl reports day entries \-S`
 
-> **Warning**  
+> [!IMPORTANT]
 > 1. The `[end]` date must be after the `[start]` date.
 > 2. The arbitrary report span must not exceed one year (Toggl API limitation).
 
@@ -448,7 +446,7 @@ When followed by anything other than a command name, the list of results will co
 - `tgl help`
 
 ### Notes
-> **Note**  
+> [!NOTE]
 > 1. This command simply opens this `README` file to [Command Reference](#command-reference).
 
 ---
@@ -462,7 +460,7 @@ When followed by anything other than a command name, the list of results will co
 - `tgl refresh`
 
 ### Notes
-> **Note**  
+> [!NOTE]
 > 1. This command should only rarely need to be used, as the cache is automatically cleared after what should be quite sane cache expiration periods.
 > 2. The exception is for any changes made in [Toggl Track](https://track.toggl.com/timer) to the following, as these are cached for up to `3` days:
 >    1. Project names/colours/clients,

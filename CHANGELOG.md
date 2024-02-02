@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [4.1.0](https://github.com/JamesNZL/flow-toggl-plugin/compare/v4.0.0...v4.1.0) (2024-02-02)
+
+
+### Features
+
+* **ux:** :sparkles: highlight interpolated time entry description ([#117](https://github.com/JamesNZL/flow-toggl-plugin/issues/117)) ([10f4289](https://github.com/JamesNZL/flow-toggl-plugin/commit/10f4289c59d25f6f4ec38bc56c5dbeead5ce3eba))
+
 ## [4.0.0](https://github.com/JamesNZL/flow-toggl-plugin/compare/v4.0.0-2...v4.0.0) (2023-07-09)
 
 ## [4.0.0-2](https://github.com/JamesNZL/flow-toggl-plugin/compare/v4.0.0-1...v4.0.0-2) (2023-07-08)

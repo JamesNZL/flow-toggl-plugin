@@ -86,9 +86,10 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 # Command Reference
 
 > **Note**  
-> This command reference applies to version `v4.0.0`.  
+> This command reference applies to version `v4.1.0`.  
 
 **Older Versions**:
+- [`v4.0.0`](https://github.com/JamesNZL/flow-toggl-plugin/tree/v4.0.0#command-reference)
 - [`v4.0.0-2`](https://github.com/JamesNZL/flow-toggl-plugin/tree/v4.0.0-2#command-reference)
 - [`v4.0.0-1`](https://github.com/JamesNZL/flow-toggl-plugin/tree/v4.0.0-1#command-reference)
 - [`v4.0.0-0`](https://github.com/JamesNZL/flow-toggl-plugin/tree/5d54beec1ad4917c2d7f4cae14d23a4fecb6176d#command-reference)

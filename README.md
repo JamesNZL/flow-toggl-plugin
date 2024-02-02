@@ -45,7 +45,7 @@ A performant [Toggl Track](https://track.toggl.com/timer) plugin for [Flow Launc
 
 - Powerful, speed-optimised interface
 - Auto-complete for any time entry started within the last 366 days
-  > [!note]  
+  > **Note**  
   > This is *significantly* longer than the ~1 month of Toggl's own interface!
 - Support for projects, clients, and workspaces
 - Coloured icons for projects
